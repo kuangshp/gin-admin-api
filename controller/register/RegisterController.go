@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"gin_admin_api/common"
 	"gin_admin_api/dto"
+	"gin_admin_api/model"
 	"gin_admin_api/response"
+	"gin_admin_api/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +26,15 @@ func Register(c *gin.Context) {
 		return
 	}
 	// 3.将数据插入到数据库中
-	account := dto.ToRegisterAccountModel(registerDto)
+	newPassword, err := utils.GeneratePassword(registerDto.Password)
+	if err != nil {
+		response.Fail(c, "密码加密错误")
+		return
+	}
+	account := model.Account{
+		UserName: registerDto.UserName,
+		Password: newPassword,
+	}
 	tx := common.DB.Create(&account)
 	fmt.Println(tx.RowsAffected, tx.Error)
 	if tx.RowsAffected > 0 {
