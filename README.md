@@ -155,7 +155,6 @@
   	...
   }
   ```
-  
 
 ## 四、初始化`gorm`数据库连接工具
 
@@ -265,4 +264,159 @@
   }
   ```
 
+
+## 五、在`gin`中使用路由分组实现路由管理
+
+* 1、创建一个`route`的文件夹，里面负责收集全部控制器下的路由
+
+  ```go
+  package route
   
+  import (
+  	"gin_admin_api/controller/account"
+  	"gin_admin_api/controller/login"
+  	"gin_admin_api/controller/register"
+  	"gin_admin_api/middleware"
+  	"github.com/gin-gonic/gin"
+  )
+  
+  func CollectRoute(router *gin.Engine) {
+  	// 创建账号路由分组,先忽视中间件的存在
+  	accountGroup := router.Group("/account", middleware.AuthMiddleWare())
+  	account.AccountRouter(accountGroup)
+  	// 登录的路由
+  	loginGroup := router.Group("/login")
+  	login.LoginRouter(loginGroup)
+   
+  	registerGroup := router.Group("/register")
+  	register.RegisterRouter(registerGroup)
+  }
+  ```
+
+* 2、比如登录的路由
+
+  ```go
+  package login
+  
+  import (
+  	"github.com/gin-gonic/gin"
+  )
+  
+  func LoginRouter(router *gin.RouterGroup) {
+  	router.POST("/", Login)
+  }
+  ```
+
+* 3、在`main.go`中使用路由组
+
+  ```go
+  func main() {
+  	router := gin.Default()
+  	// 注册路由组
+  	route.CollectRoute(router)
+    ...
+  }
+  ```
+
+## 六、使用数据校验实现用户注册
+
+* 1、在控制器下创建一个`dto`的文件,专门用来接收前端传递过来的数据
+
+  ```go
+  package dto
+  
+  import (
+  	"fmt"
+  	"gin_admin_api/model"
+  	"github.com/go-playground/validator"
+  	"unicode/utf8"
+  )
+  var valildate *validator.Validate
+  
+  func init() {
+  	valildate = validator.New()
+  	valildate.RegisterValidation("checkName", CheckNameFunc)
+  }
+  
+  //定义注册的结构体(前端需要发送的数据结构)
+  type RegisterDto struct {
+  	UserName string `validate:"required,checkName" json:"username"`
+  	Password string `validate:"required" json:"password"`
+  }
+  
+  // 自定义校验器校验用户名
+  func CheckNameFunc(f validator.FieldLevel) bool {
+  	count := utf8.RuneCountInString(f.Field().String())
+  	if count >= 2 && count <= 12 {
+  		return true
+  	} else {
+  		return false
+  	}
+  }
+  
+  // 定义校验数据的方法
+  func ValidatorRegister(account RegisterDto) error {
+  	err := valildate.Struct(account)
+  	if err != nil {
+  		// 输出校验错误 .(validator.ValidationErrors)是断言
+  		for _, e := range err.(validator.ValidationErrors)[:1] {
+  			fmt.Println("错误字段:", e.Field())
+  			fmt.Println("错误的值:", e.Value())
+  			fmt.Println("错误的tag:", e.Tag())
+  		}
+  		return err
+  	} else {
+  		return nil
+  	}
+  }
+  ```
+
+* 2、在控制器中实现将前端传递过来的数据插入到数据库中
+
+  ```go
+  // 用户注册账号
+  func Register(c *gin.Context) {
+  	// 1.获取前端传递过来的数据
+  	var registerDto dto.RegisterDto
+  	err := c.Bind(&registerDto)
+  	if err != nil {
+  		response.Fail(c, "解析前端传递的数据错误")
+  		return
+  	}
+  	// 2.对前端传递过来的数据进行校验
+  	err = dto.ValidatorRegister(registerDto)
+  	if err != nil {
+  		response.Fail(c, "数据校验错误")
+  		return
+  	}
+  	// 3.将数据插入到数据库中
+  	newPassword, err := utils.GeneratePassword(registerDto.Password)
+  	if err != nil {
+  		response.Fail(c, "密码加密错误")
+  		return
+  	}
+    // 4.组装成数据模型的数据结构
+  	account := model.Account{
+  		UserName: registerDto.UserName,
+  		Password: newPassword,
+  	}
+  	tx := common.DB.Create(&account)
+  	fmt.Println(tx.RowsAffected, tx.Error)
+  	if tx.RowsAffected > 0 {
+  		response.Success(c, nil)
+  	} else {
+  		response.Fail(c, "插入数据错误")
+  	}
+  }
+  ```
+
+* 3、关于密码加密和解密，可以参考`utils`里面的方法
+* 4、查看数据库是否插入成功
+
+## 七、关于中间件的使用
+
+* 1、登录中间件可以参考文章[链接地址](https://blog.csdn.net/kuangshp128/article/details/116023080)
+* 2、跨域中间件比较固定，可以直接百度或者参考我百度的数据
+
+
+

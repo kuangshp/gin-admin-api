@@ -1,7 +1,7 @@
 package login
 
 import (
-"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 func LoginRouter(router *gin.RouterGroup) {
