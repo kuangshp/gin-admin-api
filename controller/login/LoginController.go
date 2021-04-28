@@ -30,7 +30,17 @@ func Login(c *gin.Context) {
 	if first.Error == nil {
 		// 对账号和密码校验
 		if isOk, _ := utils.CheckPassword(account.Password, loginDto.Password); isOk {
-			response.Success(c, nil)
+			// 生成token返回给前端
+			hmacUser := common.HmacUser{
+				Id: int(account.ID),
+				Username: account.UserName,
+			}
+			if token, err := common.GenerateToken(hmacUser); err == nil {
+				response.Success(c, gin.H{
+					"token": token,
+					"username": account.UserName,
+				})
+			}
 		} else {
 			response.Fail(c, "账号或密码错误")
 		}
