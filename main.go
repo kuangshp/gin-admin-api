@@ -5,22 +5,20 @@ import (
 	"gin_admin_api/common"
 	_ "gin_admin_api/common"
 	"gin_admin_api/model"
+	"gin_admin_api/route"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"net/http"
 )
 
-func init()  {
+func init() {
 	common.DB.AutoMigrate(&model.Account{})
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 1,
-		})
-	})
+	// 注册路由组
+	route.CollectRoute(router)
+
 	port := viper.GetString("server.port")
 	fmt.Println("当前端口", port)
 	if port != "" {
@@ -29,5 +27,3 @@ func main() {
 		router.Run()
 	}
 }
-
-
