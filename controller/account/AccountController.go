@@ -12,7 +12,7 @@ import (
 func AccountList(c *gin.Context) {
 	// 定义一个切片来存储查询出来的数据
 	account := make([]model.Account, 10)
-	tx := common.DB.Find(&account)
+	tx := common.DB.Select([]string{"id", "user_name", "mobile", "created_at", "updated_at"}).Find(&account)
 	if tx.Error != nil {
 		response.Fail(c, "查询数据错误")
 		fmt.Println(tx.Error)
