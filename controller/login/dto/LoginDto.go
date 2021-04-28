@@ -2,12 +2,15 @@ package dto
 
 import (
 	"fmt"
+	dto "gin_admin_api/controller/register/dto"
 	"github.com/go-playground/validator"
 )
 
+var valildate *validator.Validate
+
 func init() {
 	valildate = validator.New()
-	valildate.RegisterValidation("checkName", checkNameFunc)
+	valildate.RegisterValidation("checkName", dto.CheckNameFunc)
 }
 
 type LoginDto struct {

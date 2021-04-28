@@ -3,7 +3,7 @@ package register
 import (
 	"fmt"
 	"gin_admin_api/common"
-	"gin_admin_api/dto"
+	"gin_admin_api/controller/register/dto"
 	"gin_admin_api/model"
 	"gin_admin_api/response"
 	"gin_admin_api/utils"

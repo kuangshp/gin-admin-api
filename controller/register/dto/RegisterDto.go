@@ -6,31 +6,27 @@ import (
 	"github.com/go-playground/validator"
 	"unicode/utf8"
 )
+var valildate *validator.Validate
 
-type AccountDto struct {
+func init() {
+	valildate = validator.New()
+	valildate.RegisterValidation("checkName", CheckNameFunc)
+}
+
+type RegisterDto struct {
 	UserName string `validate:"required,checkName" json:"username"`
 	Password string `validate:"required" json:"password"`
-	Mobile   string `validate:"min=11,max=11" json:"mobile"`
 }
 
-func ToAccountDto(account model.Account) AccountDto {
-	return AccountDto{
-		UserName: account.UserName,
-		Password: account.Password,
-		Mobile:   account.Mobile,
-	}
-}
-
-func ToAccountModel(account AccountDto) model.Account {
+func ToRegisterAccountModel(account RegisterDto) model.Account {
 	return model.Account{
 		UserName: account.UserName,
 		Password: account.Password,
-		Mobile:   account.Mobile,
 	}
 }
 
 // 自定义校验器校验用户名
-func checkNameFunc(f validator.FieldLevel) bool {
+func CheckNameFunc(f validator.FieldLevel) bool {
 	count := utf8.RuneCountInString(f.Field().String())
 	if count >= 2 && count <= 12 {
 		return true
@@ -39,15 +35,8 @@ func checkNameFunc(f validator.FieldLevel) bool {
 	}
 }
 
-var valildate *validator.Validate
-
-func init() {
-	valildate = validator.New()
-	valildate.RegisterValidation("checkName", checkNameFunc)
-}
-
 // 定义校验数据的方法
-func ValidatorAccount(account AccountDto) error {
+func ValidatorRegister(account RegisterDto) error {
 	err := valildate.Struct(account)
 	if err != nil {
 		// 输出校验错误 .(validator.ValidationErrors)是断言
