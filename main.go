@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gin_admin_api/common"
 	_ "gin_admin_api/common"
+	"gin_admin_api/middleware"
 	"gin_admin_api/model"
 	"gin_admin_api/route"
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,8 @@ func init() {
 
 func main() {
 	router := gin.Default()
+	// 全局使用中间件
+	router.Use(middleware.CorsMiddleware(), middleware.RecoverMiddleware())
 	// 注册路由组
 	route.CollectRoute(router)
 
