@@ -18,6 +18,12 @@ func Login(c *gin.Context) {
 		response.Fail(c, "数据解析错误")
 		return
 	}
+	// 校验数据是否合法
+	err = dto.ValidatorLogin(loginDto)
+	if err != nil {
+		response.Fail(c, "参数校验失败")
+		return
+	}
 	// 查询数据库登录操作
 	account := model.Account{}
 	first := common.DB.Where("user_name=?", loginDto.UserName).First(&account)
