@@ -162,6 +162,107 @@
 * 1、在`common/database`下配置数据库连接
 
   ```go
+  package common
+  
+  import (
+  	"fmt"
+  	_ "github.com/go-sql-driver/mysql"
+  	"github.com/spf13/viper"
+  	"gorm.io/driver/mysql"
+  	"gorm.io/gorm"
+  	"gorm.io/gorm/logger"
+  	"log"
+  	"net/url"
+  	"os"
+  	"time"
+  )
+  
+  var DB *gorm.DB
+  
+  func init() {
+  	fmt.Println("数据库连接")
+  	InitDB()
+  }
+  
+  func InitDB() *gorm.DB {
+  	// 从配置文件中获取参数
+  	host := viper.GetString("datasource.host")
+  	port := viper.GetString("datasource.port")
+  	database := viper.GetString("datasource.database")
+  	username := viper.GetString("datasource.username")
+  	password := viper.GetString("datasource.password")
+  	charset := viper.GetString("datasource.charset")
+  	loc := viper.GetString("datasource.loc")
+  	// 字符串拼接
+  	sqlStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=true&loc=%s",
+  		username,
+  		password,
+  		host,
+  		port,
+  		database,
+  		charset,
+  		url.QueryEscape(loc),
+  	)
+  	fmt.Println("数据库连接:", sqlStr)
+  	// 配置日志输出
+  	newLogger := logger.New(
+  		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+  		logger.Config{
+  			SlowThreshold:             time.Second,   // 缓存日志时间
+  			LogLevel:                  logger.Silent, // 日志级别
+  			IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+  			Colorful:                  false,         // Disable color
+  		},
+  	)
+  	db, err := gorm.Open(mysql.Open(sqlStr), &gorm.Config{
+  		Logger: newLogger,
+  	})
+  	if err != nil {
+  		fmt.Println("打开数据库失败", err)
+  		panic("打开数据库失败" + err.Error())
+  	}
+  	DB = db
+  	return DB
+  }
+  
+  // TODO 文档地址: https://gorm.io/zh_CN/docs/
+  ```
+
+* 2、在`model/Account.go`的数据模型
+
+  ```go
+  package model
+  
+  import (
+  	"gorm.io/gorm"
+  )
+  
+  type Account struct {
+  	gorm.Model
+  	UserName string `gorm:"type:varchar(50);column(username);not null;unique;comment:账号"`
+  	Password string `gorm:"type:varchar(200);not null;comment:账号密码"`
+  	Mobile   string `gorm:"varchar(11);not null;unique;comment:手机号码"`
+  }
+  ```
+
+* 3、在`main.go`中测试创建的数据模型及数据库连接工具
+
+  ```go
+  func init()  {
+    // 自动同步数据模型到数据表
+  	common.DB.AutoMigrate(&model.Account{})
+  }
+  ```
+
+* 4、查看数据库的数据表**这里默认会加上一个s上去，表示复数**，如果要重命名表名可以参考下面代码
+
+  ```go
+  // 在数据模型的实体类文件中
+  
+  // 自定义表名
+  func (Account) TableName() string {
+  	return "account"
+  }
   ```
 
   
