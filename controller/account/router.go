@@ -5,5 +5,6 @@ import (
 )
 
 func AccountRouter(router *gin.RouterGroup) {
-	router.GET("/", CreateAccount)
+	router.POST("/", Register)
+	router.GET("/", AccountList)
 }
