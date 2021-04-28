@@ -19,6 +19,6 @@ func Success(ctx *gin.Context, data gin.H) {
 }
 
 // 失败的请求
-func Fail(ctx *gin.Context) {
-	Response(ctx, 1, "请求失败", nil)
+func Fail(ctx *gin.Context, message string) {
+	Response(ctx, 1, message, nil)
 }

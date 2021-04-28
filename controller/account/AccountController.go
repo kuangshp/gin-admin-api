@@ -29,7 +29,7 @@ func Register(c *gin.Context) {
 	tx := common.DB.Create(&account)
 	fmt.Println(tx.RowsAffected, tx.Error)
 	if tx.RowsAffected > 0 {
-		response.Success(c, gin.H{})
+		response.Success(c, nil)
 	} else {
 		response.Fail(c, "插入数据错误")
 	}
