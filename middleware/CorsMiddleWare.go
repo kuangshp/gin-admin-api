@@ -8,7 +8,7 @@ import (
 //跨域中间件
 //(跨域，指的是浏览器不能执行其他网站的脚本。
 //它是由浏览器的同源策略造成的，是浏览器对JavaScript施加的安全限制。)
-func CorsMiddleware() gin.HandlerFunc { //CORS是跨源资源分享（Cross-Origin Resource Sharing）中间件
+func CorsMiddleWare() gin.HandlerFunc { //CORS是跨源资源分享（Cross-Origin Resource Sharing）中间件
 	return func(ctx *gin.Context) {
 		//指定允许其他域名访问
 		//ctx.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")

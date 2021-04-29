@@ -18,7 +18,7 @@ func init() {
 func main() {
 	router := gin.Default()
 	// 全局使用中间件
-	router.Use(middleware.CorsMiddleware(), middleware.RecoverMiddleware())
+	router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
 	// 注册路由组
 	route.CollectRoute(router)
 
