@@ -1,2 +1,0 @@
-{"client_ip":"::1","level":"info","msg":"","req_method":"GET","req_uri":"/account/","status_code":200,"time":"2021-04-29 08:03:00"}
-time="2021-05-01T23:00:43+08:00" level=info client_ip="::1" req_method=POST req_uri=/register/ status_code=200

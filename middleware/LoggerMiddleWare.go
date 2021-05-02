@@ -17,7 +17,7 @@ func LoggerMiddleWare() gin.HandlerFunc {
 		logFileName = "system.log"
 	)
 	// 日志文件
-	fileName := path.Join(logFilePath, logFileName)
+	fileName := path.Join(logFilePath,logFileName)
 	// 写入文件
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
