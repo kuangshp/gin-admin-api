@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"gin_admin_api/model"
 	"time"
 )
@@ -26,9 +27,17 @@ func ToAccountModelToRes(account model.Account) AccountDtoRes {
 }
 
 // 列表的转换
-//func ToAccountModelListToRes(account []model.Account) {
-//	result := make([]AccountDtoRes, 10)
-//	for key, val := range account {
-//		result = append(result, {key,val})
-//	}
-//}
+func ToAccountModelListToRes(account []model.Account) []AccountDtoRes {
+	result := make([]AccountDtoRes, 0)
+	for _, item := range account {
+		fmt.Println(item.UserName)
+		result = append(result, AccountDtoRes{
+			Id:        item.ID,
+			UserName:  item.UserName,
+			Mobile:    item.Mobile,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		})
+	}
+	return result
+}

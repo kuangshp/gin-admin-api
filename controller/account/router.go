@@ -6,4 +6,5 @@ import (
 
 func AccountRouter(router *gin.RouterGroup) {
 	router.GET("/", AccountList)
+	router.GET("/:id", AccountById)
 }
