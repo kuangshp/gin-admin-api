@@ -3,7 +3,6 @@ package login
 import (
 	"fmt"
 	"gin_admin_api/common"
-	dto "gin_admin_api/controller/login/dto"
 	"gin_admin_api/model"
 	"gin_admin_api/response"
 	"gin_admin_api/utils"
