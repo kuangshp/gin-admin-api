@@ -12,16 +12,10 @@ import (
 
 func Login(c *gin.Context) {
 	var loginDto dto.LoginDto
-	err := c.BindJSON(&loginDto)
-	if err != nil {
-		fmt.Println(err)
-		response.Fail(c, "数据解析错误")
-		return
-	}
-	// 校验数据是否合法
-	err = dto.ValidatorLogin(loginDto)
-	if err != nil {
-		response.Fail(c, "参数校验失败")
+	// 解析前端传递过来的数据并且验证是否正确
+	if err := c.ShouldBindJSON(&loginDto);err != nil {
+		message := common.ShowErrorMessage(err)
+		response.Fail(c, message)
 		return
 	}
 	// 查询数据库登录操作

@@ -6,8 +6,10 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.7.1
+	github.com/go-playground/locales v0.13.0
+	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-playground/validator/v10 v10.5.0 // indirect
+	github.com/go-playground/validator/v10 v10.5.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect

@@ -14,15 +14,10 @@ import (
 func Register(c *gin.Context) {
 	// 1.获取前端传递过来的数据
 	var registerDto dto.RegisterDto
-	err := c.Bind(&registerDto)
-	if err != nil {
-		response.Fail(c, "解析前端传递的数据错误")
-		return
-	}
-	// 2.对前端传递过来的数据进行校验
-	err = dto.ValidatorRegister(registerDto)
-	if err != nil {
-		response.Fail(c, "数据校验错误")
+	if err := c.ShouldBindJSON(&registerDto);err != nil {
+		// 2.校验数据是否合法
+		message := common.ShowErrorMessage(err)
+		response.Fail(c, message)
 		return
 	}
 	// 3.将数据插入到数据库中

@@ -3,7 +3,7 @@ package dto
 import (
 	"fmt"
 	"gin_admin_api/model"
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
 	"unicode/utf8"
 )
 var valildate *validator.Validate
@@ -14,8 +14,8 @@ func init() {
 }
 
 type RegisterDto struct {
-	UserName string `validate:"required,checkName" json:"username"`
-	Password string `validate:"required" json:"password"`
+	UserName string `binding:"required,checkName" json:"username"`
+	Password string `binding:"required" json:"password"`
 }
 
 func ToRegisterAccountModel(account RegisterDto) model.Account {
@@ -28,7 +28,7 @@ func ToRegisterAccountModel(account RegisterDto) model.Account {
 // 自定义校验器校验用户名
 func CheckNameFunc(f validator.FieldLevel) bool {
 	count := utf8.RuneCountInString(f.Field().String())
-	if count >= 2 && count <= 12 {
+	if count >= 9 && count <= 12 {
 		return true
 	} else {
 		return false

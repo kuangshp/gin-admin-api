@@ -1,0 +1,8 @@
+{"client_ip":"::1","level":"info","msg":"","req_method":"POST","req_uri":"/register/","status_code":200,"time":"2021-05-01 23:00:43"}
+{"client_ip":"::1","level":"info","msg":"","req_method":"POST","req_uri":"/register/","status_code":200,"time":"2021-05-01 23:01:39"}
+time="2021-05-01T23:01:39+08:00" level=info client_ip="::1" req_method=POST req_uri=/register/ status_code=200
+{"client_ip":"::1","level":"info","msg":"","req_method":"POST","req_uri":"/register/","status_code":200,"time":"2021-05-01 23:01:50"}
+time="2021-05-01T23:01:50+08:00" level=info client_ip="::1" req_method=POST req_uri=/register/ status_code=200
+{"client_ip":"::1","level":"info","msg":"","req_method":"POST","req_uri":"/register/","status_code":200,"time":"2021-05-01 23:02:10"}
+time="2021-05-01T23:02:10+08:00" level=info client_ip="::1" req_method=POST req_uri=/register/ status_code=200
+time="2021-05-02T14:54:23+08:00" level=info client_ip="::1" req_method=POST req_uri=/register/ status_code=200
