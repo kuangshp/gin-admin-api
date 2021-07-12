@@ -13,7 +13,7 @@ import (
 func Login(c *gin.Context) {
 	var loginDto dto.LoginDto
 	// 解析前端传递过来的数据并且验证是否正确
-	if err := c.ShouldBindJSON(&loginDto);err != nil {
+	if err := c.ShouldBindJSON(&loginDto); err != nil {
 		message := utils.ShowErrorMessage(err)
 		response.Fail(c, message)
 		return
@@ -26,12 +26,12 @@ func Login(c *gin.Context) {
 		if isOk, _ := utils.CheckPassword(account.Password, loginDto.Password); isOk {
 			// 生成token返回给前端
 			hmacUser := utils.HmacUser{
-				Id: int(account.ID),
+				Id:       int(account.ID),
 				Username: account.UserName,
 			}
 			if token, err := utils.GenerateToken(hmacUser); err == nil {
 				response.Success(c, gin.H{
-					"token": token,
+					"token":    token,
 					"username": account.UserName,
 				})
 			}

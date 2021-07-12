@@ -13,7 +13,6 @@ type RegisterDto struct {
 	Password string `binding:"required" json:"password"`
 }
 
-
 //注册自定义校验器
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

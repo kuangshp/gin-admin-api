@@ -5,7 +5,6 @@ import (
 	"gin_admin_api/common"
 	"gin_admin_api/global"
 	"gin_admin_api/initialize"
-	"gin_admin_api/middleware"
 	"go.uber.org/zap"
 	"strconv"
 )
@@ -22,9 +21,9 @@ func main() {
 	// 3.数据库相关的
 	common.InitDB()
 	initialize.InitDataSource()
-	// 4.全局使用中间件
-	// 全局使用中间件
-	Router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
+	//// 4.全局使用中间件
+	//// 全局使用中间件
+	//Router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
 
 	// 获取端口号
 	PORT := strconv.Itoa(global.ServerConfig.Port)

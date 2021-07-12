@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	"gin_admin_api/global"
@@ -8,12 +8,16 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"time"
 )
 
 
 func init()  {
-	global.Logger = initLogger("info.log", "error.log", zap.DebugLevel)
+	workDir, _ := os.Getwd()
+	logsInfoPath := path.Join(workDir, "logs/info.log")
+	logsErrorPath := path.Join(workDir, "logs/error.log")
+	global.Logger = initLogger(logsInfoPath, logsErrorPath, zap.DebugLevel)
 	defer global.Logger.Sync()
 }
 

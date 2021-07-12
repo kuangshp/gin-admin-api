@@ -14,7 +14,7 @@ import (
 func Register(c *gin.Context) {
 	// 1.获取前端传递过来的数据
 	var registerDto dto.RegisterDto
-	if err := c.ShouldBindJSON(&registerDto);err != nil {
+	if err := c.ShouldBindJSON(&registerDto); err != nil {
 		// 2.校验数据是否合法
 		message := utils.ShowErrorMessage(err)
 		response.Fail(c, message)

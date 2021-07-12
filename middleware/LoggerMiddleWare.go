@@ -2,59 +2,13 @@ package middleware
 
 import (
 	"fmt"
+	"gin_admin_api/global"
 	"github.com/gin-gonic/gin"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
-	"github.com/rifflock/lfshook"
-	"github.com/sirupsen/logrus"
-	"os"
-	"path"
-	"time"
+	"go.uber.org/zap"
+	"strconv"
 )
 
 func LoggerMiddleWare() gin.HandlerFunc {
-	var (
-		logFilePath = "./" //文件存储路径
-		logFileName = "system.log"
-	)
-	// 日志文件
-	fileName := path.Join(logFilePath,logFileName)
-	// 写入文件
-	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Println("打开/写入文件失败", err)
-		return nil
-	}
-	// 实例化
-	logger := logrus.New()
-	// 日志级别
-	logger.SetLevel(logrus.DebugLevel)
-	// 设置输出
-	logger.Out = file
-	// 设置 rotatelogs,实现文件分割
-	logWriter, err := rotatelogs.New(
-		// 分割后的文件名称
-		fileName+".%Y%m%d.log",
-		// 生成软链，指向最新日志文件
-		rotatelogs.WithLinkName(fileName),
-		// 设置最大保存时间(7天)
-		rotatelogs.WithMaxAge(7*24*time.Hour), //以hour为单位的整数
-		// 设置日志切割时间间隔(1天)
-		rotatelogs.WithRotationTime(1*time.Hour),
-	)
-	// hook机制的设置
-	writerMap := lfshook.WriterMap{
-		logrus.InfoLevel:  logWriter,
-		logrus.FatalLevel: logWriter,
-		logrus.DebugLevel: logWriter,
-		logrus.WarnLevel:  logWriter,
-		logrus.ErrorLevel: logWriter,
-		logrus.PanicLevel: logWriter,
-	}
-	//给logrus添加hook
-	logger.AddHook(lfshook.NewHook(writerMap, &logrus.JSONFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-	}))
-
 	return func(c *gin.Context) {
 		c.Next()
 		//请求方式
@@ -66,11 +20,8 @@ func LoggerMiddleWare() gin.HandlerFunc {
 		//请求ip
 		clientIP := c.ClientIP()
 		// 打印日志
-		logger.WithFields(logrus.Fields{
-			"status_code": statusCode,
-			"client_ip":   clientIP,
-			"req_method":  method,
-			"req_uri":     reqUrl,
-		}).Info()
+		loggerStr := fmt.Sprintf("status_code:%s,client_ip:%s,req_method:%s,req_uri:%s", strconv.Itoa(statusCode), clientIP, method, reqUrl)
+		global.Logger.Info("中间件本次请求", zap.String("http", loggerStr))
+
 	}
 }

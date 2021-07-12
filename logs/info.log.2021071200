@@ -1,0 +1,2 @@
+2021-07-12 20:22:04	INFO	middleware/LoggerMiddleWare.go:24	中间件本次请求	{"http": "status_code:200,client_ip:::1,req_method:POST,req_uri:/api/v1/login"}
+2021-07-12 20:22:55	INFO	middleware/LoggerMiddleWare.go:24	中间件本次请求	{"http": "status_code:200,client_ip:::1,req_method:POST,req_uri:/api/v1/login"}
