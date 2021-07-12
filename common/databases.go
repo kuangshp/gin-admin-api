@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	"fmt"
@@ -15,10 +15,6 @@ import (
 	"time"
 )
 
-
-func init() {
-	InitDB()
-}
 
 func InitDB() {
 	//2. 初始化配置文件

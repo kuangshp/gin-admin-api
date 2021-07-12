@@ -2,6 +2,8 @@ package api
 
 import (
 	"gin_admin_api/dto"
+	"gin_admin_api/response"
+	"gin_admin_api/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,8 +13,8 @@ func Register(c *gin.Context) {
 	var registerDto dto.RegisterDto
 	if err := c.ShouldBindJSON(&registerDto);err != nil {
 		// 2.校验数据是否合法
-		//message := utils.ShowErrorMessage(err)
-		//response.Fail(c, message)
+		message := utils.ShowErrorMessage(err)
+		response.Fail(c, message)
 		return
 	}
 	//// 3.将数据插入到数据库中

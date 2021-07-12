@@ -29,6 +29,7 @@ func AccountById(c *gin.Context) {
 
 // AccountList 查询全部的账号信息
 func AccountList(c *gin.Context) {
+	fmt.Println(global.ServerConfig.DataSource, "测试")
 	// 定义一个切片来存储查询出来的数据
 	account := make([]model.AccountEntity, 10)
 	tx := global.DB.Select([]string{"id", "user_name", "mobile", "created_at", "updated_at"}).Find(&account)

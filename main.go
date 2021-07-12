@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gin_admin_api/common"
 	"gin_admin_api/global"
 	"gin_admin_api/initialize"
 	"gin_admin_api/middleware"
@@ -10,12 +11,15 @@ import (
 )
 
 func init() {
-	initialize.InitDataSource()
+	//initialize.InitDataSource()
 }
 
 func main() {
+	initialize.InitConfig()
 	// 1.初始化路由
 	Router := initialize.Routers()
+	common.InitDB()
+	initialize.InitDataSource()
 	// 2.全局使用中间件
 	// 全局使用中间件
 	Router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
