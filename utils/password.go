@@ -1,10 +1,15 @@
 package utils
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"fmt"
+	"gin_admin_api/global"
+	"golang.org/x/crypto/bcrypt"
+)
 
 // GeneratePassword 对明文密码进行加密
 func GeneratePassword(password string) (string, error) {
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	salt := global.ServerConfig.Salt
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("%s%s", password, salt)), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	} else {
@@ -14,7 +19,8 @@ func GeneratePassword(password string) (string, error) {
 
 // CheckPassword 校验密码是否正确
 func CheckPassword(sqlPassword string, password string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(sqlPassword), []byte(password))
+	salt := global.ServerConfig.Salt
+	err := bcrypt.CompareHashAndPassword([]byte(sqlPassword), []byte(fmt.Sprintf("%s%s", password, salt)))
 	if err != nil {
 		return false, err
 	} else {

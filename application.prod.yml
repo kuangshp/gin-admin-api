@@ -1,4 +1,5 @@
 port: 9090
+salt: abcdef
 # 数据库配置
 datasource:
   driverName: mysql

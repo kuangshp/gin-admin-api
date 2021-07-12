@@ -4,7 +4,7 @@ package config
 type DataSourceConfig struct {
 	DriverName string `mapstructure:"driverName"`
 	Host       string `mapstructure:"host"`
-	Port       int `mapstructure:"port"`
+	Port       int    `mapstructure:"port"`
 	Database   string `mapstructure:"database"`
 	Username   string `mapstructure:"username"`
 	Password   string `mapstructure:"password"`
@@ -14,5 +14,6 @@ type DataSourceConfig struct {
 
 type ServerConfig struct {
 	Port       int              `mapstructure:"port"`
+	Salt       string           `mapstructure:"salt"`
 	DataSource DataSourceConfig `mapstructure:"datasource"`
 }

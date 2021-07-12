@@ -20,7 +20,7 @@ func Login(c *gin.Context) {
 	}
 	// 查询数据库登录操作
 	account := model.AccountEntity{}
-	first := global.DB.Where("user_name=?", loginDto.UserName).First(&account)
+	first := global.DB.Where("username=?", loginDto.UserName).First(&account)
 	if first.Error == nil {
 		// 对账号和密码校验
 		if isOk, _ := utils.CheckPassword(account.Password, loginDto.Password); isOk {

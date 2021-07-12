@@ -12,7 +12,7 @@ type AccountEntity struct {
 	Avatar   string    `gorm:"type:varchar(100);comment:头像" json:"avatar"`
 	Desc     string    `gorm:"type:varchar(100);comment:描述" json:"desc"`
 	Gender   string    `gorm:"type:varchar(10);comment:性别" json:"gender"`
-	BirthDay time.Time `gorm:"type:datetime;default null;comment:出生年月" json:"birth_day"`
+	BirthDay *time.Time `gorm:"type:datetime;comment:出生年月" json:"birth_day"`
 	RoleId   uint32    `gorm:"type:int(11);comment:角色ID" json:"role_id"`
 }
 
