@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"gin_admin_api/global"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -10,7 +9,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
-	"go.uber.org/zap"
 	"reflect"
 	"strings"
 )
@@ -70,7 +68,6 @@ func ShowErrorMessage(err error) string {
 	if !ok {
 		// 非validator.ValidationErrors类型错误直接返回
 		fmt.Println(err.Error(), "类型错误")
-		global.Logger.Error("解析参数错误", zap.String("参数", err.Error()))
 		return err.Error()
 	}
 	// 直接返回第一个就可以
