@@ -1,7 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"gin_admin_api/dto"
+	"gin_admin_api/global"
+	"gin_admin_api/model"
 	"gin_admin_api/response"
 	"gin_admin_api/utils"
 	"github.com/gin-gonic/gin"
@@ -17,21 +20,21 @@ func Register(c *gin.Context) {
 		response.Fail(c, message)
 		return
 	}
-	//// 3.将数据插入到数据库中
-	//newPassword, err := utils.GeneratePassword(registerDto.Password)
-	//if err != nil {
-	//	response.Fail(c, "密码加密错误")
-	//	return
-	//}
-	//account := model.AccountEntity{
-	//	UserName: registerDto.UserName,
-	//	Password: newPassword,
-	//}
-	//tx := global.DB.Create(&account)
-	//fmt.Println(tx.RowsAffected, tx.Error)
-	//if tx.RowsAffected > 0 {
-	//	response.Success(c, nil)
-	//} else {
-	//	response.Fail(c, "插入数据错误")
-	//}
+	// 3.将数据插入到数据库中
+	newPassword, err := utils.GeneratePassword(registerDto.Password)
+	if err != nil {
+		response.Fail(c, "密码加密错误")
+		return
+	}
+	account := model.AccountEntity{
+		UserName: registerDto.UserName,
+		Password: newPassword,
+	}
+	tx := global.DB.Create(&account)
+	fmt.Println(tx.RowsAffected, tx.Error)
+	if tx.RowsAffected > 0 {
+		response.Success(c, nil)
+	} else {
+		response.Fail(c, "插入数据错误")
+	}
 }

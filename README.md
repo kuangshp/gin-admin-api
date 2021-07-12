@@ -347,8 +347,8 @@
   
   //定义注册的结构体(前端需要发送的数据结构)
   type RegisterDto struct {
-  	UserName string `validate:"required,checkName" json:"username"`
-  	Password string `validate:"required" json:"password"`
+  	UserName string `validators:"required,checkName" json:"username"`
+  	Password string `validators:"required" json:"password"`
   }
   
   // 自定义校验器校验用户名

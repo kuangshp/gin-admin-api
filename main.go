@@ -15,12 +15,14 @@ func init() {
 }
 
 func main() {
+	// 1.初始化配置
 	initialize.InitConfig()
-	// 1.初始化路由
+	// 2.初始化路由
 	Router := initialize.Routers()
+	// 3.数据库相关的
 	common.InitDB()
 	initialize.InitDataSource()
-	// 2.全局使用中间件
+	// 4.全局使用中间件
 	// 全局使用中间件
 	Router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
 

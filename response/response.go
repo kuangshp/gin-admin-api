@@ -13,12 +13,12 @@ func Response(ctx *gin.Context, code int, message string, data gin.H) {
 	})
 }
 
-// 成功的请求
+// Success 成功的请求
 func Success(ctx *gin.Context, data gin.H) {
 	Response(ctx, 0, "请求成功", data)
 }
 
-// 失败的请求
+// Fail 失败的请求
 func Fail(ctx *gin.Context, message string) {
 	Response(ctx, 1, message, nil)
 }
