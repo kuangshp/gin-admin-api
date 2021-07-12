@@ -2,31 +2,25 @@ package main
 
 import (
 	"fmt"
-	"gin_admin_api/common"
-	_ "gin_admin_api/common"
-	"gin_admin_api/middleware"
+	"gin_admin_api/global"
+	"gin_admin_api/initialize"
 	"gin_admin_api/model"
-	"gin_admin_api/route"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
+	"go.uber.org/zap"
+	"strconv"
 )
 
 func init() {
-	common.DB.AutoMigrate(&model.Account{})
+	global.DB.AutoMigrate(&model.AccountEntity{})
 }
 
 func main() {
-	router := gin.Default()
-	// 全局使用中间件
-	router.Use(middleware.CorsMiddleWare(), middleware.LoggerMiddleWare(), middleware.RecoverMiddleWare())
-	// 注册路由组
-	route.CollectRoute(router)
-
-	port := viper.GetString("server.port")
-	fmt.Println("当前端口", port)
-	if port != "" {
-		router.Run(":" + port)
-	} else {
-		router.Run()
+	// 1.初始化路由
+	Router := initialize.Routers()
+	// 获取端口号
+	PORT := strconv.Itoa(global.ServerConfig.Port)
+	fmt.Println(fmt.Sprintf("服务已经启动:localhost:%s", PORT))
+	if err := Router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
+		fmt.Println("服务启动失败" + err.Error())
+		global.Logger.Error("服务启动失败:", zap.String("message", err.Error()))
 	}
 }

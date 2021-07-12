@@ -77,7 +77,7 @@
   	viper.SetConfigType("yml")
   	viper.AddConfigPath(path.Join(workDir, "config"))
   	// 或者使用全路径
-  	//viper.AddConfigPath(path.Join(workDir, "config/application.yml"))
+  	//viper.AddConfigPath(path.Join(workDir, "config/application.dev.yml"))
   	err := viper.ReadInConfig()
   	if err != nil {
   		fmt.Print("获取配置文件错误")
@@ -133,7 +133,7 @@
   	viper.SetConfigType("yml")
   	viper.AddConfigPath(path.Join(workDir, "config"))
   	// 或者使用全路径
-  	//viper.AddConfigPath(path.Join(workDir, "config/application.yml"))
+  	//viper.AddConfigPath(path.Join(workDir, "config/application.dev.yml"))
   	err := viper.ReadInConfig()
   	if err != nil {
   		fmt.Print("获取配置文件错误")
