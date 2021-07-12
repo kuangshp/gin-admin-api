@@ -32,7 +32,8 @@ func AccountList(c *gin.Context) {
 	fmt.Println(global.ServerConfig.DataSource, "测试")
 	// 定义一个切片来存储查询出来的数据
 	account := make([]model.AccountEntity, 10)
-	tx := global.DB.Select([]string{"id", "username", "mobile", "created_at", "updated_at"}).Find(&account)
+	var total int64
+	tx := global.DB.Select([]string{"id", "username", "mobile", "created_at", "updated_at"}).Find(&account).Count(&total)
 	if tx.Error != nil {
 		response.Fail(c, "查询数据错误")
 		fmt.Println(tx.Error)
@@ -41,6 +42,7 @@ func AccountList(c *gin.Context) {
 		res := vo.ToAccountModelListToRes(account)
 		response.Success(c, gin.H{
 			"data": res,
+			"total": total,
 		})
 	}
 }
