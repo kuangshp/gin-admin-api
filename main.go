@@ -5,13 +5,12 @@ import (
 	"gin_admin_api/global"
 	"gin_admin_api/initialize"
 	"gin_admin_api/middleware"
-	"gin_admin_api/model"
 	"go.uber.org/zap"
 	"strconv"
 )
 
 func init() {
-	global.DB.AutoMigrate(&model.AccountEntity{})
+	initialize.InitDataSource()
 }
 
 func main() {
