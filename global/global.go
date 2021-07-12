@@ -13,6 +13,4 @@ var (
 	Logger *zap.Logger
 	// DB 数据库
 	DB *gorm.DB
-	// Trans 数据校验
-	//Trans ut.Translator
 )
