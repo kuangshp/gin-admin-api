@@ -20,6 +20,13 @@ func LoggerMiddleWare() gin.HandlerFunc {
 		//请求ip
 		clientIP := c.ClientIP()
 		// 打印日志
+		//loggerMap := map[string]interface{} {
+		//	"status_code":statusCode,
+		//	"client_ip": clientIP,
+		//	"req_method":method,
+		//	"req_uri": reqUrl,
+		//}
+		//marshal, _ := json.Marshal(loggerMap)
 		loggerStr := fmt.Sprintf("status_code:%s,client_ip:%s,req_method:%s,req_uri:%s", strconv.Itoa(statusCode), clientIP, method, reqUrl)
 		global.Logger.Info("中间件本次请求", zap.String("http", loggerStr))
 
