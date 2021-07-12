@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"gin_admin_api/global"
 	"gin_admin_api/model"
+	"gin_admin_api/response"
+	"gin_admin_api/vo"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,13 +18,13 @@ func AccountById(c *gin.Context) {
 	tx := global.DB.Select("id", "user_name", "mobile", "created_at", "updated_at").Where("id=?", id).First(&account)
 	if tx.Error != nil {
 		fmt.Println(tx.Error)
-		//response.Fail(c, "查询错误")
+		response.Fail(c, "查询错误")
 		return
 	}
 	// 成功返回
-	//response.Success(c, gin.H{
-	//	"data": dto.ToAccountModelToRes(*account),
-	//})
+	response.Success(c, gin.H{
+		"data": vo.ToAccountModelToRes(*account),
+	})
 }
 
 // AccountList 查询全部的账号信息
@@ -31,13 +33,13 @@ func AccountList(c *gin.Context) {
 	account := make([]model.AccountEntity, 10)
 	tx := global.DB.Select([]string{"id", "user_name", "mobile", "created_at", "updated_at"}).Find(&account)
 	if tx.Error != nil {
-		//response.Fail(c, "查询数据错误")
+		response.Fail(c, "查询数据错误")
 		fmt.Println(tx.Error)
 		return
 	} else {
-		//res := dto.ToAccountModelListToRes(account)
-		//response.Success(c, gin.H{
-		//	"data": res,
-		//})
+		res := vo.ToAccountModelListToRes(account)
+		response.Success(c, gin.H{
+			"data": res,
+		})
 	}
 }
