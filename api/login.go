@@ -10,6 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Login @Summary 用户登录接口
+// @Tags 用户登录
+// @title 输入用户名和密码登录系统
+// @version 1.0
+// @description 用户登录
+// @Produce json
+// @Param loginDto body dto.LoginDto true "用户登录参数"
+// @Success 200 {object} Res {"code":0,"data":null,"message":"操作成功"}
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var loginDto dto.LoginDto
 	// 解析前端传递过来的数据并且验证是否正确
