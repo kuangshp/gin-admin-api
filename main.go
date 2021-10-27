@@ -36,6 +36,7 @@ func main() {
 	url := ginSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", PORT))
 	Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	global.Logger.Sugar().Infof("服务已经启动:localhost:%s", PORT)
+
 	if err := Router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
 		fmt.Println("服务启动失败" + err.Error())
 		global.Logger.Error("服务启动失败:", zap.String("message", err.Error()))
