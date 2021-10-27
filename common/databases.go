@@ -2,8 +2,6 @@ package common
 
 import (
 	"fmt"
-	"gin_admin_api/global"
-	"gin_admin_api/initialize"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -13,12 +11,16 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"gin_admin_api/global"
+	"gin_admin_api/initialize"
 )
 
 
-func InitDB() {
+func initDB() {
 	//2. 初始化配置文件
 	initialize.InitConfig()
+
 	// 从配置文件中获取参数
 	host := global.ServerConfig.DataSource.Host
 	port := strconv.Itoa(global.ServerConfig.DataSource.Port)
@@ -59,4 +61,8 @@ func InitDB() {
 	global.DB = db
 }
 
+func init() {
+	fmt.Println("开始连接数据库")
+	initDB()
+}
 // TODO 文档地址: https://gorm.io/zh_CN/docs/

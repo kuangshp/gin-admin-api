@@ -12,6 +12,7 @@ type DataSourceConfig struct {
 	Loc        string `mapstructure:"loc"`
 }
 
+// ServerConfig 整个项目的配置
 type ServerConfig struct {
 	Port       int              `mapstructure:"port"`
 	Salt       string           `mapstructure:"salt"`

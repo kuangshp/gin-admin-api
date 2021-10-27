@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gin_admin_api/global"
 	"gin_admin_api/model"
-	"gin_admin_api/response"
+	"gin_admin_api/utils"
 	"gin_admin_api/vo"
 	"github.com/gin-gonic/gin"
 )
@@ -18,11 +18,11 @@ func AccountById(c *gin.Context) {
 	tx := global.DB.Select("id", "user_name", "mobile", "created_at", "updated_at").Where("id=?", id).First(&account)
 	if tx.Error != nil {
 		fmt.Println(tx.Error)
-		response.Fail(c, "查询错误")
+		utils.Fail(c, "查询错误")
 		return
 	}
 	// 成功返回
-	response.Success(c, gin.H{
+	utils.Success(c, gin.H{
 		"data": vo.ToAccountModelToRes(*account),
 	})
 }
@@ -35,12 +35,12 @@ func AccountList(c *gin.Context) {
 	var total int64
 	tx := global.DB.Select([]string{"id", "username", "mobile", "created_at", "updated_at"}).Find(&account).Count(&total)
 	if tx.Error != nil {
-		response.Fail(c, "查询数据错误")
+		utils.Fail(c, "查询数据错误")
 		fmt.Println(tx.Error)
 		return
 	} else {
 		res := vo.ToAccountModelListToRes(account)
-		response.Success(c, gin.H{
+		utils.Success(c, gin.H{
 			"data": res,
 			"total": total,
 		})

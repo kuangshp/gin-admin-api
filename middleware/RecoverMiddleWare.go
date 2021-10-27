@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"gin_admin_api/response"
+	"gin_admin_api/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,7 +10,7 @@ func RecoverMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
-				response.Fail(c, fmt.Sprint(err))
+				utils.Fail(c, fmt.Sprint(err))
 				c.Abort()
 				return
 			}

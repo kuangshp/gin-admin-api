@@ -8,7 +8,7 @@ import (
 
 // AccountDtoRes 定义返回的数据模型
 type AccountDtoRes struct {
-	Id        uint      `json:"id"`
+	Id        int32      `json:"id"`
 	UserName  string    `json:"username"`
 	Mobile    string    `json:"mobile"`
 	CreatedAt time.Time `json:"created_at"`

@@ -1,0 +1,8 @@
+host: 127.0.0.1:9090/api/v1
+info:
+  contact: {}
+  description: 使用gin+mysql实现权限系统的api接口
+  title: 权限系统API文档
+  version: "1.0"
+paths: {}
+swagger: "2.0"
