@@ -2,36 +2,47 @@ package main
 
 import (
 	"fmt"
-	"gin_admin_api/common"
-	_ "gin_admin_api/docs"
-	"gin_admin_api/global"
-	"gin_admin_api/initialize"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"gin_admin_api/utils"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"strconv"
+
+	// 初始化数据库连接及日志文件
+	_ "gin_admin_api/common"
+	"gin_admin_api/global"
+	"gin_admin_api/initialize"
+	// 数据模型中init方法的执行
+	_ "gin_admin_api/model"
 )
 
-// @title 权限系统API文档
-// @version 1.0
-// @description 使用gin+mysql实现权限系统的api接口
-// @host 127.0.0.1:9090/api/v1
-// @BasePath
+
 func main() {
 	// 1.初始化配置
 	initialize.InitConfig()
-	// 2.初始化路由
-	Router := initialize.Routers()
-	// 3.数据库相关的
-	common.InitDB()
-	initialize.InitDataSource()
-	// 获取端口号
+	// 配置中获取端口号
 	PORT := strconv.Itoa(global.ServerConfig.Port)
-	url := ginSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", PORT))
-	Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
-	fmt.Println(fmt.Sprintf("服务已经启动:localhost:%s", PORT))
-	if err := Router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
+	global.Logger.Info("端口号", zap.String("PORT", PORT))
+	global.Logger.Sugar().Infof("打印端口号:%s", PORT)
+	router := gin.New()
+	router.GET("", func(ctx *gin.Context) {
+		utils.Success(ctx, gin.H{
+			"data": "成功",
+		})
+	})
+	if err := router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
 		fmt.Println("服务启动失败" + err.Error())
 		global.Logger.Error("服务启动失败:", zap.String("message", err.Error()))
 	}
+
+	// 2.初始化路由
+	//Router := initialize.Routers()
+	//// 获取端口号
+	//PORT := strconv.Itoa(global.ServerConfig.Port)
+	//url := ginSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", PORT))
+	//Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	//global.Logger.Sugar().Infof("服务已经启动:localhost:%s", PORT)
+	//if err := Router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
+	//	fmt.Println("服务启动失败" + err.Error())
+	//	global.Logger.Error("服务启动失败:", zap.String("message", err.Error()))
+	//}
 }

@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"gin_admin_api/global"
+	"time"
+)
 
 type AccountEntity struct {
 	BaseEntity
@@ -19,4 +23,9 @@ type AccountEntity struct {
 // TableName 自定义表名
 func (AccountEntity) TableName() string {
 	return "account"
+}
+
+func init() {
+	fmt.Println("执行了=========")
+	global.DB.AutoMigrate(&AccountEntity{})
 }

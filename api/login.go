@@ -5,7 +5,6 @@ import (
 	"gin_admin_api/dto"
 	"gin_admin_api/global"
 	"gin_admin_api/model"
-	"gin_admin_api/response"
 	"gin_admin_api/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +23,7 @@ func Login(c *gin.Context) {
 	// 解析前端传递过来的数据并且验证是否正确
 	if err := c.ShouldBindJSON(&loginDto); err != nil {
 		message := utils.ShowErrorMessage(err)
-		response.Fail(c, message)
+		utils.Fail(c, message)
 		return
 	}
 	// 查询数据库登录操作
@@ -39,16 +38,16 @@ func Login(c *gin.Context) {
 				Username: account.UserName,
 			}
 			if token, err := utils.GenerateToken(hmacUser); err == nil {
-				response.Success(c, gin.H{
+				utils.Success(c, gin.H{
 					"token":    token,
 					"username": account.UserName,
 				})
 			}
 		} else {
-			response.Fail(c, "账号或密码错误")
+			utils.Fail(c, "账号或密码错误")
 		}
 	} else {
-		response.Fail(c, "账号不存在")
+		utils.Fail(c, "账号不存在")
 	}
 	fmt.Println(first.Error)
 }
