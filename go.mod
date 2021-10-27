@@ -16,13 +16,13 @@ require (
 	github.com/lestrrat/go-envload v0.0.0-20180220120943-6ed08b54a570 // indirect
 	github.com/lestrrat/go-file-rotatelogs v0.0.0-20180223000712-d3151e2a480f
 	github.com/lestrrat/go-strftime v0.0.0-20180220042222-ba3bf9c1d042 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/spf13/viper v1.9.0
+	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
+	github.com/swaggo/gin-swagger v1.3.2
 	github.com/swaggo/swag v1.7.4
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
 	gorm.io/driver/mysql v1.1.2
 	gorm.io/gorm v1.22.0
 )

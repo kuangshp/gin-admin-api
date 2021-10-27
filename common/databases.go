@@ -20,6 +20,7 @@ import (
 func initDB() {
 	//2. 初始化配置文件
 	initialize.InitConfig()
+
 	// 从配置文件中获取参数
 	host := global.ServerConfig.DataSource.Host
 	port := strconv.Itoa(global.ServerConfig.DataSource.Port)

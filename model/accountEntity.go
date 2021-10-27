@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gin_admin_api/global"
 	"time"
 )
 
@@ -27,5 +26,5 @@ func (AccountEntity) TableName() string {
 
 func init() {
 	fmt.Println("执行了=========")
-	global.DB.AutoMigrate(&AccountEntity{})
+	//global.DB.AutoMigrate(&AccountEntity{})
 }
