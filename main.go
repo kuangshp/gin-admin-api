@@ -14,6 +14,8 @@ import (
 	_ "gin_admin_api/common"
 	// 数据模型中init方法的执行
 	_ "gin_admin_api/model"
+	// 文档
+	_ "gin_admin_api/docs"
 )
 
 
@@ -33,7 +35,9 @@ func main() {
 	Router := initialize.Routers()
 	// 获取端口号
 	PORT := strconv.Itoa(global.ServerConfig.Port)
+	fmt.Println(PORT + "当前端口")
 	url := ginSwagger.URL(fmt.Sprintf("http://localhost:%s/swagger/doc.json", PORT))
+	// swagger访问地址:localhost:9000/swagger/index.html
 	Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 	global.Logger.Sugar().Infof("服务已经启动:localhost:%s", PORT)
 
