@@ -19,6 +19,7 @@ func Register(c *gin.Context) {
 		utils.Fail(c, message)
 		return
 	}
+
 	// 3.将数据插入到数据库中
 	newPassword, err := utils.GeneratePassword(registerDto.Password)
 	if err != nil {
@@ -29,10 +30,15 @@ func Register(c *gin.Context) {
 		UserName: registerDto.UserName,
 		Password: newPassword,
 	}
+	// 判断当前用户名是否已经存在
+	if result := global.DB.Model(&model.AccountEntity{}).First(&account); result.RowsAffected != 0 {
+		utils.Fail(c, fmt.Sprintf("%s已经存在不能重复注册", account.UserName))
+		return
+	}
 	tx := global.DB.Create(&account)
 	fmt.Println(tx.RowsAffected, tx.Error)
 	if tx.RowsAffected > 0 {
-		utils.Success(c, nil)
+		utils.Success(c, "注册成功")
 	} else {
 		utils.Fail(c, "插入数据错误")
 	}

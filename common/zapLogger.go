@@ -70,7 +70,7 @@ func initLogger(logPath, errPath string, logLevel zapcore.Level) (logger *zap.Lo
 }
 
 func init() {
-	fmt.Println("开始化日志模块")
+	fmt.Println("开始出事日志模块")
 	workDir, _ := os.Getwd()
 	logsInfoPath := path.Join(workDir, "logs/info.log")
 	logsErrorPath := path.Join(workDir, "logs/error.log")

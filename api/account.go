@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+
 	"gin_admin_api/global"
 	"gin_admin_api/model"
 	"gin_admin_api/utils"
 	"gin_admin_api/vo"
-	"github.com/gin-gonic/gin"
 )
 
 // AccountById 根据id查询数据
@@ -22,9 +23,7 @@ func AccountById(c *gin.Context) {
 		return
 	}
 	// 成功返回
-	utils.Success(c, gin.H{
-		"data": vo.ToAccountModelToRes(*account),
-	})
+	utils.Success(c, vo.ToAccountModelToRes(*account))
 }
 
 // AccountList 查询全部的账号信息
@@ -33,7 +32,8 @@ func AccountList(c *gin.Context) {
 	// 定义一个切片来存储查询出来的数据
 	account := make([]model.AccountEntity, 10)
 	var total int64
-	tx := global.DB.Select([]string{"id", "username", "mobile", "created_at", "updated_at"}).Find(&account).Count(&total)
+	//tx := global.DB.Select([]string{"id", "username",  "created_at", "updated_at"}).Find(&account).Count(&total)
+	tx := global.DB.Find(&account).Count(&total)
 	if tx.Error != nil {
 		utils.Fail(c, "查询数据错误")
 		fmt.Println(tx.Error)

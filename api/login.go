@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"gin_admin_api/dto"
 	"gin_admin_api/global"
 	"gin_admin_api/model"
@@ -42,12 +41,14 @@ func Login(c *gin.Context) {
 					"token":    token,
 					"username": account.UserName,
 				})
+				return
 			}
 		} else {
 			utils.Fail(c, "账号或密码错误")
+			return
 		}
 	} else {
 		utils.Fail(c, "账号不存在")
+		return
 	}
-	fmt.Println(first.Error)
 }

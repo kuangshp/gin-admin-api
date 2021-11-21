@@ -5,7 +5,8 @@ import (
 	"net/http"
 )
 
-func Response(ctx *gin.Context, code int, message string, data gin.H) {
+// Response 通用的返回
+func Response(ctx *gin.Context, code int, message string, data interface{}) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    code,
 		"message": message,
@@ -14,8 +15,9 @@ func Response(ctx *gin.Context, code int, message string, data gin.H) {
 }
 
 // Success 成功的请求
-func Success(ctx *gin.Context, data gin.H) {
+func Success(ctx *gin.Context, data interface{}) {
 	Response(ctx, 0, "请求成功", data)
+	return
 }
 
 // Fail 失败的请求
