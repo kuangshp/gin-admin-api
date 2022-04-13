@@ -30,8 +30,10 @@ func Register(c *gin.Context) {
 		UserName: registerDto.UserName,
 		Password: newPassword,
 	}
+	fmt.Println(registerDto.UserName, "=====>")
 	// 判断当前用户名是否已经存在
-	if result := global.DB.Model(&model.AccountEntity{}).First(&account); result.RowsAffected != 0 {
+	if result := global.DB.Model(&model.AccountEntity{}).Where("username=?", registerDto.UserName).First(&account); result.RowsAffected != 0 {
+		fmt.Println("=====>")
 		utils.Fail(c, fmt.Sprintf("%s已经存在不能重复注册", account.UserName))
 		return
 	}
