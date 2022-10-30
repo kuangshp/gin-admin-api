@@ -1,15 +1,21 @@
 package router
 
 import (
-	"gin_admin_api/api"
+	"gin-admin-api/api/account"
+	"gin-admin-api/global"
+	"gin-admin-api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
-func InitUserRouter(Router *gin.RouterGroup) {
-	//accountRouter := Router.Group("account", middleware.AuthMiddleWare())
+func InitAccountRouter(Router *gin.RouterGroup) {
 	accountRouter := Router.Group("account")
-	{
-		accountRouter.GET("", api.AccountList)
-		accountRouter.GET("/:id", api.AccountById)
-	}
+	newAccount := account.NewAccount(global.DB)
+	accountRouter.POST("register", newAccount.Register)
+	accountRouter.POST("login", newAccount.Login)
+	accountRouter.DELETE("/:id", middleware.AuthMiddleWare(), newAccount.DeleteAccountById)
+	accountRouter.PUT("/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordById)
+	accountRouter.PATCH("/modifyPassword", middleware.AuthMiddleWare(), newAccount.UpdateCurrentAccountPassword)
+	accountRouter.PATCH("/:id", middleware.AuthMiddleWare(), newAccount.UpdateStatusById)
+	accountRouter.GET("/:id", middleware.AuthMiddleWare(), newAccount.GetAccountById)
+	accountRouter.GET("", middleware.AuthMiddleWare(), newAccount.GetAccountPage)
 }

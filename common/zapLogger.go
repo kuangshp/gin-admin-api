@@ -11,7 +11,7 @@ import (
 	"path"
 	"time"
 
-	"gin_admin_api/global"
+	"gin-admin-api/global"
 )
 
 func getWriter(filename string) io.Writer {

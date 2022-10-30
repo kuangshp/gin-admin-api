@@ -1,75 +1,29 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : localhost
- Source Server Type    : MySQL
- Source Server Version : 80018
- Source Host           : localhost:3306
- Source Schema         : user_srv
-
- Target Server Type    : MySQL
- Target Server Version : 80018
- File Encoding         : 65001
-
- Date: 16/03/2022 21:10:59
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
 -- ----------------------------
--- Table structure for account
+-- 账号表
 -- ----------------------------
 DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
-  `created_at` datetime(3) DEFAULT NULL COMMENT '创建时间',
-  `updated_at` datetime(3) DEFAULT NULL COMMENT '更新时间',
-  `deleted_at` datetime(3) DEFAULT NULL COMMENT '删除时间',
-  `username` varchar(50) NOT NULL COMMENT '账号',
-  `password` varchar(200) NOT NULL COMMENT '账号密码',
-  `address` varchar(100) DEFAULT NULL COMMENT '地址',
-  `avatar` varchar(100) DEFAULT NULL COMMENT '头像',
-  `desc` varchar(100) DEFAULT NULL COMMENT '描述',
-  `gender` varchar(10) DEFAULT NULL COMMENT '性别',
-  `birth_day` datetime DEFAULT NULL COMMENT '出生年月',
-  `role_id` int(11) DEFAULT NULL COMMENT '角色ID',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+   `id` int NOT NULL AUTO_INCREMENT primary key COMMENT '主键id',
+   `username` varchar(50) UNIQUE NOT NULL COMMENT '用户名',
+   `password` varchar(100) NOT null COMMENT '密码',
+   `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,0是禁用',
+   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+   `deleted_at` timestamp(6) NULL DEFAULT NULL COMMENT '软删除时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台管理用户';
 
 -- ----------------------------
--- Records of account
+-- 账号token表
 -- ----------------------------
-BEGIN;
-INSERT INTO `account` VALUES (1, '2021-11-21 10:35:14.395', '2021-11-21 10:35:14.395', NULL, 'admin', '$2a$10$5zQ6meB74pXW3Ak.fD0Wl.KV9hwe1S4q5OiqYIircm1vxr8iHnZ1u', '', '', '', '', NULL, 0);
-COMMIT;
-
--- ----------------------------
--- Table structure for user
--- ----------------------------
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
-  `created_at` datetime(3) DEFAULT NULL COMMENT '创建时间',
-  `updated_at` datetime(3) DEFAULT NULL COMMENT '更新时间',
-  `deleted_at` datetime(3) DEFAULT NULL COMMENT '删除时间',
-  `mobile` varchar(11) NOT NULL COMMENT '手机号码',
-  `password` varchar(100) NOT NULL COMMENT '密码',
-  `nick_name` varchar(50) DEFAULT NULL COMMENT '昵称',
-  `birthday` datetime DEFAULT NULL COMMENT '生日',
-  `gender` varchar(6) DEFAULT 'male' COMMENT 'female表示女,male表示男',
-  `role` int(11) DEFAULT '1' COMMENT '1表示普通用户,2表示管理员',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `mobile` (`mobile`),
-  KEY `idx_mobile` (`mobile`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- ----------------------------
--- Records of user
--- ----------------------------
-BEGIN;
-INSERT INTO `user` VALUES (1, '2021-10-31 17:22:26.000', '2021-10-31 17:22:31.000', NULL, '18170601666', '122', NULL, '2021-10-30 21:49:48', 'male', 1);
-COMMIT;
-
-SET FOREIGN_KEY_CHECKS = 1;
+DROP TABLE IF EXISTS `account_token`;
+CREATE TABLE `account_token` (
+     `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
+     `account_id` int NOT NULL COMMENT '关联到账号表id',
+     `username` varchar(50) DEFAULT NULL COMMENT '用户名',
+     `token` varchar(200) NOT NULL COMMENT 'token',
+     `expire_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'token过期时间',
+     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+     `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+     `deleted_at` timestamp(6) NULL DEFAULT NULL COMMENT '软删除时间',
+     UNIQUE KEY `account_id_token` (`account_id`,`token`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='账号token表';

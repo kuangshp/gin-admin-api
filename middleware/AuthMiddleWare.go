@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"fmt"
-	"gin_admin_api/global"
-	"gin_admin_api/model"
-	"gin_admin_api/utils"
+	"gin-admin-api/global"
+	"gin-admin-api/model"
+	"gin-admin-api/utils"
 	"github.com/gin-gonic/gin"
 )
 

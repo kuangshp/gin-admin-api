@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"gin_admin_api/global"
+	"gin-admin-api/global"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"strconv"

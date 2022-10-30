@@ -2,12 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"gin_admin_api/global"
+	"gin-admin-api/global"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// GeneratePassword 对明文密码进行加密
-func GeneratePassword(password string) (string, error) {
+// MakePassword 对明文密码进行加密
+func MakePassword(password string) (string, error) {
 	salt := global.ServerConfig.Salt
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("%s%s", password, salt)), bcrypt.DefaultCost)
 	if err != nil {

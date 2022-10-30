@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"gin_admin_api/middleware"
-	"gin_admin_api/router"
+	"gin-admin-api/middleware"
+	"gin-admin-api/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,10 +15,8 @@ func Routers() *gin.Engine {
 		middleware.RecoverMiddleWare(), // 异常的
 	)
 	// 配置全局路径
-	ApiGroup := Router.Group("/api/v1")
+	ApiGroup := Router.Group("/api/v1/admin")
 	// 注册路由
-	router.InitUserRouter(ApiGroup)
-	router.InitLoginRouter(ApiGroup)
-	router.InitRegisterRouter(ApiGroup)
+	router.InitAccountRouter(ApiGroup) // 账号中心
 	return Router
 }

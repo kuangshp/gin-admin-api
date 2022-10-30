@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"fmt"
-	"gin_admin_api/global"
+	"gin-admin-api/global"
 	"github.com/spf13/viper"
 	"os"
 	"path"
@@ -15,13 +15,10 @@ func GetEnvInfo(env string) bool {
 
 func InitConfig() {
 	workDir, _ := os.Getwd()
-	isDev := GetEnvInfo("IS_DEV")
-	fmt.Println(workDir, "目录")
-	configFileName := path.Join(workDir, "application.prod.yml")
+	// 获取是否有默认环境配置
+	env := GetDefaultEnv("ENV", "local")
+	configFileName := path.Join(workDir, fmt.Sprintf("application.%s.yml", env))
 	fmt.Println(configFileName, "文件")
-	if isDev {
-		configFileName = path.Join(workDir, "application.dev.yml")
-	}
 	v := viper.New()
 	//文件的路径如何设置
 	v.SetConfigFile(configFileName)
@@ -33,4 +30,12 @@ func InitConfig() {
 		fmt.Println("读取配置失败")
 	}
 	fmt.Println(&global.ServerConfig)
+}
+
+func GetDefaultEnv(key, defaultVal string) string {
+	val, ok := os.LookupEnv(key)
+	if ok {
+		return val
+	}
+	return defaultVal
 }

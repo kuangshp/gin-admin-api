@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	"gin_admin_api/global"
-	"gin_admin_api/initialize"
+	"gin-admin-api/global"
+	"gin-admin-api/initialize"
 )
 
 func initDB() {
