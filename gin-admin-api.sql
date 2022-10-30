@@ -13,7 +13,7 @@ CREATE TABLE `account` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台管理用户';
 
 -- ----------------------------
--- 账号token表
+-- 账号token表(使用redis存储token的时候需要使用)
 -- ----------------------------
 DROP TABLE IF EXISTS `account_token`;
 CREATE TABLE `account_token` (
