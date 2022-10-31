@@ -3,6 +3,7 @@ package account
 import (
 	"database/sql"
 	"gin-admin-api/api/account/dto"
+	"gin-admin-api/api/account/vo"
 	"gin-admin-api/enum"
 	"gin-admin-api/global"
 	"gin-admin-api/model"
@@ -153,23 +154,98 @@ func (a Account) ModifyPasswordById(ctx *gin.Context) {
 }
 
 func (a Account) UpdateStatusById(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	id := ctx.Param("id")
+	idInt, _ := strconv.Atoi(id)
+	// 1.根据id查询之前的状态
+	var accountEntity model.AccountEntity
+	if result := a.db.Where("id=?", idInt).Select([]string{"status"}).First(&accountEntity).Error; result != nil {
+		global.Logger.Error("根据id查询账号数据失败" + result.Error())
+		utils.Fail(ctx, "修改失败")
+		return
+	}
+	status := 0
+	if accountEntity.Status.Int64 == enum.Forbid {
+		status = enum.Normal
+	} else {
+		status = enum.Forbid
+	}
+	if result := a.db.Where("id=?", idInt).Updates(&model.AccountEntity{
+		Status: sql.NullInt64{Valid: true, Int64: int64(status)},
+	}).Error; result != nil {
+		global.Logger.Error("根据id修改状态失败" + result.Error())
+		utils.Fail(ctx, "更新失败")
+		return
+	}
+	utils.Success(ctx, "更新成功")
+	return
 }
 
 func (a Account) UpdateCurrentAccountPassword(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	accountId := ctx.GetFloat64("id")
+	var modifyAccountPassword dto.ModifyAccountPassword
+	if err := ctx.ShouldBindJSON(&modifyAccountPassword); err != nil {
+		message := utils.ShowErrorMessage(err)
+		utils.Fail(ctx, message)
+		return
+	}
+	// 1.判断两次密码是否一致
+	if modifyAccountPassword.Password != modifyAccountPassword.ConfirmPassword {
+		utils.Fail(ctx, "两次密码不一致")
+		return
+	}
+	// 2.对密码加密
+	password, err := utils.MakePassword(modifyAccountPassword.Password)
+	if err != nil {
+		global.Logger.Error("密码加密失败" + err.Error())
+		utils.Fail(ctx, "创建账号失败")
+		return
+	}
+	if result := a.db.Where("id=?", accountId).Updates(&model.AccountEntity{
+		Password: password,
+	}).Error; result != nil {
+		global.Logger.Error("修改密码失败" + result.Error())
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	utils.Success(ctx, "修改密码成功")
+	return
 }
 
 func (a Account) GetAccountById(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	id := ctx.Param("id")
+	idInt, _ := strconv.Atoi(id)
+	var accountVo vo.AccountVo
+	if result := a.db.Model(&model.AccountEntity{}).Where("id=?", idInt).
+		Select([]string{"id", "username", "status", "created_at", "updated_at"}).
+		First(&accountVo).Error; result != nil {
+		global.Logger.Error("根据id查询账号信息失败" + result.Error())
+	}
+	utils.Success(ctx, accountVo)
+	return
 }
 
 func (a Account) GetAccountPage(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	pageSize := ctx.DefaultQuery("pageSize", "10")
+	pageNumber := ctx.DefaultQuery("pageNumber", "1")
+	username := ctx.DefaultQuery("username", "")
+	tx := a.db
+	if username != "" {
+		tx = tx.Where("username like ?", "%"+username+"%")
+	}
+	var accountList []vo.AccountVo
+	if result := tx.Model(&model.AccountEntity{}).Scopes(utils.Paginate(pageNumber, pageSize)).Find(&accountList).Error; result != nil {
+		global.Logger.Error("查询列表失败" + result.Error())
+	}
+	var total int64
+	if result := tx.Model(&model.AccountEntity{}).Count(&total).Error; result != nil {
+		global.Logger.Error("查询条数失败" + result.Error())
+	}
+	utils.Success(ctx, gin.H{
+		"total":      total,
+		"pageSize":   pageSize,
+		"pageNumber": pageNumber,
+		"data":       accountList,
+	})
 }
 
 func NewAccount(db *gorm.DB) IAccount {
