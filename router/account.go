@@ -16,6 +16,7 @@ func InitAccountRouter(Router *gin.RouterGroup) {
 	accountRouter.PUT("/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordById)
 	accountRouter.PATCH("/modifyPassword", middleware.AuthMiddleWare(), newAccount.UpdateCurrentAccountPassword)
 	accountRouter.PATCH("/:id", middleware.AuthMiddleWare(), newAccount.UpdateStatusById)
+	accountRouter.GET("/test", newAccount.Test)
 	accountRouter.GET("/:id", middleware.AuthMiddleWare(), newAccount.GetAccountById)
 	accountRouter.GET("", middleware.AuthMiddleWare(), newAccount.GetAccountPage)
 }

@@ -22,12 +22,22 @@ type IAccount interface {
 	UpdateCurrentAccountPassword(ctx *gin.Context) // 修改当前账号密码
 	GetAccountById(ctx *gin.Context)               // 根据id获取账号信息
 	GetAccountPage(ctx *gin.Context)               // 分页获取账号数据
+	Test(ctx *gin.Context)                         // 测试接口
 }
 
 type Account struct {
 	db *gorm.DB
 }
 
+func (a Account) Test(ctx *gin.Context) {
+	var accountEntity []model.AccountEntity
+	if result := global.DB.Debug().Find(&accountEntity).Error; result == nil {
+		utils.Success(ctx, accountEntity)
+		return
+	}
+	utils.Fail(ctx, "请求失败")
+	return
+}
 func (a Account) Register(ctx *gin.Context) {
 	var createAccountDto dto.CreateAccountDto
 	if err := ctx.ShouldBindJSON(&createAccountDto); err != nil {

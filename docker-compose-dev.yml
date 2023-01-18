@@ -1,0 +1,16 @@
+version: "3"
+services:
+  gin-admin-api-dev:
+    build:
+      context: . # 指定目录
+      dockerfile: Dockerfile.dev
+#    image: ""
+    container_name: gin-admin-api-dev
+    restart: on-failure
+    network_mode: bridge
+    ports:
+      - "9090:9090"
+    volumes:
+      - /home/gin-admin-api:/go
+
+

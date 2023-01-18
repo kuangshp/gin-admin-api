@@ -13,8 +13,8 @@ WORKDIR /home/gin-admin-api
 
 # 将代码复制到容器中
 COPY . .
-# 代码编译成二进制文件,名字为app
-RUN go build -o app .
+# 代码编译成二进制文件,名字为app  ENV=dev go run main.go
+RUN ENV=prod go build -o app .
 
 # 声明端口
 EXPOSE 9090
