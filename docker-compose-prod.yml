@@ -9,8 +9,9 @@ services:
     restart: on-failure
     network_mode: bridge
     ports:
-      - "9090:9090"
+      - "9000:9000"
     volumes:
       - /home/gin-admin-api:/go
+      - /home/logs:/logs
 
 

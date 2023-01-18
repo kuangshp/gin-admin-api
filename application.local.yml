@@ -3,10 +3,10 @@ salt: abcdef
 # 数据库配置
 datasource:
   driverName: mysql
-  host: localhost
+  host: 118.195.245.106
   port: 3306
   database: gin-admin-api
   username: root
-  password: 123456
+  password: Dance_box123!
   charset: utf8mb4
   loc: Asia/Shanghai
