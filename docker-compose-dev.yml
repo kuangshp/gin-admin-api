@@ -11,6 +11,6 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - /home/gin-admin-api:/go
+      - /app/gin-admin-api:/go
 
 
