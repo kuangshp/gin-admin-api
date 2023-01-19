@@ -1,6 +1,5 @@
 # 获取go的版本
-FROM golang:1.17
-
+FROM golang:alpine as builder
 # 为镜像配置环境
 ENV GO115MODULE=on \
     CGO_ENABLED=0 \
@@ -8,16 +7,29 @@ ENV GO115MODULE=on \
     GOARCH=amd64 \
     GOPROXY="https://goproxy.cn,direct"
 
-# 这个为代码目录
-WORKDIR /home/gin-admin-api
+# 当前的工作目录
+WORKDIR /app
+# 复制项目中的 go.mod 和 go.sum文件并下载依赖信息
+COPY go.mod .
+COPY go.sum .
+COPY application.local.yml .
+RUN go mod download
 
 # 将代码复制到容器中
 COPY . .
-# 代码编译成二进制文件,名字为app  ENV=dev go run main.go
-RUN ENV=dev go build -o app .
+
+# 代码编译成二进制文件,名字为app
+RUN go build -o gin-admin-api main.go
+###################
+# 接下来创建一个小镜像
+###################
+FROM scratch
+
+# 从builder镜像中把go_app拷贝到当前目录下
+COPY --from=builder /app/gin-admin-api /
 
 # 声明端口
 EXPOSE 9000
 
 # 启动容器的命令
-CMD ["./app"]
+CMD ["./gin-admin-api"]

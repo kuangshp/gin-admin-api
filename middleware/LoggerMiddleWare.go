@@ -5,7 +5,6 @@ import (
 	"gin-admin-api/global"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 func LoggerMiddleWare() gin.HandlerFunc {
@@ -27,7 +26,7 @@ func LoggerMiddleWare() gin.HandlerFunc {
 		//	"req_uri": reqUrl,
 		//}
 		//marshal, _ := json.Marshal(loggerMap)
-		loggerStr := fmt.Sprintf("status_code:%s,client_ip:%s,req_method:%s,req_uri:%s", strconv.Itoa(statusCode), clientIP, method, reqUrl)
+		loggerStr := fmt.Sprintf("status_code:%d,client_ip:%s,req_method:%s,req_uri:%s", statusCode, clientIP, method, reqUrl)
 		global.Logger.Info("中间件本次请求", zap.String("http", loggerStr))
 
 	}

@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"gin-admin-api/utils"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -72,8 +73,25 @@ func initLogger(logPath, errPath string, logLevel zapcore.Level) (logger *zap.Lo
 func init() {
 	fmt.Println("开始出事日志模块")
 	workDir, _ := os.Getwd()
+	folderPath := "logs"
+	exists, _ := utils.PathExists(folderPath)
+	if exists == false {
+		// 创建文件夹
+		if err := os.Mkdir(folderPath, 0777); err != nil {
+			return
+		}
+		// 再修改权限
+		if err := os.Chmod(folderPath, 0777); err != nil {
+			return
+		}
+	}
 	logsInfoPath := path.Join(workDir, "logs/info.log")
 	logsErrorPath := path.Join(workDir, "logs/error.log")
 	global.Logger = initLogger(logsInfoPath, logsErrorPath, zap.DebugLevel)
-	defer global.Logger.Sync()
+	defer func(Logger *zap.Logger) {
+		err := Logger.Sync()
+		if err != nil {
+			fmt.Println("日志错误")
+		}
+	}(global.Logger)
 }
