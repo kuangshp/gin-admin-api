@@ -7,6 +7,6 @@ datasource:
   port: 3306
   database: gin-admin-api
   username: root
-  password: Dance_box123!
+  password: 123456
   charset: utf8mb4
   loc: Asia/Shanghai
