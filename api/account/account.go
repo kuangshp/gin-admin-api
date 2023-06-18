@@ -11,12 +11,14 @@ import (
 	"gin-admin-api/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strconv"
 	"time"
 )
 
 type IAccount interface {
-	CreateAccountApi(ctx *gin.Context) // 用户注册
-	LoginAccountApi(ctx *gin.Context)  // 用户名和密码登录
+	CreateAccountApi(ctx *gin.Context)     // 用户注册
+	LoginAccountApi(ctx *gin.Context)      // 用户名和密码登录
+	DeleteAccountByIdApi(ctx *gin.Context) // 根据id删除数据
 }
 
 type Account struct {
@@ -125,6 +127,35 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 	}
 }
 
+// DeleteAccountByIdApi 根据id删除数据
+func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
+	id := ctx.Param("id")
+	idInt, _ := strconv.ParseInt(id, 10, 64)
+	var queryAccountBuilder = a.db.Account
+	// 1.判断超级管理员不能删除
+	accountData, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).First()
+	if err != nil {
+		global.Logger.Error("根据id查询数据失败" + err.Error())
+		utils.Fail(ctx, "删除失败")
+		return
+	}
+	if accountData.IsAdmin == enum.AdminAccount {
+		utils.Fail(ctx, "超级管理员不能被删除")
+		return
+	}
+	// 2.判断不能自己删除自己
+	if accountData.ID == idInt {
+		utils.Fail(ctx, "自己不能删除自己")
+		return
+	}
+	if _, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).Delete(); err == nil {
+		utils.Success(ctx, "删除成功")
+		return
+	} else {
+		utils.Fail(ctx, "删除失败")
+		return
+	}
+}
 func NewAccount(db *dao.Query) IAccount {
 	return Account{
 		db: db,
