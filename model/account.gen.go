@@ -12,7 +12,7 @@ const TableNameAccount = "account"
 
 // Account mapped from table <account>
 type Account struct {
-	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id"`
+	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id,string"`
 	Username      string         `gorm:"column:username;type:varchar(50);not null;comment:用户名" json:"username"`
 	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:密码" json:"password"`
 	Name          string         `gorm:"column:name;type:varchar(10);comment:真实姓名" json:"name"`

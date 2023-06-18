@@ -16,9 +16,13 @@ import (
 )
 
 type IAccount interface {
-	CreateAccountApi(ctx *gin.Context)     // 用户注册
-	LoginAccountApi(ctx *gin.Context)      // 用户名和密码登录
-	DeleteAccountByIdApi(ctx *gin.Context) // 根据id删除数据
+	CreateAccountApi(ctx *gin.Context)                // 用户注册
+	LoginAccountApi(ctx *gin.Context)                 // 用户名和密码登录
+	DeleteAccountByIdApi(ctx *gin.Context)            // 根据id删除数据
+	ModifyPasswordByIdApi(ctx *gin.Context)           // 根据id修改密码
+	UpdateCurrentAccountPasswordApi(ctx *gin.Context) // 修改当前账号密码
+	UpdateStatusByIdApi(ctx *gin.Context)             // 根据id修改状态
+	GetAccountByIdApi(ctx *gin.Context)               //根据id查询数据
 }
 
 type Account struct {
@@ -94,36 +98,48 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 			utils.Fail(ctx, "账号或密码错误")
 			return
 		}
-		fmt.Println("1111")
 		// 3.生产token返回给前端
 		hmacUser := utils.HmacUser{
 			AccountId: result.ID,
 			Username:  result.Username,
 		}
-		if token, err := utils.GenerateToken(hmacUser); err == nil {
-			utils.Success(ctx, vo.LoginVo{
-				AccountVo: vo.AccountVo{
-					ID:            result.ID,
-					CreatedAt:     result.CreatedAt,
-					UpdatedAt:     result.UpdatedAt,
-					Username:      result.Username, // 用户名
-					Name:          result.Name,     // 真实姓名
-					Mobile:        result.Mobile,   // 手机号码
-					Email:         result.Email,    // 邮箱地址
-					Avatar:        result.Avatar,   // 用户头像
-					IsAdmin:       result.IsAdmin,  // 是否为超级管理员:0否,1是
-					Status:        result.Status,   // 状态1是正常,0是禁用
-					LastLoginDate: model.LocalTime{Time: time.Now()},
-					LastLoginIP:   result.LastLoginIP,
-				},
-				Token: token,
-			})
-			return
-		} else {
+		token, err := utils.GenerateToken(hmacUser)
+		if err != nil {
 			global.Logger.Error("生成token失败")
 			utils.Fail(ctx, "账号或密码错误")
 			return
 		}
+		// 更新账号
+		if _, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(result.ID)).
+			Select(queryAccountBuilder.ExpireTime, queryAccountBuilder.Token, queryAccountBuilder.LastLoginDate, queryAccountBuilder.LastLoginIP).
+			Updates(&model.Account{
+				Token:         token,
+				ExpireTime:    model.LocalTime{Time: time.Now().Add(7 * time.Hour * 24)},
+				LastLoginDate: model.LocalTime{Time: time.Now()},
+				LastLoginIP:   ctx.ClientIP(), //最后登录id
+			}); err != nil {
+			global.Logger.Error("更新表的时候失败")
+			utils.Fail(ctx, "账号或密码错误")
+			return
+		}
+		utils.Success(ctx, vo.LoginVo{
+			AccountVo: vo.AccountVo{
+				ID:            result.ID,
+				CreatedAt:     result.CreatedAt,
+				UpdatedAt:     result.UpdatedAt,
+				Username:      result.Username, // 用户名
+				Name:          result.Name,     // 真实姓名
+				Mobile:        result.Mobile,   // 手机号码
+				Email:         result.Email,    // 邮箱地址
+				Avatar:        result.Avatar,   // 用户头像
+				IsAdmin:       result.IsAdmin,  // 是否为超级管理员:0否,1是
+				Status:        result.Status,   // 状态1是正常,0是禁用
+				LastLoginDate: model.LocalTime{Time: time.Now()},
+				LastLoginIP:   result.LastLoginIP,
+			},
+			Token: token,
+		})
+		return
 	}
 }
 
@@ -155,6 +171,147 @@ func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "删除失败")
 		return
 	}
+}
+
+// ModifyPasswordByIdApi 根据id修改密码
+func (a Account) ModifyPasswordByIdApi(ctx *gin.Context) {
+	var modifyAccountPassword dto.ModifyAccountPassword
+	if err := ctx.ShouldBindJSON(&modifyAccountPassword); err != nil {
+		message := utils.ShowErrorMessage(err)
+		utils.Fail(ctx, message)
+		return
+	}
+	if modifyAccountPassword.Password != modifyAccountPassword.ConfirmPassword {
+		utils.Fail(ctx, "两次密码不一致")
+		return
+	}
+	id := ctx.Param("id")
+	idInt, _ := strconv.ParseInt(id, 10, 64)
+	salt := utils.RandomString(utils.GetRandomNum(5, 10))
+	password, err := utils.MakePassword(modifyAccountPassword.Password, salt)
+	if err != nil {
+		global.Logger.Error("密码加密失败" + err.Error())
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	var queryAccountBuilder = a.db.Account
+	if _, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).
+		Select(queryAccountBuilder.Password, queryAccountBuilder.Salt).
+		Updates(&model.Account{
+			Password: password,
+			Salt:     salt,
+		}); err != nil {
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	utils.Success(ctx, "修改密码成功")
+	return
+}
+
+// UpdateCurrentAccountPasswordApi 修改当前账号密码
+func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
+	accountId := ctx.GetInt64("accountId")
+	fmt.Println(accountId, "====")
+	var modifyCurrentPassword dto.ModifyCurrentPassword
+	if err := ctx.ShouldBindJSON(&modifyCurrentPassword); err != nil {
+		message := utils.ShowErrorMessage(err)
+		utils.Fail(ctx, message)
+		return
+	}
+	if modifyCurrentPassword.NewPassword != modifyCurrentPassword.ConfirmPassword {
+		utils.Fail(ctx, "两次密码不一致")
+		return
+	}
+	var queryAccountBuilder = a.db.Account
+	accountData, err := queryAccountBuilder.Select(queryAccountBuilder.Password, queryAccountBuilder.Salt).Where(queryAccountBuilder.ID.Eq(accountId)).First()
+	if err != nil {
+		global.Logger.Error("根据id查询数据失败" + err.Error())
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	isValid, err1 := utils.CheckPassword(accountData.Password, modifyCurrentPassword.Password, accountData.Salt)
+	if err1 != nil {
+		global.Logger.Error("校验旧密码失败" + err1.Error())
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	if !isValid {
+		utils.Fail(ctx, "旧密码错误")
+		return
+	}
+	salt := utils.RandomString(utils.GetRandomNum(5, 10))
+	password, err := utils.MakePassword(modifyCurrentPassword.NewPassword, salt)
+	if err != nil {
+		global.Logger.Error("密码加密失败" + err.Error())
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	if _, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(accountId)).
+		Select(queryAccountBuilder.Password, queryAccountBuilder.Salt).
+		Updates(&model.Account{
+			Password: password,
+			Salt:     salt,
+		}); err != nil {
+		utils.Fail(ctx, "修改密码失败")
+		return
+	}
+	utils.Success(ctx, "修改密码成功")
+	return
+}
+
+// UpdateStatusByIdApi 根据id修改状态
+func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
+	id := ctx.Param("id")
+	idInt, _ := strconv.ParseInt(id, 10, 64)
+	var queryAccountBuilder = a.db.Account
+	accountData, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).Select(queryAccountBuilder.Status).First()
+	if err != nil {
+		global.Logger.Error("根据id查询数据失败" + err.Error())
+		utils.Fail(ctx, "修改状态失败")
+		return
+	}
+	status := 0
+	if accountData.Status == enum.Forbid {
+		status = enum.Normal
+	} else {
+		status = enum.Forbid
+	}
+	if _, err1 := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).Updates(map[string]interface{}{
+		"status": status,
+	}); err1 != nil {
+		utils.Fail(ctx, "更新失败")
+		return
+	}
+	utils.Success(ctx, "更新成功")
+	return
+}
+
+// GetAccountByIdApi 根据id查询数据
+func (a Account) GetAccountByIdApi(ctx *gin.Context) {
+	id := ctx.Param("id")
+	idInt, _ := strconv.ParseInt(id, 10, 64)
+	var queryAccountBuilder = a.db.Account
+	accountData, err := queryAccountBuilder.Where(queryAccountBuilder.ID.Eq(idInt)).Omit(queryAccountBuilder.Password).First()
+	if err != nil {
+		utils.Fail(ctx, "查询失败")
+		return
+	}
+	utils.GetIpToAddress("106.226.190.66")
+	utils.Success(ctx, vo.AccountVo{
+		ID:            accountData.ID,
+		CreatedAt:     accountData.CreatedAt,
+		UpdatedAt:     accountData.UpdatedAt,
+		Username:      accountData.Username,      // 用户名
+		Name:          accountData.Name,          // 真实姓名
+		Mobile:        accountData.Mobile,        // 手机号码
+		Email:         accountData.Email,         // 邮箱地址
+		Avatar:        accountData.Avatar,        // 用户头像
+		IsAdmin:       accountData.IsAdmin,       // 是否为超级管理员:0否,1是
+		Status:        accountData.Status,        // 状态1是正常,0是禁用
+		LastLoginIP:   accountData.LastLoginIP,   // 最后登录ip地址
+		LastLoginDate: accountData.LastLoginDate, // 最后登录时间
+	})
+	return
 }
 func NewAccount(db *dao.Query) IAccount {
 	return Account{

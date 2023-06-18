@@ -14,3 +14,9 @@ type ModifyAccountPassword struct {
 	Password        string `json:"password" binding:"required,min=6,max=16"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required,min=6,max=16"`
 }
+
+type ModifyCurrentPassword struct {
+	Password        string `json:"password" binding:"required,min=6,max=16"`
+	NewPassword     string `json:"newPassword" binding:"required,min=6,max=16"`
+	ConfirmPassword string `json:"confirmPassword" binding:"required,min=6,max=16"`
+}

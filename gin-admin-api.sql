@@ -15,7 +15,7 @@ CREATE TABLE `account` (
    `last_login_ip` varchar(30) COMMENT '最后登录ip地址',
    `last_login_date` timestamp(6) COMMENT '最后登录时间',
    `salt` varchar(10) COMMENT '密码盐',
-   `token` varchar(200) DEFAULT NULL COMMENT 'token',
+   `token` varchar(300) DEFAULT NULL COMMENT 'token',
    `expire_time` timestamp DEFAULT NULL COMMENT 'token过期时间',
    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

@@ -1,46 +1,48 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
 
 // CopyProperties 简单的拷贝对象的方法，dst目标的一个地址
-func CopyProperties(dst, src interface{}, fields ...string) (err error) {
-	at := reflect.TypeOf(dst)
-	av := reflect.ValueOf(dst)
-	bt := reflect.TypeOf(src)
-	bv := reflect.ValueOf(src)
-	// 简单判断下
-	if at.Kind() != reflect.Ptr {
-		err = fmt.Errorf("目标结构体必须是一个指针类型")
-		return
+func CopyProperties(dst, src interface{}) (err error) {
+	// 防止意外panic
+	defer func() {
+		if e := recover(); e != nil {
+			err = errors.New(fmt.Sprintf("%v", e))
+		}
+	}()
+	dstType, dstValue := reflect.TypeOf(dst), reflect.ValueOf(dst)
+	srcType, srcValue := reflect.TypeOf(src), reflect.ValueOf(src)
+	// dst必须结构体指针类型
+	if dstType.Kind() != reflect.Ptr || dstType.Elem().Kind() != reflect.Struct {
+		return errors.New("dst type should be a struct pointer")
 	}
-	av = reflect.ValueOf(av.Interface())
-	// 要复制哪些字段
-	_fields := make([]string, 0)
-	if len(fields) > 0 {
-		_fields = fields
-	} else {
-		for i := 0; i < bv.NumField(); i++ {
-			_fields = append(_fields, bt.Field(i).Name)
+	// src必须为结构体或者结构体指针
+	if srcType.Kind() == reflect.Ptr {
+		srcType, srcValue = srcType.Elem(), srcValue.Elem()
+	}
+	if srcType.Kind() != reflect.Struct {
+		return errors.New("src type should be a struct or a struct pointer")
+	}
+	// 取具体内容
+	dstType, dstValue = dstType.Elem(), dstValue.Elem()
+	// 属性个数
+	propertyNums := dstType.NumField()
+	for i := 0; i < propertyNums; i++ {
+		// 属性
+		property := dstType.Field(i)
+		// 待填充属性值
+		propertyValue := srcValue.FieldByName(property.Name)
+		// 无效，说明src没有这个属性 || 属性同名但类型不同
+		if !propertyValue.IsValid() || property.Type != propertyValue.Type() {
+			continue
+		}
+		if dstValue.Field(i).CanSet() {
+			dstValue.Field(i).Set(propertyValue)
 		}
 	}
-	if len(_fields) == 0 {
-		fmt.Println("没有字段可拷贝")
-		return
-	}
-	// 复制
-	for i := 0; i < len(_fields); i++ {
-		name := _fields[i]
-		f := av.Elem().FieldByName(name)
-		bValue := bv.FieldByName(name)
-		// a中有同名的字段并且类型一致才复制
-		if f.IsValid() && f.Kind() == bValue.Kind() {
-			f.Set(bValue)
-		} else {
-			fmt.Printf("no such field or different kind, fieldName: %s\n", name)
-		}
-	}
-	return
+	return nil
 }

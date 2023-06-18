@@ -77,7 +77,10 @@ func main() {
 	// 自定义模型结体字段的标签
 	// 将特定字段名的 json 标签加上`string`属性,即 MarshalJSON 时该字段由数字类型转成字符串类型
 	jsonField := gen.FieldJSONTagWithNS(func(columnName string) (tagContent string) {
-		if strings.Contains(`deleted_at`, columnName) {
+		toStringField := `id, `
+		if strings.Contains(toStringField, columnName) {
+			return columnName + ",string"
+		} else if strings.Contains(`deleted_at`, columnName) {
 			return "-"
 		}
 		return LowerCamelCase(columnName) // 下划线转小驼峰
