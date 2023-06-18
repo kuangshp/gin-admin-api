@@ -242,9 +242,9 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		return
 	}
 	salt := utils.RandomString(utils.GetRandomNum(5, 10))
-	password, err := utils.MakePassword(modifyCurrentPassword.NewPassword, salt)
-	if err != nil {
-		global.Logger.Error("密码加密失败" + err.Error())
+	password, err2 := utils.MakePassword(modifyCurrentPassword.NewPassword, salt)
+	if err2 != nil {
+		global.Logger.Error("密码加密失败" + err2.Error())
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
@@ -354,8 +354,8 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 			LastLoginIP:       item.LastLoginIP,   // 最后登录ip地址
 			LastLoginDate:     item.LastLoginDate, // 最后登录时间
 			LastLoginCountry:  address.Country,    // 最后登录国家
-			LastLoginProvince: address.Province,   // 最后登录国家
-			LastLoginCity:     address.City,       // 最后登录国家
+			LastLoginProvince: address.Province,   // 最后登录省份
+			LastLoginCity:     address.City,       // 最后登录城市
 		})
 	}
 	utils.Success(ctx, share.PageDataVo{

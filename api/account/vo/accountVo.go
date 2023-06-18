@@ -18,8 +18,8 @@ type AccountVo struct {
 	LastLoginIP       string          `json:"lastLoginIp"`       // 最后登录ip地址
 	LastLoginDate     model.LocalTime `json:"lastLoginDate"`     // 最后登录时间
 	LastLoginCountry  string          `json:"lastLoginCountry"`  // 最后登录国家
-	LastLoginProvince string          `json:"lastLoginProvince"` // 最后登录国家
-	LastLoginCity     string          `json:"lastLoginCity"`     // 最后登录国家
+	LastLoginProvince string          `json:"lastLoginProvince"` // 最后登录省份
+	LastLoginCity     string          `json:"lastLoginCity"`     // 最后登录城市
 }
 
 type LoginVo struct {
