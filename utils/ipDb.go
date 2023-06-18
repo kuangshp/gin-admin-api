@@ -8,9 +8,9 @@ import (
 )
 
 type CityInfo struct {
-	CountryName string `json:"countryName"`
-	RegionName  string `json:"regionName"`
-	CityName    string `json:"cityName"`
+	Country  string `json:"country"`
+	Province string `json:"province"`
+	City     string `json:"city"`
 }
 type ipIndex struct {
 	startip      uint32

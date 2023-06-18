@@ -7,3 +7,8 @@ type BaseVo struct {
 	CreatedAt model.LocalTime `json:"createdAt"`
 	UpdatedAt model.LocalTime `json:"updatedAt"`
 }
+
+type PageDataVo struct {
+	Data  interface{} `json:"data"`
+	Total int64       `json:"total"`
+}

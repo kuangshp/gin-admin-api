@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"gorm.io/gorm"
+	"gorm.io/gen"
 	"net/http"
 	"strconv"
 )
 
-func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
+func Paginate(r *http.Request) func(db gen.Dao) gen.Dao {
+	return func(db gen.Dao) gen.Dao {
 		q := r.URL.Query()
 		pageNumber, _ := strconv.Atoi(q.Get("pageNumber"))
 		if pageNumber == 0 {

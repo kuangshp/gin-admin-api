@@ -13,11 +13,11 @@ func GetIpToAddress(ip string) *CityInfo {
 	ipStr = p.Get(ip)
 	infos = strings.Split(ipStr, "|")
 	if infos[1] == "保留" {
-		cityInfo.CountryName = "Internal network"
+		cityInfo.Country = "Internal network"
 		return cityInfo
 	}
-	cityInfo.CountryName = infos[1]
-	cityInfo.RegionName = infos[2]
-	cityInfo.CityName = infos[3]
+	cityInfo.Country = infos[1]
+	cityInfo.Province = infos[2]
+	cityInfo.City = infos[3]
 	return cityInfo
 }

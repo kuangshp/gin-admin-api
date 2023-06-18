@@ -8,6 +8,7 @@ import (
 	"gin-admin-api/enum"
 	"gin-admin-api/global"
 	"gin-admin-api/model"
+	"gin-admin-api/share"
 	"gin-admin-api/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,6 +24,7 @@ type IAccount interface {
 	UpdateCurrentAccountPasswordApi(ctx *gin.Context) // 修改当前账号密码
 	UpdateStatusByIdApi(ctx *gin.Context)             // 根据id修改状态
 	GetAccountByIdApi(ctx *gin.Context)               //根据id查询数据
+	GetAccountPageApi(ctx *gin.Context)               // 分页获取数据
 }
 
 type Account struct {
@@ -296,20 +298,69 @@ func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "查询失败")
 		return
 	}
-	utils.GetIpToAddress("106.226.190.66")
+	address := utils.GetIpToAddress(accountData.LastLoginIP)
 	utils.Success(ctx, vo.AccountVo{
-		ID:            accountData.ID,
-		CreatedAt:     accountData.CreatedAt,
-		UpdatedAt:     accountData.UpdatedAt,
-		Username:      accountData.Username,      // 用户名
-		Name:          accountData.Name,          // 真实姓名
-		Mobile:        accountData.Mobile,        // 手机号码
-		Email:         accountData.Email,         // 邮箱地址
-		Avatar:        accountData.Avatar,        // 用户头像
-		IsAdmin:       accountData.IsAdmin,       // 是否为超级管理员:0否,1是
-		Status:        accountData.Status,        // 状态1是正常,0是禁用
-		LastLoginIP:   accountData.LastLoginIP,   // 最后登录ip地址
-		LastLoginDate: accountData.LastLoginDate, // 最后登录时间
+		ID:                accountData.ID,
+		CreatedAt:         accountData.CreatedAt,
+		UpdatedAt:         accountData.UpdatedAt,
+		Username:          accountData.Username,      // 用户名
+		Name:              accountData.Name,          // 真实姓名
+		Mobile:            accountData.Mobile,        // 手机号码
+		Email:             accountData.Email,         // 邮箱地址
+		Avatar:            accountData.Avatar,        // 用户头像
+		IsAdmin:           accountData.IsAdmin,       // 是否为超级管理员:0否,1是
+		Status:            accountData.Status,        // 状态1是正常,0是禁用
+		LastLoginIP:       accountData.LastLoginIP,   // 最后登录ip地址
+		LastLoginDate:     accountData.LastLoginDate, // 最后登录时间
+		LastLoginCountry:  address.Country,           // 最后登录国家
+		LastLoginProvince: address.Province,          // 最后登录国家
+		LastLoginCity:     address.City,              // 最后登录国家
+	})
+	return
+}
+
+// GetAccountPageApi 分页获取数据
+func (a Account) GetAccountPageApi(ctx *gin.Context) {
+	username := ctx.DefaultQuery("username", "")
+	status := ctx.DefaultQuery("status", "")
+	statusInt, _ := strconv.ParseInt(status, 10, 64)
+	var queryAccountBuilder = a.db.Account
+	if username != "" {
+		queryAccountBuilder.Where(queryAccountBuilder.Username.Like("%" + username + "%"))
+	}
+	if statusInt == 0 || statusInt == 1 {
+		queryAccountBuilder.Where(queryAccountBuilder.Status.Eq(statusInt))
+		fmt.Println("进来了")
+	}
+	var accountList = make([]vo.AccountVo, 0)
+	total, _ := queryAccountBuilder.Count()
+	accountDataList, err := queryAccountBuilder.Omit(queryAccountBuilder.Password).Scopes(utils.Paginate(ctx.Request)).Find()
+	if err != nil {
+		global.Logger.Error("查询数据失败" + err.Error())
+	}
+	for _, item := range accountDataList {
+		address := utils.GetIpToAddress(item.LastLoginIP)
+		accountList = append(accountList, vo.AccountVo{
+			ID:                item.ID,
+			CreatedAt:         item.CreatedAt,
+			UpdatedAt:         item.UpdatedAt,
+			Username:          item.Username,      // 用户名
+			Name:              item.Name,          // 真实姓名
+			Mobile:            item.Mobile,        // 手机号码
+			Email:             item.Email,         // 邮箱地址
+			Avatar:            item.Avatar,        // 用户头像
+			IsAdmin:           item.IsAdmin,       // 是否为超级管理员:0否,1是
+			Status:            item.Status,        // 状态1是正常,0是禁用
+			LastLoginIP:       item.LastLoginIP,   // 最后登录ip地址
+			LastLoginDate:     item.LastLoginDate, // 最后登录时间
+			LastLoginCountry:  address.Country,    // 最后登录国家
+			LastLoginProvince: address.Province,   // 最后登录国家
+			LastLoginCity:     address.City,       // 最后登录国家
+		})
+	}
+	utils.Success(ctx, share.PageDataVo{
+		Data:  accountList,
+		Total: total,
 	})
 	return
 }
