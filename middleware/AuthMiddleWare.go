@@ -1,10 +1,8 @@
 package middleware
 
 import (
-	"gin-admin-api/global"
-	"gin-admin-api/model"
-	"gin-admin-api/utils"
 	"fmt"
+	"gin-admin-api/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,14 +24,8 @@ func AuthMiddleWare() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		// 可以进一步查询数据库,是否有当前的用户id
-		if first := global.DB.Where("id=?", claims.UserId).First(&model.AccountEntity{}); first.Error != nil {
-			utils.Fail(c, "当前token非法")
-			c.Abort()
-			return
-		}
 		// 从token中解析出来的数据挂载到上下文上,方便后面的控制器使用
-		c.Set("accountId", claims.UserId)
+		c.Set("accountId", claims.AccountId)
 		c.Set("userName", claims.Username)
 		c.Next()
 	}

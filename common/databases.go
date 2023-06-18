@@ -1,9 +1,10 @@
 package common
 
 import (
+	"fmt"
+	"gin-admin-api/dao"
 	"gin-admin-api/global"
 	"gin-admin-api/initialize"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -50,7 +51,9 @@ func initDB() {
 		fmt.Println("打开数据库失败", err)
 		panic("打开数据库失败" + err.Error())
 	}
-	global.DB = db
+	dao.SetDefault(db)
+	q := dao.Q
+	global.DB = *q
 }
 
 func init() {

@@ -7,13 +7,13 @@ import (
 
 // HmacUser 签名需要传递的参数(根据自己定义)
 type HmacUser struct {
-	Id       int `json:"id"`
-	Username string `json:"username"`
+	AccountId int64  `json:"accountId"`
+	Username  string `json:"username"`
 }
 
 type MyClaims struct {
-	UserId   int `json:"user_id"`
-	Username string `json:"username"`
+	AccountId int64  `json:"accountId"`
+	Username  string `json:"username"`
 	jwt.StandardClaims
 }
 
@@ -31,8 +31,8 @@ func GenerateToken(u HmacUser) (string, error) {
 	// 定义过期时间,7天后过期
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &MyClaims{
-		UserId:   u.Id,
-		Username: u.Username,
+		AccountId: u.AccountId,
+		Username:  u.Username,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(), // 过期时间
 			IssuedAt:  time.Now().Unix(),     // 发布时间

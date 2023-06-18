@@ -2,8 +2,8 @@ package global
 
 import (
 	"gin-admin-api/config"
+	"gin-admin-api/dao"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 var (
@@ -12,5 +12,5 @@ var (
 	// Logger 日志
 	Logger *zap.Logger
 	// DB 数据库
-	DB *gorm.DB
+	DB dao.Query
 )

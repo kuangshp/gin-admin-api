@@ -4,10 +4,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
+	"github.com/shopspring/decimal"
 	"strconv"
 	"time"
 )
+
+type Decimal = decimal.Decimal
 
 // LocalTime 自定义数据类型1开始
 type LocalTime struct {
@@ -50,14 +52,4 @@ func (l LocalList) Value() (driver.Value, error) {
 // Scan 读取数据的时候将json字符串转换为字符串
 func (l *LocalList) Scan(value interface{}) error {
 	return json.Unmarshal(value.([]byte), &l)
-}
-
-// LocalList 自定义数据类型2结束
-
-type BaseEntity struct {
-	// 重写id字段
-	Id        int64          `json:"id" gorm:"id;primaryKey;autoIncrement;comment:主键id"`
-	CreatedAt LocalTime      `json:"createdAt" gorm:"created_at;comment:创建时间;"`
-	UpdatedAt LocalTime      `json:"updatedAt" gorm:"updated_at;comment:更新时间"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"deleted_at;comment:删除时间"` // 查询这个字段但是不返回这个字段
 }
