@@ -11,6 +11,7 @@ import (
 	"gin-admin-api/share"
 	"gin-admin-api/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"strconv"
 	"time"
@@ -211,7 +212,6 @@ func (a Account) ModifyPasswordByIdApi(ctx *gin.Context) {
 // UpdateCurrentAccountPasswordApi 修改当前账号密码
 func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 	accountId := ctx.GetInt64("accountId")
-	fmt.Println(accountId, "====")
 	var modifyCurrentPassword dto.ModifyCurrentPassword
 	if err := ctx.ShouldBindJSON(&modifyCurrentPassword); err != nil {
 		message := utils.ShowErrorMessage(err)
@@ -262,7 +262,7 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 // UpdateStatusByIdApi 根据id修改状态
 func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
-	idInt, _ := strconv.ParseInt(id, 10, 64)
+	idInt := cast.ToInt64(id)
 	var queryAccountBuilder = dao.Account.WithContext(ctx)
 	accountData, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Select(dao.Account.Status).First()
 	if err != nil {
@@ -289,7 +289,7 @@ func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 // GetAccountByIdApi 根据id查询数据
 func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
-	idInt, _ := strconv.ParseInt(id, 10, 64)
+	idInt := cast.ToInt64(id)
 	var queryAccountBuilder = dao.Account.WithContext(ctx)
 	accountData, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Omit(dao.Account.Password).First()
 	if err != nil {
@@ -317,7 +317,7 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 		queryAccountBuilder = queryAccountBuilder.Where(dao.Account.Username.Like("%" + username + "%"))
 	}
 	if status != "" {
-		statusInt, _ := strconv.ParseInt(status, 10, 64)
+		statusInt := cast.ToInt64(status)
 		queryAccountBuilder = queryAccountBuilder.Where(dao.Account.Status.Eq(statusInt))
 	}
 	var accountList = make([]vo.AccountVo, 0)
