@@ -24,7 +24,7 @@ type Account struct {
 	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后登录ip地址" json:"lastLoginIp"`
 	LastLoginDate LocalTime      `gorm:"column:last_login_date;type:timestamp(6);comment:最后登录时间" json:"lastLoginDate"`
 	Salt          string         `gorm:"column:salt;type:varchar(10);comment:密码盐" json:"salt"`
-	Token         string         `gorm:"column:token;type:varchar(200);comment:token" json:"token"`
+	Token         string         `gorm:"column:token;type:varchar(300);comment:token" json:"token"`
 	ExpireTime    LocalTime      `gorm:"column:expire_time;type:timestamp;comment:token过期时间" json:"expireTime"`
 	CreatedAt     LocalTime      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`
 	UpdatedAt     LocalTime      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`

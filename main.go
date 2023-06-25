@@ -26,12 +26,12 @@ func main() {
 	// 获取端口号
 	PORT := strconv.Itoa(global.ServerConfig.Port)
 	fmt.Println(PORT + "当前端口")
-	global.Logger.Sugar().Infof("服务已经启动:localhost:%s", PORT)
+	fmt.Println(fmt.Sprintf("服务已经启动:localhost:%s", PORT))
 	// 优雅退出程序
 	go func() {
 		// 启动服务
 		if err := router.Run(fmt.Sprintf(":%s", PORT)); err != nil {
-			global.Logger.Sugar().Panic("服务启动失败:%s", err.Error())
+			fmt.Println(fmt.Sprintf("服务启动失败:%s", err.Error()))
 		}
 	}()
 	exit := make(chan os.Signal)

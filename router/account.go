@@ -2,14 +2,13 @@ package router
 
 import (
 	"gin-admin-api/api/account"
-	"gin-admin-api/global"
 	"gin-admin-api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func InitAccountRouter(Router *gin.RouterGroup) {
 	registerRouter := Router.Group("account")
-	newAccount := account.NewAccount(&global.DB)
+	newAccount := account.NewAccount()
 	registerRouter.POST("register", newAccount.CreateAccountApi)                                                            // 创建账号
 	registerRouter.POST("login", newAccount.LoginAccountApi)                                                                // 登录
 	registerRouter.DELETE("/:id", middleware.AuthMiddleWare(), newAccount.DeleteAccountByIdApi)                             // 根据id删除
