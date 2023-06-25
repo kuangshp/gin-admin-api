@@ -297,23 +297,13 @@ func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 		return
 	}
 	address := utils.GetIpToAddress(accountData.LastLoginIP)
-	utils.Success(ctx, vo.AccountVo{
-		ID:                accountData.ID,
-		CreatedAt:         accountData.CreatedAt,
-		UpdatedAt:         accountData.UpdatedAt,
-		Username:          accountData.Username,      // 用户名
-		Name:              accountData.Name,          // 真实姓名
-		Mobile:            accountData.Mobile,        // 手机号码
-		Email:             accountData.Email,         // 邮箱地址
-		Avatar:            accountData.Avatar,        // 用户头像
-		IsAdmin:           accountData.IsAdmin,       // 是否为超级管理员:0否,1是
-		Status:            accountData.Status,        // 状态1是正常,0是禁用
-		LastLoginIP:       accountData.LastLoginIP,   // 最后登录ip地址
-		LastLoginDate:     accountData.LastLoginDate, // 最后登录时间
-		LastLoginCountry:  address.Country,           // 最后登录国家
-		LastLoginProvince: address.Province,          // 最后登录国家
-		LastLoginCity:     address.City,              // 最后登录国家
-	})
+	var resultData = vo.AccountVo{}
+	_ = utils.CopyProperties(&resultData, accountData)
+	fmt.Println(utils.MapToJson(resultData), "拷贝后数据")
+	resultData.LastLoginCountry = address.Country   // 最后登录国家
+	resultData.LastLoginProvince = address.Province // 最后登录省份
+	resultData.LastLoginCity = address.City         // 最后登录城市
+	utils.Success(ctx, resultData)
 	return
 }
 
@@ -336,27 +326,15 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 	if err != nil {
 		global.Logger.Error("查询数据失败" + err.Error())
 	}
-	//var accountDataList []model.Account
-	//tx.Model(&model.Account{}).Find(&accountDataList)
 	for _, item := range accountDataList {
 		address := utils.GetIpToAddress(item.LastLoginIP)
-		accountList = append(accountList, vo.AccountVo{
-			ID:                item.ID,
-			CreatedAt:         item.CreatedAt,
-			UpdatedAt:         item.UpdatedAt,
-			Username:          item.Username,      // 用户名
-			Name:              item.Name,          // 真实姓名
-			Mobile:            item.Mobile,        // 手机号码
-			Email:             item.Email,         // 邮箱地址
-			Avatar:            item.Avatar,        // 用户头像
-			IsAdmin:           item.IsAdmin,       // 是否为超级管理员:0否,1是
-			Status:            item.Status,        // 状态1是正常,0是禁用
-			LastLoginIP:       item.LastLoginIP,   // 最后登录ip地址
-			LastLoginDate:     item.LastLoginDate, // 最后登录时间
-			LastLoginCountry:  address.Country,    // 最后登录国家
-			LastLoginProvince: address.Province,   // 最后登录省份
-			LastLoginCity:     address.City,       // 最后登录城市
-		})
+		var resultData = vo.AccountVo{}
+		_ = utils.CopyProperties(&resultData, item)
+		fmt.Println(utils.MapToJson(resultData), "拷贝后数据")
+		resultData.LastLoginCountry = address.Country   // 最后登录国家
+		resultData.LastLoginProvince = address.Province // 最后登录省份
+		resultData.LastLoginCity = address.City         // 最后登录城市
+		accountList = append(accountList, resultData)
 	}
 	utils.Success(ctx, share.PageDataVo{
 		Data:  accountList,

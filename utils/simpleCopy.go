@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// CopyProperties 简单的拷贝对象的方法，dst目标的一个地址
+// CopyProperties 简单的拷贝对象的方法，dst目标的一个地址,src原来对象
 func CopyProperties(dst, src interface{}) (err error) {
 	// 防止意外panic
 	defer func() {
