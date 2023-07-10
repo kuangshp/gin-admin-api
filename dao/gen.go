@@ -16,34 +16,35 @@ import (
 )
 
 var (
-	Q       = new(Query)
-	Account *account
+	Q             = new(Query)
+	AccountEntity *accountEntity
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	Account = &Q.Account
+	AccountEntity = &Q.AccountEntity
+
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:      db,
-		Account: newAccount(db, opts...),
+		db:            db,
+		AccountEntity: newAccountEntity(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Account account
+	AccountEntity accountEntity
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:      db,
-		Account: q.Account.clone(db),
+		db:            db,
+		AccountEntity: q.AccountEntity.clone(db),
 	}
 }
 
@@ -57,18 +58,18 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:      db,
-		Account: q.Account.replaceDB(db),
+		db:            db,
+		AccountEntity: q.AccountEntity.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Account IAccountDo
+	AccountEntity IAccountEntityDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Account: q.Account.WithContext(ctx),
+		AccountEntity: q.AccountEntity.WithContext(ctx),
 	}
 }
 

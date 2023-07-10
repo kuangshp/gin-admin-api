@@ -19,5 +19,5 @@ func InitAccountRouter(Router *gin.RouterGroup) {
 	registerRouter.PATCH("/status/:id", middleware.AuthMiddleWare(), newAccount.UpdateStatusByIdApi)                        // 根据id修改状态
 	registerRouter.PUT("/status/:id", middleware.AuthMiddleWare(), newAccount.UpdateStatusByIdApi)                          // 根据id修改状态
 	registerRouter.GET("/:id", middleware.AuthMiddleWare(), newAccount.GetAccountByIdApi)                                   // 根据id获取数据
-	registerRouter.GET("", middleware.AuthMiddleWare(), newAccount.GetAccountPageApi)                                       // 分页获取数据
+	registerRouter.GET("", newAccount.GetAccountPageApi)                                                                    // 分页获取数据
 }

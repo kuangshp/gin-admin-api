@@ -43,10 +43,10 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		utils.Fail(ctx, "两次密码不一致")
 		return
 	}
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
 	// 2.判断账号是否已经存在
-	if result, err := queryAccountBuilder.Where(dao.Account.Username.Eq(createAccountDto.Username)).
-		Select(dao.Account.ID, dao.Account.Username).First(); err != gorm.ErrRecordNotFound {
+	if result, err := queryAccountBuilder.Where(dao.AccountEntity.Username.Eq(createAccountDto.Username)).
+		Select(dao.AccountEntity.ID, dao.AccountEntity.Username).First(); err != gorm.ErrRecordNotFound {
 		utils.Fail(ctx, fmt.Sprintf("%s已经存在,不能重复创建", result.Username))
 		return
 	}
@@ -58,9 +58,9 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		utils.Fail(ctx, "创建账号失败")
 		return
 	}
-	if result := queryAccountBuilder.Select(dao.Account.Username, dao.Account.Password, dao.Account.Salt,
-		dao.Account.Status, dao.Account.IsAdmin).
-		Create(&model.Account{
+	if result := queryAccountBuilder.Select(dao.AccountEntity.Username, dao.AccountEntity.Password, dao.AccountEntity.Salt,
+		dao.AccountEntity.Status, dao.AccountEntity.IsAdmin).
+		Create(&model.AccountEntity{
 			Username: createAccountDto.Username,
 			Password: password,
 			Salt:     salt,
@@ -84,8 +84,8 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 		return
 	}
 	// 根据账号查询数据
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
-	if result, err := queryAccountBuilder.Where(dao.Account.Username.Eq(accountDto.Username)).First(); err == gorm.ErrRecordNotFound {
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
+	if result, err := queryAccountBuilder.Where(dao.AccountEntity.Username.Eq(accountDto.Username)).First(); err == gorm.ErrRecordNotFound {
 		global.Logger.Error("账号不存在" + accountDto.Username)
 		utils.Fail(ctx, "账号或密码错误")
 		return
@@ -111,9 +111,9 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 			return
 		}
 		// 更新账号
-		if _, err := queryAccountBuilder.Where(dao.Account.ID.Eq(result.ID)).
-			Select(dao.Account.ExpireTime, dao.Account.Token, dao.Account.LastLoginDate, dao.Account.LastLoginIP).
-			Updates(&model.Account{
+		if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(result.ID)).
+			Select(dao.AccountEntity.ExpireTime, dao.AccountEntity.Token, dao.AccountEntity.LastLoginDate, dao.AccountEntity.LastLoginIP).
+			Updates(&model.AccountEntity{
 				Token:         token,
 				ExpireTime:    model.LocalTime{Time: time.Now().Add(7 * time.Hour * 24)},
 				LastLoginDate: model.LocalTime{Time: time.Now()},
@@ -148,9 +148,9 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt, _ := strconv.ParseInt(id, 10, 64)
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
 	// 1.判断超级管理员不能删除
-	accountData, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).First()
+	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).First()
 	if err != nil {
 		global.Logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "删除失败")
@@ -165,7 +165,7 @@ func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "自己不能删除自己")
 		return
 	}
-	if _, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Delete(); err == nil {
+	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Delete(); err == nil {
 		utils.Success(ctx, "删除成功")
 		return
 	} else {
@@ -195,10 +195,10 @@ func (a Account) ModifyPasswordByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
-	if _, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).
-		Select(dao.Account.Password, dao.Account.Salt).
-		Updates(&model.Account{
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
+	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).
+		Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).
+		Updates(&model.AccountEntity{
 			Password: password,
 			Salt:     salt,
 		}); err != nil {
@@ -222,8 +222,8 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		utils.Fail(ctx, "两次密码不一致")
 		return
 	}
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Select(dao.Account.Password, dao.Account.Salt).Where(dao.Account.ID.Eq(accountId)).First()
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
+	accountData, err := queryAccountBuilder.Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).Where(dao.AccountEntity.ID.Eq(accountId)).First()
 	if err != nil {
 		global.Logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "修改密码失败")
@@ -246,9 +246,9 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
-	if _, err := queryAccountBuilder.Where(dao.Account.ID.Eq(accountId)).
-		Select(dao.Account.Password, dao.Account.Salt).
-		Updates(&model.Account{
+	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(accountId)).
+		Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).
+		Updates(&model.AccountEntity{
 			Password: password,
 			Salt:     salt,
 		}); err != nil {
@@ -263,8 +263,8 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Select(dao.Account.Status).First()
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
+	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Select(dao.AccountEntity.Status).First()
 	if err != nil {
 		global.Logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "修改状态失败")
@@ -276,7 +276,7 @@ func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 	} else {
 		status = enum.Forbid
 	}
-	if _, err1 := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Updates(map[string]interface{}{
+	if _, err1 := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Updates(map[string]interface{}{
 		"status": status,
 	}); err1 != nil {
 		utils.Fail(ctx, "更新失败")
@@ -290,8 +290,8 @@ func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
-	var queryAccountBuilder = dao.Account.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Where(dao.Account.ID.Eq(idInt)).Omit(dao.Account.Password).First()
+	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
+	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Omit(dao.AccountEntity.Password).First()
 	if err != nil {
 		utils.Fail(ctx, "查询失败")
 		return
@@ -312,17 +312,17 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 	username := ctx.DefaultQuery("username", "")
 	status := ctx.DefaultQuery("status", "")
 
-	queryAccountBuilder := dao.Account.WithContext(ctx)
+	queryAccountBuilder := dao.AccountEntity.WithContext(ctx)
 	if username != "" {
-		queryAccountBuilder = queryAccountBuilder.Where(dao.Account.Username.Like("%" + username + "%"))
+		queryAccountBuilder = queryAccountBuilder.Where(dao.AccountEntity.Username.Like("%" + username + "%"))
 	}
 	if status != "" {
 		statusInt := cast.ToInt64(status)
-		queryAccountBuilder = queryAccountBuilder.Where(dao.Account.Status.Eq(statusInt))
+		queryAccountBuilder = queryAccountBuilder.Where(dao.AccountEntity.Status.Eq(statusInt))
 	}
 	var accountList = make([]vo.AccountVo, 0)
 	total, _ := queryAccountBuilder.Count()
-	accountDataList, err := queryAccountBuilder.Omit(dao.Account.Password).Scopes(utils.Paginate(ctx.Request)).Find()
+	accountDataList, err := queryAccountBuilder.Omit(dao.AccountEntity.Password).Scopes(utils.Paginate(ctx.Request)).Find()
 	if err != nil {
 		global.Logger.Error("查询数据失败" + err.Error())
 	}

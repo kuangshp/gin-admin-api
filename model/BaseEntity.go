@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
-	"strconv"
 	"time"
 )
 
@@ -16,10 +15,15 @@ type LocalTime struct {
 	time.Time
 }
 
+// MarshalJSON 返回给前端的时候
 func (t LocalTime) MarshalJSON() ([]byte, error) {
 	//格式化秒
-	seconds := t.Unix()
-	return []byte(strconv.FormatInt(seconds, 10)), nil
+	seconds := t.UnixNano() / 1e6 // 毫秒时间
+	if seconds > 0 {
+		return []byte(fmt.Sprintf("%d", seconds)), nil
+	} else {
+		return []byte("-1"), nil
+	}
 }
 
 func (t LocalTime) Value() (driver.Value, error) {
@@ -27,6 +31,7 @@ func (t LocalTime) Value() (driver.Value, error) {
 	if t.Time.UnixNano() == zeroTime.UnixNano() {
 		return nil, nil
 	}
+	fmt.Println(t.Time, "时间22")
 	return t.Time, nil
 }
 

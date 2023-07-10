@@ -8,10 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-const TableNameAccount = "account"
+const TableNameAccountEntity = "account"
 
-// Account mapped from table <account>
-type Account struct {
+// AccountEntity mapped from table <account>
+type AccountEntity struct {
 	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id,string"`
 	Username      string         `gorm:"column:username;type:varchar(50);not null;comment:用户名" json:"username"`
 	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:密码" json:"password"`
@@ -31,7 +31,7 @@ type Account struct {
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;comment:软删除时间" json:"-"`
 }
 
-// TableName Account's table name
-func (*Account) TableName() string {
-	return TableNameAccount
+// TableName AccountEntity's table name
+func (*AccountEntity) TableName() string {
+	return TableNameAccountEntity
 }

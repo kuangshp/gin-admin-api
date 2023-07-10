@@ -19,39 +19,39 @@ import (
 	"gin-admin-api/model"
 )
 
-func newAccount(db *gorm.DB, opts ...gen.DOOption) account {
-	_account := account{}
+func newAccountEntity(db *gorm.DB, opts ...gen.DOOption) accountEntity {
+	_accountEntity := accountEntity{}
 
-	_account.accountDo.UseDB(db, opts...)
-	_account.accountDo.UseModel(&model.Account{})
+	_accountEntity.accountEntityDo.UseDB(db, opts...)
+	_accountEntity.accountEntityDo.UseModel(&model.AccountEntity{})
 
-	tableName := _account.accountDo.TableName()
-	_account.ALL = field.NewAsterisk(tableName)
-	_account.ID = field.NewInt64(tableName, "id")
-	_account.Username = field.NewString(tableName, "username")
-	_account.Password = field.NewString(tableName, "password")
-	_account.Name = field.NewString(tableName, "name")
-	_account.Mobile = field.NewString(tableName, "mobile")
-	_account.Email = field.NewString(tableName, "email")
-	_account.Avatar = field.NewString(tableName, "avatar")
-	_account.IsAdmin = field.NewInt64(tableName, "is_admin")
-	_account.Status = field.NewInt64(tableName, "status")
-	_account.LastLoginIP = field.NewString(tableName, "last_login_ip")
-	_account.LastLoginDate = field.NewField(tableName, "last_login_date")
-	_account.Salt = field.NewString(tableName, "salt")
-	_account.Token = field.NewString(tableName, "token")
-	_account.ExpireTime = field.NewField(tableName, "expire_time")
-	_account.CreatedAt = field.NewField(tableName, "created_at")
-	_account.UpdatedAt = field.NewField(tableName, "updated_at")
-	_account.DeletedAt = field.NewField(tableName, "deleted_at")
+	tableName := _accountEntity.accountEntityDo.TableName()
+	_accountEntity.ALL = field.NewAsterisk(tableName)
+	_accountEntity.ID = field.NewInt64(tableName, "id")
+	_accountEntity.Username = field.NewString(tableName, "username")
+	_accountEntity.Password = field.NewString(tableName, "password")
+	_accountEntity.Name = field.NewString(tableName, "name")
+	_accountEntity.Mobile = field.NewString(tableName, "mobile")
+	_accountEntity.Email = field.NewString(tableName, "email")
+	_accountEntity.Avatar = field.NewString(tableName, "avatar")
+	_accountEntity.IsAdmin = field.NewInt64(tableName, "is_admin")
+	_accountEntity.Status = field.NewInt64(tableName, "status")
+	_accountEntity.LastLoginIP = field.NewString(tableName, "last_login_ip")
+	_accountEntity.LastLoginDate = field.NewField(tableName, "last_login_date")
+	_accountEntity.Salt = field.NewString(tableName, "salt")
+	_accountEntity.Token = field.NewString(tableName, "token")
+	_accountEntity.ExpireTime = field.NewField(tableName, "expire_time")
+	_accountEntity.CreatedAt = field.NewField(tableName, "created_at")
+	_accountEntity.UpdatedAt = field.NewField(tableName, "updated_at")
+	_accountEntity.DeletedAt = field.NewField(tableName, "deleted_at")
 
-	_account.fillFieldMap()
+	_accountEntity.fillFieldMap()
 
-	return _account
+	return _accountEntity
 }
 
-type account struct {
-	accountDo
+type accountEntity struct {
+	accountEntityDo
 
 	ALL           field.Asterisk
 	ID            field.Int64  // 主键id
@@ -75,17 +75,17 @@ type account struct {
 	fieldMap map[string]field.Expr
 }
 
-func (a account) Table(newTableName string) *account {
-	a.accountDo.UseTable(newTableName)
+func (a accountEntity) Table(newTableName string) *accountEntity {
+	a.accountEntityDo.UseTable(newTableName)
 	return a.updateTableName(newTableName)
 }
 
-func (a account) As(alias string) *account {
-	a.accountDo.DO = *(a.accountDo.As(alias).(*gen.DO))
+func (a accountEntity) As(alias string) *accountEntity {
+	a.accountEntityDo.DO = *(a.accountEntityDo.As(alias).(*gen.DO))
 	return a.updateTableName(alias)
 }
 
-func (a *account) updateTableName(table string) *account {
+func (a *accountEntity) updateTableName(table string) *accountEntity {
 	a.ALL = field.NewAsterisk(table)
 	a.ID = field.NewInt64(table, "id")
 	a.Username = field.NewString(table, "username")
@@ -110,7 +110,7 @@ func (a *account) updateTableName(table string) *account {
 	return a
 }
 
-func (a *account) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
+func (a *accountEntity) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := a.fieldMap[fieldName]
 	if !ok || _f == nil {
 		return nil, false
@@ -119,7 +119,7 @@ func (a *account) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	return _oe, ok
 }
 
-func (a *account) fillFieldMap() {
+func (a *accountEntity) fillFieldMap() {
 	a.fieldMap = make(map[string]field.Expr, 17)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["username"] = a.Username
@@ -140,58 +140,58 @@ func (a *account) fillFieldMap() {
 	a.fieldMap["deleted_at"] = a.DeletedAt
 }
 
-func (a account) clone(db *gorm.DB) account {
-	a.accountDo.ReplaceConnPool(db.Statement.ConnPool)
+func (a accountEntity) clone(db *gorm.DB) accountEntity {
+	a.accountEntityDo.ReplaceConnPool(db.Statement.ConnPool)
 	return a
 }
 
-func (a account) replaceDB(db *gorm.DB) account {
-	a.accountDo.ReplaceDB(db)
+func (a accountEntity) replaceDB(db *gorm.DB) accountEntity {
+	a.accountEntityDo.ReplaceDB(db)
 	return a
 }
 
-type accountDo struct{ gen.DO }
+type accountEntityDo struct{ gen.DO }
 
-type IAccountDo interface {
+type IAccountEntityDo interface {
 	gen.SubQuery
-	Debug() IAccountDo
-	WithContext(ctx context.Context) IAccountDo
+	Debug() IAccountEntityDo
+	WithContext(ctx context.Context) IAccountEntityDo
 	WithResult(fc func(tx gen.Dao)) gen.ResultInfo
 	ReplaceDB(db *gorm.DB)
-	ReadDB() IAccountDo
-	WriteDB() IAccountDo
+	ReadDB() IAccountEntityDo
+	WriteDB() IAccountEntityDo
 	As(alias string) gen.Dao
-	Session(config *gorm.Session) IAccountDo
+	Session(config *gorm.Session) IAccountEntityDo
 	Columns(cols ...field.Expr) gen.Columns
-	Clauses(conds ...clause.Expression) IAccountDo
-	Not(conds ...gen.Condition) IAccountDo
-	Or(conds ...gen.Condition) IAccountDo
-	Select(conds ...field.Expr) IAccountDo
-	Where(conds ...gen.Condition) IAccountDo
-	Order(conds ...field.Expr) IAccountDo
-	Distinct(cols ...field.Expr) IAccountDo
-	Omit(cols ...field.Expr) IAccountDo
-	Join(table schema.Tabler, on ...field.Expr) IAccountDo
-	LeftJoin(table schema.Tabler, on ...field.Expr) IAccountDo
-	RightJoin(table schema.Tabler, on ...field.Expr) IAccountDo
-	Group(cols ...field.Expr) IAccountDo
-	Having(conds ...gen.Condition) IAccountDo
-	Limit(limit int) IAccountDo
-	Offset(offset int) IAccountDo
+	Clauses(conds ...clause.Expression) IAccountEntityDo
+	Not(conds ...gen.Condition) IAccountEntityDo
+	Or(conds ...gen.Condition) IAccountEntityDo
+	Select(conds ...field.Expr) IAccountEntityDo
+	Where(conds ...gen.Condition) IAccountEntityDo
+	Order(conds ...field.Expr) IAccountEntityDo
+	Distinct(cols ...field.Expr) IAccountEntityDo
+	Omit(cols ...field.Expr) IAccountEntityDo
+	Join(table schema.Tabler, on ...field.Expr) IAccountEntityDo
+	LeftJoin(table schema.Tabler, on ...field.Expr) IAccountEntityDo
+	RightJoin(table schema.Tabler, on ...field.Expr) IAccountEntityDo
+	Group(cols ...field.Expr) IAccountEntityDo
+	Having(conds ...gen.Condition) IAccountEntityDo
+	Limit(limit int) IAccountEntityDo
+	Offset(offset int) IAccountEntityDo
 	Count() (count int64, err error)
-	Scopes(funcs ...func(gen.Dao) gen.Dao) IAccountDo
-	Unscoped() IAccountDo
-	Create(values ...*model.Account) error
-	CreateInBatches(values []*model.Account, batchSize int) error
-	Save(values ...*model.Account) error
-	First() (*model.Account, error)
-	Take() (*model.Account, error)
-	Last() (*model.Account, error)
-	Find() ([]*model.Account, error)
-	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Account, err error)
-	FindInBatches(result *[]*model.Account, batchSize int, fc func(tx gen.Dao, batch int) error) error
+	Scopes(funcs ...func(gen.Dao) gen.Dao) IAccountEntityDo
+	Unscoped() IAccountEntityDo
+	Create(values ...*model.AccountEntity) error
+	CreateInBatches(values []*model.AccountEntity, batchSize int) error
+	Save(values ...*model.AccountEntity) error
+	First() (*model.AccountEntity, error)
+	Take() (*model.AccountEntity, error)
+	Last() (*model.AccountEntity, error)
+	Find() ([]*model.AccountEntity, error)
+	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.AccountEntity, err error)
+	FindInBatches(result *[]*model.AccountEntity, batchSize int, fc func(tx gen.Dao, batch int) error) error
 	Pluck(column field.Expr, dest interface{}) error
-	Delete(...*model.Account) (info gen.ResultInfo, err error)
+	Delete(...*model.AccountEntity) (info gen.ResultInfo, err error)
 	Update(column field.Expr, value interface{}) (info gen.ResultInfo, err error)
 	UpdateSimple(columns ...field.AssignExpr) (info gen.ResultInfo, err error)
 	Updates(value interface{}) (info gen.ResultInfo, err error)
@@ -199,167 +199,167 @@ type IAccountDo interface {
 	UpdateColumnSimple(columns ...field.AssignExpr) (info gen.ResultInfo, err error)
 	UpdateColumns(value interface{}) (info gen.ResultInfo, err error)
 	UpdateFrom(q gen.SubQuery) gen.Dao
-	Attrs(attrs ...field.AssignExpr) IAccountDo
-	Assign(attrs ...field.AssignExpr) IAccountDo
-	Joins(fields ...field.RelationField) IAccountDo
-	Preload(fields ...field.RelationField) IAccountDo
-	FirstOrInit() (*model.Account, error)
-	FirstOrCreate() (*model.Account, error)
-	FindByPage(offset int, limit int) (result []*model.Account, count int64, err error)
+	Attrs(attrs ...field.AssignExpr) IAccountEntityDo
+	Assign(attrs ...field.AssignExpr) IAccountEntityDo
+	Joins(fields ...field.RelationField) IAccountEntityDo
+	Preload(fields ...field.RelationField) IAccountEntityDo
+	FirstOrInit() (*model.AccountEntity, error)
+	FirstOrCreate() (*model.AccountEntity, error)
+	FindByPage(offset int, limit int) (result []*model.AccountEntity, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
 	Scan(result interface{}) (err error)
-	Returning(value interface{}, columns ...string) IAccountDo
+	Returning(value interface{}, columns ...string) IAccountEntityDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 }
 
-func (a accountDo) Debug() IAccountDo {
+func (a accountEntityDo) Debug() IAccountEntityDo {
 	return a.withDO(a.DO.Debug())
 }
 
-func (a accountDo) WithContext(ctx context.Context) IAccountDo {
+func (a accountEntityDo) WithContext(ctx context.Context) IAccountEntityDo {
 	return a.withDO(a.DO.WithContext(ctx))
 }
 
-func (a accountDo) ReadDB() IAccountDo {
+func (a accountEntityDo) ReadDB() IAccountEntityDo {
 	return a.Clauses(dbresolver.Read)
 }
 
-func (a accountDo) WriteDB() IAccountDo {
+func (a accountEntityDo) WriteDB() IAccountEntityDo {
 	return a.Clauses(dbresolver.Write)
 }
 
-func (a accountDo) Session(config *gorm.Session) IAccountDo {
+func (a accountEntityDo) Session(config *gorm.Session) IAccountEntityDo {
 	return a.withDO(a.DO.Session(config))
 }
 
-func (a accountDo) Clauses(conds ...clause.Expression) IAccountDo {
+func (a accountEntityDo) Clauses(conds ...clause.Expression) IAccountEntityDo {
 	return a.withDO(a.DO.Clauses(conds...))
 }
 
-func (a accountDo) Returning(value interface{}, columns ...string) IAccountDo {
+func (a accountEntityDo) Returning(value interface{}, columns ...string) IAccountEntityDo {
 	return a.withDO(a.DO.Returning(value, columns...))
 }
 
-func (a accountDo) Not(conds ...gen.Condition) IAccountDo {
+func (a accountEntityDo) Not(conds ...gen.Condition) IAccountEntityDo {
 	return a.withDO(a.DO.Not(conds...))
 }
 
-func (a accountDo) Or(conds ...gen.Condition) IAccountDo {
+func (a accountEntityDo) Or(conds ...gen.Condition) IAccountEntityDo {
 	return a.withDO(a.DO.Or(conds...))
 }
 
-func (a accountDo) Select(conds ...field.Expr) IAccountDo {
+func (a accountEntityDo) Select(conds ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Select(conds...))
 }
 
-func (a accountDo) Where(conds ...gen.Condition) IAccountDo {
+func (a accountEntityDo) Where(conds ...gen.Condition) IAccountEntityDo {
 	return a.withDO(a.DO.Where(conds...))
 }
 
-func (a accountDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) IAccountDo {
+func (a accountEntityDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) IAccountEntityDo {
 	return a.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
 }
 
-func (a accountDo) Order(conds ...field.Expr) IAccountDo {
+func (a accountEntityDo) Order(conds ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Order(conds...))
 }
 
-func (a accountDo) Distinct(cols ...field.Expr) IAccountDo {
+func (a accountEntityDo) Distinct(cols ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Distinct(cols...))
 }
 
-func (a accountDo) Omit(cols ...field.Expr) IAccountDo {
+func (a accountEntityDo) Omit(cols ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Omit(cols...))
 }
 
-func (a accountDo) Join(table schema.Tabler, on ...field.Expr) IAccountDo {
+func (a accountEntityDo) Join(table schema.Tabler, on ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Join(table, on...))
 }
 
-func (a accountDo) LeftJoin(table schema.Tabler, on ...field.Expr) IAccountDo {
+func (a accountEntityDo) LeftJoin(table schema.Tabler, on ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.LeftJoin(table, on...))
 }
 
-func (a accountDo) RightJoin(table schema.Tabler, on ...field.Expr) IAccountDo {
+func (a accountEntityDo) RightJoin(table schema.Tabler, on ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.RightJoin(table, on...))
 }
 
-func (a accountDo) Group(cols ...field.Expr) IAccountDo {
+func (a accountEntityDo) Group(cols ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Group(cols...))
 }
 
-func (a accountDo) Having(conds ...gen.Condition) IAccountDo {
+func (a accountEntityDo) Having(conds ...gen.Condition) IAccountEntityDo {
 	return a.withDO(a.DO.Having(conds...))
 }
 
-func (a accountDo) Limit(limit int) IAccountDo {
+func (a accountEntityDo) Limit(limit int) IAccountEntityDo {
 	return a.withDO(a.DO.Limit(limit))
 }
 
-func (a accountDo) Offset(offset int) IAccountDo {
+func (a accountEntityDo) Offset(offset int) IAccountEntityDo {
 	return a.withDO(a.DO.Offset(offset))
 }
 
-func (a accountDo) Scopes(funcs ...func(gen.Dao) gen.Dao) IAccountDo {
+func (a accountEntityDo) Scopes(funcs ...func(gen.Dao) gen.Dao) IAccountEntityDo {
 	return a.withDO(a.DO.Scopes(funcs...))
 }
 
-func (a accountDo) Unscoped() IAccountDo {
+func (a accountEntityDo) Unscoped() IAccountEntityDo {
 	return a.withDO(a.DO.Unscoped())
 }
 
-func (a accountDo) Create(values ...*model.Account) error {
+func (a accountEntityDo) Create(values ...*model.AccountEntity) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return a.DO.Create(values)
 }
 
-func (a accountDo) CreateInBatches(values []*model.Account, batchSize int) error {
+func (a accountEntityDo) CreateInBatches(values []*model.AccountEntity, batchSize int) error {
 	return a.DO.CreateInBatches(values, batchSize)
 }
 
 // Save : !!! underlying implementation is different with GORM
 // The method is equivalent to executing the statement: db.Clauses(clause.OnConflict{UpdateAll: true}).Create(values)
-func (a accountDo) Save(values ...*model.Account) error {
+func (a accountEntityDo) Save(values ...*model.AccountEntity) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return a.DO.Save(values)
 }
 
-func (a accountDo) First() (*model.Account, error) {
+func (a accountEntityDo) First() (*model.AccountEntity, error) {
 	if result, err := a.DO.First(); err != nil {
 		return nil, err
 	} else {
-		return result.(*model.Account), nil
+		return result.(*model.AccountEntity), nil
 	}
 }
 
-func (a accountDo) Take() (*model.Account, error) {
+func (a accountEntityDo) Take() (*model.AccountEntity, error) {
 	if result, err := a.DO.Take(); err != nil {
 		return nil, err
 	} else {
-		return result.(*model.Account), nil
+		return result.(*model.AccountEntity), nil
 	}
 }
 
-func (a accountDo) Last() (*model.Account, error) {
+func (a accountEntityDo) Last() (*model.AccountEntity, error) {
 	if result, err := a.DO.Last(); err != nil {
 		return nil, err
 	} else {
-		return result.(*model.Account), nil
+		return result.(*model.AccountEntity), nil
 	}
 }
 
-func (a accountDo) Find() ([]*model.Account, error) {
+func (a accountEntityDo) Find() ([]*model.AccountEntity, error) {
 	result, err := a.DO.Find()
-	return result.([]*model.Account), err
+	return result.([]*model.AccountEntity), err
 }
 
-func (a accountDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Account, err error) {
-	buf := make([]*model.Account, 0, batchSize)
+func (a accountEntityDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.AccountEntity, err error) {
+	buf := make([]*model.AccountEntity, 0, batchSize)
 	err = a.DO.FindInBatches(&buf, batchSize, func(tx gen.Dao, batch int) error {
 		defer func() { results = append(results, buf...) }()
 		return fc(tx, batch)
@@ -367,49 +367,49 @@ func (a accountDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) err
 	return results, err
 }
 
-func (a accountDo) FindInBatches(result *[]*model.Account, batchSize int, fc func(tx gen.Dao, batch int) error) error {
+func (a accountEntityDo) FindInBatches(result *[]*model.AccountEntity, batchSize int, fc func(tx gen.Dao, batch int) error) error {
 	return a.DO.FindInBatches(result, batchSize, fc)
 }
 
-func (a accountDo) Attrs(attrs ...field.AssignExpr) IAccountDo {
+func (a accountEntityDo) Attrs(attrs ...field.AssignExpr) IAccountEntityDo {
 	return a.withDO(a.DO.Attrs(attrs...))
 }
 
-func (a accountDo) Assign(attrs ...field.AssignExpr) IAccountDo {
+func (a accountEntityDo) Assign(attrs ...field.AssignExpr) IAccountEntityDo {
 	return a.withDO(a.DO.Assign(attrs...))
 }
 
-func (a accountDo) Joins(fields ...field.RelationField) IAccountDo {
+func (a accountEntityDo) Joins(fields ...field.RelationField) IAccountEntityDo {
 	for _, _f := range fields {
 		a = *a.withDO(a.DO.Joins(_f))
 	}
 	return &a
 }
 
-func (a accountDo) Preload(fields ...field.RelationField) IAccountDo {
+func (a accountEntityDo) Preload(fields ...field.RelationField) IAccountEntityDo {
 	for _, _f := range fields {
 		a = *a.withDO(a.DO.Preload(_f))
 	}
 	return &a
 }
 
-func (a accountDo) FirstOrInit() (*model.Account, error) {
+func (a accountEntityDo) FirstOrInit() (*model.AccountEntity, error) {
 	if result, err := a.DO.FirstOrInit(); err != nil {
 		return nil, err
 	} else {
-		return result.(*model.Account), nil
+		return result.(*model.AccountEntity), nil
 	}
 }
 
-func (a accountDo) FirstOrCreate() (*model.Account, error) {
+func (a accountEntityDo) FirstOrCreate() (*model.AccountEntity, error) {
 	if result, err := a.DO.FirstOrCreate(); err != nil {
 		return nil, err
 	} else {
-		return result.(*model.Account), nil
+		return result.(*model.AccountEntity), nil
 	}
 }
 
-func (a accountDo) FindByPage(offset int, limit int) (result []*model.Account, count int64, err error) {
+func (a accountEntityDo) FindByPage(offset int, limit int) (result []*model.AccountEntity, count int64, err error) {
 	result, err = a.Offset(offset).Limit(limit).Find()
 	if err != nil {
 		return
@@ -424,7 +424,7 @@ func (a accountDo) FindByPage(offset int, limit int) (result []*model.Account, c
 	return
 }
 
-func (a accountDo) ScanByPage(result interface{}, offset int, limit int) (count int64, err error) {
+func (a accountEntityDo) ScanByPage(result interface{}, offset int, limit int) (count int64, err error) {
 	count, err = a.Count()
 	if err != nil {
 		return
@@ -434,15 +434,15 @@ func (a accountDo) ScanByPage(result interface{}, offset int, limit int) (count 
 	return
 }
 
-func (a accountDo) Scan(result interface{}) (err error) {
+func (a accountEntityDo) Scan(result interface{}) (err error) {
 	return a.DO.Scan(result)
 }
 
-func (a accountDo) Delete(models ...*model.Account) (result gen.ResultInfo, err error) {
+func (a accountEntityDo) Delete(models ...*model.AccountEntity) (result gen.ResultInfo, err error) {
 	return a.DO.Delete(models)
 }
 
-func (a *accountDo) withDO(do gen.Dao) *accountDo {
+func (a *accountEntityDo) withDO(do gen.Dao) *accountEntityDo {
 	a.DO = *do.(*gen.DO)
 	return a
 }

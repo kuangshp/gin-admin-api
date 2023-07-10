@@ -74,6 +74,10 @@ func main() {
 	// 要先于`ApplyBasic`执行
 	g.WithDataTypeMap(dataMap)
 
+	// 给生成的结构体扩展自己要的名字
+	g.WithModelNameStrategy(func(tableName string) (modelName string) {
+		return Case2Camel(strings.ToUpper(tableName[:1]) + tableName[1:] + "Entity")
+	})
 	// 自定义模型结体字段的标签
 	// 将特定字段名的 json 标签加上`string`属性,即 MarshalJSON 时该字段由数字类型转成字符串类型
 	jsonField := gen.FieldJSONTagWithNS(func(columnName string) (tagContent string) {
