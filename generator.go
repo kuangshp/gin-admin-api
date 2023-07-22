@@ -59,7 +59,6 @@ func main() {
 	})
 	// 设置目标 db
 	g.UseDB(db)
-
 	// 自定义字段的数据类型
 	// 统一数字类型为int64,兼容protobuf和thrift
 	dataMap := map[string]func(detailType gorm.ColumnType) (dataType string){
@@ -93,15 +92,16 @@ func main() {
 	// 自动时间戳默认字段名为:`updated_at`、`created_at, 表字段数据类型为: INT 或 DATETIME
 	// 软删除默认字段名为:`deleted_at`, 表字段数据类型为: DATETIME
 	autoUpdateTimeField := gen.FieldGORMTag("updated_at", func(tag field.GormTag) field.GormTag {
-		return map[string]string{
-			"column":  "updated_at",
-			"comment": "更新时间",
+		return map[string][]string{
+			"column":  {"updated_at"},
+			"comment": {"更新时间"},
 		}
+
 	})
 	autoCreateTimeField := gen.FieldGORMTag("created_at", func(tag field.GormTag) field.GormTag {
-		return map[string]string{
-			"column":  "created_at",
-			"comment": "创建时间",
+		return map[string][]string{
+			"column":  {"created_at"},
+			"comment": {"创建时间"},
 		}
 	})
 	softDeleteField := gen.FieldType("deleted_at", "gorm.DeletedAt")
