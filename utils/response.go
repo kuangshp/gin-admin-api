@@ -24,10 +24,19 @@ func Fail(ctx *gin.Context, message string) {
 }
 
 type PageVo struct {
-	Data  interface{} `json:"data"`
-	Total int64       `json:"total"`
+	Data       interface{} `json:"data"`       // 数据
+	Total      int64       `json:"total"`      // 总条数
+	PageSize   int64       `json:"pageSize"`   // 当前条数
+	PageNumber int64       `json:"pageNumber"` // 当前页数
 }
 
-func PageData(ctx *gin.Context, data PageVo) {
-	Response(ctx, 0, "请求成功", data)
+// BuildPageData 构造分页查询器
+func BuildPageData(ctx *gin.Context, data interface{}, total int64) {
+	size, number := GetQueryPage(ctx.Request)
+	Success(ctx, PageVo{
+		Data:       If(data == nil, make([]interface{}, 0), data),
+		Total:      total,
+		PageSize:   size,
+		PageNumber: number,
+	})
 }
