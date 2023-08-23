@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"gin-admin-api/global"
+	"gin-admin-api/initialize"
+	"gin-admin-api/utils"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
@@ -22,8 +25,16 @@ func LowerCamelCase(name string) string {
 	return strings.ToLower(name[:1]) + name[1:]
 }
 func main() {
-	const dsn = "root:123456@(localhost:3306)/gin-admin-api?charset=utf8mb4&parseTime=True&loc=Local"
-
+	//初始化配置文件
+	initialize.InitConfig()
+	fmt.Println(utils.MapToJson(global.ServerConfig), "配置文件")
+	username := global.ServerConfig.DataSource.Username
+	password := global.ServerConfig.DataSource.Password
+	hostname := global.ServerConfig.DataSource.Host
+	port := global.ServerConfig.DataSource.Port
+	database := global.ServerConfig.DataSource.Database
+	dsn := fmt.Sprintf("%s:%s@(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		username, password, hostname, port, database)
 	// 连接数据库
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
@@ -67,7 +78,9 @@ func main() {
 		"mediumint": func(detailType gorm.ColumnType) (dataType string) { return "int64" },
 		"bigint":    func(detailType gorm.ColumnType) (dataType string) { return "int64" },
 		"int":       func(detailType gorm.ColumnType) (dataType string) { return "int64" },
+		"json":      func(detailType gorm.ColumnType) (dataType string) { return "JSON" },      // 自定义json数据类型
 		"timestamp": func(detailType gorm.ColumnType) (dataType string) { return "LocalTime" }, // 自定义时间
+		"datetime":  func(detailType gorm.ColumnType) (dataType string) { return "LocalTime" }, // 自定义时间
 		"decimal":   func(detailType gorm.ColumnType) (dataType string) { return "Decimal" },   // 金额类型全部转换为第三方库,github.com/shopspring/decimal
 	}
 	// 要先于`ApplyBasic`执行
