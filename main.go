@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"gin-admin-api/global"
 	"gin-admin-api/initialize"
@@ -16,9 +17,18 @@ import (
 	// 文档
 )
 
+var envString string
+
+func init() {
+	flag.StringVar(&envString, "envString", "dev", "请输入当前环境配置文件")
+}
+
 func main() {
+	flag.Parse()
+	fmt.Println(envString, "当前环境")
 	// 1.初始化配置
-	initialize.InitConfig()
+	initialize.InitConfig(envString)
+	initialize.InitDB()
 	// 初始化自定义校验器
 	initialize.InitValidate()
 	//2.初始化路由
