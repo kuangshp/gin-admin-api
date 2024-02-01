@@ -311,7 +311,7 @@ func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 func (a Account) GetAccountPageApi(ctx *gin.Context) {
 	username := ctx.DefaultQuery("username", "")
 	status := ctx.DefaultQuery("status", "")
-
+	fmt.Println(ctx.Request.URL.Query(), "11111")
 	queryAccountBuilder := dao.AccountEntity.WithContext(ctx)
 	if username != "" {
 		queryAccountBuilder = queryAccountBuilder.Where(dao.AccountEntity.Username.Like("%" + username + "%"))

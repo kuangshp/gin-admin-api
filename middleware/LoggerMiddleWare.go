@@ -15,6 +15,7 @@ import (
 
 func LoggerMiddleWare() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+
 		//请求方式
 		method := ctx.Request.Method
 		//请求路由
@@ -44,6 +45,7 @@ func LoggerMiddleWare() gin.HandlerFunc {
 		message := utils.MapToJson(data)
 		fmt.Println("当前请求POST数据:", message)
 		fmt.Println("当前请求GET参数:", reqUrlList)
+		fmt.Println(ctx.Request.URL.Query(), "<---请求地址")
 		/*--------------TODO 日志可以存储 获取请求体数据----------------*/
 		//marshal, _ := json.Marshal(loggerMap)
 		loggerStr := fmt.Sprintf("status_code:%s,client_ip:%s,req_method:%s,req_uri:%s", strconv.Itoa(statusCode), clientIP, method, reqUrl)

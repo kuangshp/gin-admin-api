@@ -29,6 +29,7 @@ func main() {
 	// 1.初始化配置
 	initialize.InitConfig(envString)
 	initialize.InitDB()
+	initialize.InitRedisDb()
 	// 初始化自定义校验器
 	initialize.InitValidate()
 	//2.初始化路由
