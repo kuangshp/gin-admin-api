@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,21 +11,41 @@ import (
 )
 
 type IRedisUtils interface {
-	SetRedisValue(ctx context.Context, key string, value interface{}, expiration int64) error    // 简单的值类型
-	SetRedisMapValue(ctx context.Context, key string, value interface{}, expiration int64) error // 复杂的值类型
-	GetRedisValue(ctx context.Context, key string) (string, error)                               // GetRedisValue (简单的value) 根据redis的key获取数据
-	GetRedisMapValue(ctx context.Context, key string) (map[string]interface{}, error)            // value是一个map的时候
-	DelRedisKey(ctx context.Context, key string)                                                 // 根据key来删除
-	IncrByKey(ctx context.Context, key string) int                                               // 自增
-	DeleteKeyPrefix(ctx context.Context, prefix string)                                          // 根据key前缀来删除
+	ExistsKey(ctx context.Context, key string) (int64, error)                                   // 检查key是否存在
+	SetNxRedisValue(ctx context.Context, key string, value interface{}, expiration int64) error // 不存的时候才设置
+	SetRedisValue(ctx context.Context, key string, value interface{}, expiration int64) error   // 简单的值类型
+	GetRedisValue(ctx context.Context, key string) (string, error)                              // GetRedisValue (简单的value) 根据redis的key获取数据
+	SetRedisMapValue(ctx context.Context, value ...interface{}) error                           // 复杂的值类型
+	GetRedisMapValue(ctx context.Context, keys ...string) ([]interface{}, error)                // value是一个map的时候
+	DelRedisMapKey(ctx context.Context, key1, key2 string) (int64, error)                       // 删除map其中一个key
+	DelRedisKey(ctx context.Context, key string)                                                // 根据key来删除
+	IncrByKey(ctx context.Context, key string) int                                              // 自增
+	DeleteKeyPrefix(ctx context.Context, prefix string)                                         // 根据key前缀来删除
 }
 
 type RedisUtils struct {
 	redisDb *redis.Client
 }
 
+func (r RedisUtils) ExistsKey(ctx context.Context, key string) (int64, error) {
+	result, _ := r.redisDb.Exists(ctx, key).Result()
+	if result > 0 {
+		return result, nil
+	}
+	return 0, errors.New("key不存在")
+}
+
+func (r RedisUtils) SetNxRedisValue(ctx context.Context, key string, value interface{}, expiration int64) error {
+	// redis这里要以秒为单位,0表示永不过期
+	err := r.redisDb.SetNX(ctx, key, value, time.Duration(expiration)*time.Second).Err()
+	if err != nil {
+		return errors.New("存储redis数据错误" + err.Error())
+	}
+	return nil
+}
+
 func (r RedisUtils) SetRedisValue(ctx context.Context, key string, value interface{}, expiration int64) error {
-	// redis这里要以秒为单位
+	// redis这里要以秒为单位,0表示永不过期
 	err := r.redisDb.Set(ctx, key, value, time.Duration(expiration)*time.Second).Err()
 	if err != nil {
 		return errors.New("存储redis数据错误" + err.Error())
@@ -34,34 +53,30 @@ func (r RedisUtils) SetRedisValue(ctx context.Context, key string, value interfa
 	return nil
 }
 
-func (r RedisUtils) SetRedisMapValue(ctx context.Context, key string, value interface{}, expiration int64) error {
-	valueStr, err := json.Marshal(value)
+func (r RedisUtils) SetRedisMapValue(ctx context.Context, value ...interface{}) error {
+	err := r.redisDb.MSet(ctx, value).Err()
 	if err != nil {
-		return errors.New("序列化数据失败")
+		return errors.New("设置值失败")
 	}
-	return r.SetRedisValue(ctx, key, valueStr, expiration)
+	return nil
 }
 
 func (r RedisUtils) GetRedisValue(ctx context.Context, key string) (string, error) {
 	redisVal, err := r.redisDb.Get(ctx, key).Result()
-	if err != nil {
+	if errors.Is(err, redis.Nil) {
+		return "", errors.New("传递的key错误")
+	} else if err != nil {
 		return "", errors.New(err.Error())
 	}
 	return redisVal, nil
 }
 
-func (r RedisUtils) GetRedisMapValue(ctx context.Context, key string) (map[string]interface{}, error) {
-	redisVal, err := r.GetRedisValue(ctx, key)
-	if err != nil {
-		return nil, errors.New(err.Error())
-	}
-	var result map[string]interface{}
+func (r RedisUtils) GetRedisMapValue(ctx context.Context, keys ...string) ([]interface{}, error) {
+	return r.redisDb.MGet(ctx, keys...).Result()
+}
 
-	if err := json.Unmarshal([]byte(redisVal), &result); err != nil {
-		return nil, errors.New("序列化redis数据数据表")
-	} else {
-		return result, nil
-	}
+func (r RedisUtils) DelRedisMapKey(ctx context.Context, key1, key2 string) (int64, error) {
+	return r.redisDb.Del(ctx, key1, key2).Result()
 }
 
 func (r RedisUtils) DelRedisKey(ctx context.Context, key string) {
@@ -89,6 +104,7 @@ func (r RedisUtils) DeleteKeyPrefix(ctx context.Context, prefix string) {
 		fmt.Println("没有匹配的键需要删除")
 	}
 }
+
 func NewRedisUtils(redisDb *redis.Client) IRedisUtils {
 	return RedisUtils{
 		redisDb: redisDb,
