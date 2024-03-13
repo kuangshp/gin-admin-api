@@ -10,8 +10,9 @@ import (
 func InitAccountRouter(Router *gin.RouterGroup) {
 	registerRouter := Router.Group("account")
 	newAccount := account.NewAccount()
-	registerRouter.POST("register", newAccount.CreateAccountApi)                                                                                                                                // 创建账号
-	registerRouter.POST("login", newAccount.LoginAccountApi)                                                                                                                                    // 登录
+	registerRouter.POST("register", newAccount.CreateAccountApi) // 创建账号
+	registerRouter.POST("login", newAccount.LoginAccountApi)     // 登录
+	registerRouter.GET("test", newAccount.GetTestApi)
 	registerRouter.DELETE("/:id", middleware.AuthMiddleWare(), newAccount.DeleteAccountByIdApi)                                                                                                 // 根据id删除
 	registerRouter.PUT("/modifyPassword/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordByIdApi)                                                                                    // 根据id修改密码
 	registerRouter.PATCH("/modifyPassword/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordByIdApi)                                                                                  // 根据id修改密码

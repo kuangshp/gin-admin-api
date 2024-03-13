@@ -26,7 +26,7 @@ func LowerCamelCase(name string) string {
 }
 func main() {
 	//初始化配置文件
-	initialize.InitConfig()
+	initialize.InitConfig("dev")
 	fmt.Println(utils.MapToJson(global.ServerConfig), "配置文件")
 	username := global.ServerConfig.DataSource.Username
 	password := global.ServerConfig.DataSource.Password
@@ -76,8 +76,18 @@ func main() {
 		"tinyint":   func(detailType gorm.ColumnType) (dataType string) { return "int64" },
 		"smallint":  func(detailType gorm.ColumnType) (dataType string) { return "int64" },
 		"mediumint": func(detailType gorm.ColumnType) (dataType string) { return "int64" },
-		"bigint":    func(detailType gorm.ColumnType) (dataType string) { return "int64" },
-		"int":       func(detailType gorm.ColumnType) (dataType string) { return "int64" },
+		"bigint": func(detailType gorm.ColumnType) (dataType string) {
+			if detailType.Name() == "version" {
+				return "Version"
+			}
+			return "int64"
+		},
+		"int": func(detailType gorm.ColumnType) (dataType string) {
+			if detailType.Name() == "version" {
+				return "Version"
+			}
+			return "int64"
+		},
 		"json":      func(detailType gorm.ColumnType) (dataType string) { return "JSON" },      // 自定义json数据类型
 		"timestamp": func(detailType gorm.ColumnType) (dataType string) { return "LocalTime" }, // 自定义时间
 		"datetime":  func(detailType gorm.ColumnType) (dataType string) { return "LocalTime" }, // 自定义时间

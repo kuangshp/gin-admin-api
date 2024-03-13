@@ -257,10 +257,6 @@ func (a accountEntityDo) Where(conds ...gen.Condition) IAccountEntityDo {
 	return a.withDO(a.DO.Where(conds...))
 }
 
-func (a accountEntityDo) Exists(subquery interface{ UnderlyingDB() *gorm.DB }) IAccountEntityDo {
-	return a.Where(field.CompareSubQuery(field.ExistsOp, nil, subquery.UnderlyingDB()))
-}
-
 func (a accountEntityDo) Order(conds ...field.Expr) IAccountEntityDo {
 	return a.withDO(a.DO.Order(conds...))
 }

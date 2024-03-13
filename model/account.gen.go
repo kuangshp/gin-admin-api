@@ -12,23 +12,23 @@ const TableNameAccountEntity = "account"
 
 // AccountEntity mapped from table <account>
 type AccountEntity struct {
-	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id,string"`
-	Username      string         `gorm:"column:username;type:varchar(50);not null;comment:用户名" json:"username"`
-	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:密码" json:"password"`
-	Name          string         `gorm:"column:name;type:varchar(10);comment:真实姓名" json:"name"`
-	Mobile        string         `gorm:"column:mobile;type:varchar(11);comment:手机号码" json:"mobile"`
-	Email         string         `gorm:"column:email;type:varchar(50);comment:邮箱地址" json:"email"`
-	Avatar        string         `gorm:"column:avatar;type:varchar(200);comment:用户头像" json:"avatar"`
-	IsAdmin       int64          `gorm:"column:is_admin;type:tinyint;comment:是否为超级管理员:0否,1是" json:"isAdmin"`
-	Status        int64          `gorm:"column:status;type:tinyint;default:1;comment:状态1是正常,0是禁用" json:"status"`
-	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后登录ip地址" json:"lastLoginIp"`
-	LastLoginDate LocalTime      `gorm:"column:last_login_date;type:timestamp(6);comment:最后登录时间" json:"lastLoginDate"`
-	Salt          string         `gorm:"column:salt;type:varchar(10);comment:密码盐" json:"salt"`
-	Token         string         `gorm:"column:token;type:varchar(300);comment:token" json:"token"`
-	ExpireTime    LocalTime      `gorm:"column:expire_time;type:timestamp;comment:token过期时间" json:"expireTime"`
-	CreatedAt     LocalTime      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`
-	UpdatedAt     LocalTime      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`
-	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;comment:软删除时间" json:"-"`
+	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id,string"` // 主键id
+	Username      string         `gorm:"column:username;type:varchar(50);not null;comment:用户名" json:"username"`          // 用户名
+	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:密码" json:"password"`          // 密码
+	Name          string         `gorm:"column:name;type:varchar(10);comment:真实姓名" json:"name"`                          // 真实姓名
+	Mobile        string         `gorm:"column:mobile;type:varchar(11);comment:手机号码" json:"mobile"`                      // 手机号码
+	Email         string         `gorm:"column:email;type:varchar(50);comment:邮箱地址" json:"email"`                        // 邮箱地址
+	Avatar        string         `gorm:"column:avatar;type:varchar(200);comment:用户头像" json:"avatar"`                     // 用户头像
+	IsAdmin       int64          `gorm:"column:is_admin;type:tinyint;comment:是否为超级管理员:0否,1是" json:"isAdmin"`             // 是否为超级管理员:0否,1是
+	Status        int64          `gorm:"column:status;type:tinyint;default:1;comment:状态1是正常,0是禁用" json:"status"`         // 状态1是正常,0是禁用
+	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后登录ip地址" json:"lastLoginIp"`      // 最后登录ip地址
+	LastLoginDate LocalTime      `gorm:"column:last_login_date;type:timestamp(6);comment:最后登录时间" json:"lastLoginDate"`   // 最后登录时间
+	Salt          string         `gorm:"column:salt;type:varchar(10);comment:密码盐" json:"salt"`                           // 密码盐
+	Token         string         `gorm:"column:token;type:varchar(300);comment:token" json:"token"`                      // token
+	ExpireTime    LocalTime      `gorm:"column:expire_time;type:timestamp;comment:token过期时间" json:"expireTime"`          // token过期时间
+	CreatedAt     LocalTime      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                // 创建时间
+	UpdatedAt     LocalTime      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`                                // 更新时间
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;comment:软删除时间" json:"-"`                        // 软删除时间
 }
 
 // TableName AccountEntity's table name

@@ -18,18 +18,20 @@ import (
 var (
 	Q             = new(Query)
 	AccountEntity *accountEntity
+	Test1Entity   *test1Entity
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	AccountEntity = &Q.AccountEntity
-
+	Test1Entity = &Q.Test1Entity
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:            db,
 		AccountEntity: newAccountEntity(db, opts...),
+		Test1Entity:   newTest1Entity(db, opts...),
 	}
 }
 
@@ -37,6 +39,7 @@ type Query struct {
 	db *gorm.DB
 
 	AccountEntity accountEntity
+	Test1Entity   test1Entity
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -45,6 +48,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
 		AccountEntity: q.AccountEntity.clone(db),
+		Test1Entity:   q.Test1Entity.clone(db),
 	}
 }
 
@@ -60,16 +64,19 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
 		AccountEntity: q.AccountEntity.replaceDB(db),
+		Test1Entity:   q.Test1Entity.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
 	AccountEntity IAccountEntityDo
+	Test1Entity   ITest1EntityDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		AccountEntity: q.AccountEntity.WithContext(ctx),
+		Test1Entity:   q.Test1Entity.WithContext(ctx),
 	}
 }
 

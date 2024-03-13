@@ -26,6 +26,7 @@ type IAccount interface {
 	UpdateStatusByIdApi(ctx *gin.Context)             // 根据id修改状态
 	GetAccountByIdApi(ctx *gin.Context)               //根据id查询数据
 	GetAccountPageApi(ctx *gin.Context)               // 分页获取数据
+	GetTestApi(ctx *gin.Context)                      //测试
 }
 
 type Account struct{}
@@ -340,6 +341,15 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 		Data:  accountList,
 		Total: total,
 	})
+	return
+}
+
+func (a Account) GetTestApi(ctx *gin.Context) {
+	//test1Entity, _ := dao.Test1Entity.WithContext(ctx).First()
+	dao.Test1Entity.WithContext(ctx).Where(dao.Test1Entity.ID.Eq(1)).Updates(&model.Test1Entity{
+		Username: "你好",
+	})
+	utils.Success(ctx, "成功")
 	return
 }
 func NewAccount() IAccount {

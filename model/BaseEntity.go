@@ -7,10 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/shopspring/decimal"
+	"gorm.io/plugin/optimisticlock"
 	"time"
 )
 
 type Decimal = decimal.Decimal
+
+// Version mysql乐观锁
+type Version = optimisticlock.Version
 
 // LocalTime 自定义数据类型1开始
 type LocalTime struct {
