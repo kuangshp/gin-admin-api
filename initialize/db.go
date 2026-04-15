@@ -3,7 +3,6 @@ package initialize
 import (
 	"fmt"
 	"gin-admin-api/config"
-	"gin-admin-api/internal/query/model"
 	"log"
 	"os"
 	"time"
@@ -50,13 +49,6 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetConnMaxLifetime(time.Hour)
-
-	// 自动迁移所有 model（保持原项目的 model/init.go 兼容）
-	// 如果表已存在且结构一致，可注释此行跳过迁移
-	if err = db.AutoMigrate(model.GetAllModels()...); err != nil {
-		fmt.Printf("⚠ 数据库迁移警告: %v\n", err)
-		// 迁移失败不中断启动，表已存在时忽略即可
-	}
 
 	fmt.Printf("✔ 数据库连接成功 [%s:%d/%s]\n", ds.Host, ds.Port, ds.Database)
 	return db, nil

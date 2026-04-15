@@ -148,14 +148,28 @@ wireCheck:
 ## gen: 使用 dev 配置生成 GORM 查询代码
 gen:
 	@echo "$(GREEN)▶ 运行 gorm-gen（dev 环境）...$(RESET)"
-	$(GO) run ./internal/query/generator.go application.dev.yml
+	$(GO) run ./cmd/generator.go application.dev.yml
 	@echo "$(GREEN)✔ dao/ 和 model/ 已更新$(RESET)"
 
 ## gen-prod: 使用 prod 配置生成 GORM 查询代码
 gen-prod:
 	@echo "$(GREEN)▶ 运行 gorm-gen（prod 环境）...$(RESET)"
-	$(GO) run ./internal/query/generator.go application.prod.yml
+	$(GO) run ./cmd/generator.go application.prod.yml
 	@echo "$(GREEN)✔ dao/ 和 model/ 已更新$(RESET)"
+
+# ── 数据库迁移 ────────────────────────────────────────────────────
+
+## migrate: 使用 dev 配置执行数据库迁移
+migrate:
+	@echo "$(GREEN)▶ 执行数据库迁移（dev 环境）...$(RESET)"
+	$(GO) run ./cmd/migrate.go application.dev.yml
+	@echo "$(GREEN)✔ 数据库迁移完成$(RESET)"
+
+## migrate-prod: 使用 prod 配置执行数据库迁移
+migrate-prod:
+	@echo "$(GREEN)▶ 执行数据库迁移（prod 环境）...$(RESET)"
+	$(GO) run ./cmd/migrate.go application.prod.yml
+	@echo "$(GREEN)✔ 数据库迁移完成$(RESET)"
 
 # ── 依赖管理 ─────────────────────────────────────────────────────
 

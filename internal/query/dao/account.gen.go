@@ -6,6 +6,7 @@ package dao
 
 import (
 	"context"
+	"gin-admin-api/internal/query/model/entity"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -15,8 +16,6 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
-
-	"gin-admin-api/internal/query/model/entity"
 )
 
 func newAccountEntity(db *gorm.DB, opts ...gen.DOOption) accountEntity {

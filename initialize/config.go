@@ -8,7 +8,7 @@ import (
 )
 
 // NewConfig Wire Provider：读取配置文件，返回 *config.ServerConfig
-// envString 来自 main.go 的 flag 参数：dev | prod
+// envString 来自 generator.go 的 flag 参数：dev | prod
 func NewConfig(envString string) (*config.ServerConfig, error) {
 	v := viper.New()
 	v.SetConfigName(fmt.Sprintf("application.%s", envString))
