@@ -2,8 +2,8 @@ package initialize
 
 import (
 	"fmt"
-	"gin-admin-api/internal/query/dao"
-	"gin-admin-api/internal/query/model/entity"
+	"gin-admin-api/internal/dal/dao"
+	"gin-admin-api/internal/dal/model/entity"
 	"gin-admin-api/pkg/enum"
 	"github.com/kuangshp/go-utils/k"
 	"time"

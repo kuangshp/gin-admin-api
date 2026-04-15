@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"gin-admin-api/config"
+	"gin-admin-api/internal/config"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
@@ -57,8 +57,8 @@ func main() {
 	}
 
 	g := gen.NewGenerator(gen.Config{
-		OutPath:      "./internal/query/dao",          // curd代码的输出路径
-		ModelPkgPath: "./internal/query/model/entity", // model代码的输出路径
+		OutPath:      "./internal/dal/dao",          // curd代码的输出路径
+		ModelPkgPath: "./internal/dal/model/entity", // model代码的输出路径
 
 		Mode: gen.WithDefaultQuery | gen.WithoutContext | gen.WithQueryInterface,
 

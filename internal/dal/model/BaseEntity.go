@@ -1,7 +1,7 @@
 package model
 
 import (
-	"gin-admin-api/internal/query/model/types"
+	"gin-admin-api/internal/dal/model/types"
 )
 
 type Decimal = types.Decimal

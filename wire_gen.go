@@ -9,7 +9,7 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
-	"gin-admin-api/internal/query/repository"
+	"gin-admin-api/internal/dal/repository"
 )
 
 // Injectors from wire.go:

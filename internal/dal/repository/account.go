@@ -5,8 +5,8 @@ import (
 	"gin-admin-api/pkg/enum"
 	"time"
 
-	"gin-admin-api/internal/query/dao"
-	"gin-admin-api/internal/query/model/entity"
+	"gin-admin-api/internal/dal/dao"
+	"gin-admin-api/internal/dal/model/entity"
 )
 
 type AccountRepository struct{}

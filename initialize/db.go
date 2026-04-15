@@ -2,8 +2,8 @@ package initialize
 
 import (
 	"fmt"
-	"gin-admin-api/config"
-	"gin-admin-api/internal/query/dao"
+	"gin-admin-api/internal/config"
+	"gin-admin-api/internal/dal/dao"
 	"log"
 	"os"
 	"time"

@@ -2,7 +2,7 @@ package initialize
 
 import (
 	"fmt"
-	"gin-admin-api/config"
+	"gin-admin-api/internal/config"
 
 	"github.com/spf13/viper"
 )

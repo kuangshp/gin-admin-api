@@ -6,7 +6,7 @@ package dao
 
 import (
 	"context"
-	"gin-admin-api/internal/query/model/entity"
+	"gin-admin-api/internal/dal/model/entity"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

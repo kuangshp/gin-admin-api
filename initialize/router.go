@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"gin-admin-api/config"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/middleware"
 	"gin-admin-api/internal/router"
 	"github.com/go-redis/redis/v8"

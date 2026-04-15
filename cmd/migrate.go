@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"gin-admin-api/internal/query/model"
+	"gin-admin-api/internal/dal/model"
 	"os"
 
-	"gin-admin-api/config"
+	"gin-admin-api/internal/config"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

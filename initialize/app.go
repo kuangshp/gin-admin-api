@@ -3,7 +3,7 @@ package initialize
 import (
 	"context"
 	"fmt"
-	"gin-admin-api/config"
+	"gin-admin-api/internal/config"
 	"log"
 	"net/http"
 	"os"

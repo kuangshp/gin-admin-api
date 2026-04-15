@@ -3,10 +3,10 @@ package account
 import (
 	"errors"
 	"fmt"
-	"gin-admin-api/config"
+	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/vo"
-	"gin-admin-api/internal/query/repository"
+	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
 	"gin-admin-api/pkg/utils"
 	"github.com/gin-gonic/gin"

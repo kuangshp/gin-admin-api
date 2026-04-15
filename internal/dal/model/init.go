@@ -1,7 +1,7 @@
 package model
 
 import (
-	"gin-admin-api/internal/query/model/entity"
+	"gin-admin-api/internal/dal/model/entity"
 )
 
 // GetAllModels 返回所有需要 AutoMigrate 的 model 列表
