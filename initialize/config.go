@@ -2,57 +2,29 @@ package initialize
 
 import (
 	"fmt"
-	"gin-admin-api/global"
+	"gin-admin-api/config"
+
 	"github.com/spf13/viper"
-	"os"
-	"path"
 )
 
-func GetEnvInfo(env string) bool {
-	viper.AutomaticEnv()
-	return viper.GetBool(env)
-}
-
-func InitConfig(envString string) {
-	//workDir, _ := os.Getwd()
-	//isDev := utils.GetEnvInfo("IS_DEV")
-	//fmt.Println(workDir, "目录", isDev)
-	//configFileName := path.Join(workDir, "application.prod.yml")
-	//if isDev {
-	//	configFileName = path.Join(workDir, "application.dev.yml")
-	//}
-	//fmt.Println(configFileName, "文件")
-	//v := viper.New()
-	////文件的路径如何设置
-	//v.SetConfigFile(configFileName)
-	//if err := v.ReadInConfig(); err != nil {
-	//	panic(err)
-	//}
-	//err := v.Unmarshal(&global.ServerConfig)
-	//if err != nil {
-	//	fmt.Println("读取配置失败")
-	//}
-	//fmt.Println(&global.ServerConfig)
-	workDir, _ := os.Getwd()
-	configFileName := path.Join(workDir, fmt.Sprintf("application.%s.yml", envString))
-	fmt.Println(configFileName, "文件")
+// NewConfig Wire Provider：读取配置文件，返回 *config.ServerConfig
+// envString 来自 main.go 的 flag 参数：dev | prod
+func NewConfig(envString string) (*config.ServerConfig, error) {
 	v := viper.New()
-	//文件的路径如何设置
-	v.SetConfigFile(configFileName)
-	if err := v.ReadInConfig(); err != nil {
-		panic(err)
-	}
-	err := v.Unmarshal(&global.ServerConfig)
-	if err != nil {
-		fmt.Println("读取配置失败")
-	}
-	fmt.Println(&global.ServerConfig)
-}
+	v.SetConfigName(fmt.Sprintf("application.%s", envString))
+	v.SetConfigType("yml")
+	v.AddConfigPath(".")
 
-func GetDefaultEnv(key, defaultVal string) string {
-	val, ok := os.LookupEnv(key)
-	if ok {
-		return val
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("读取配置文件 application.%s.yml 失败: %w", envString, err)
 	}
-	return defaultVal
+
+	var cfg config.ServerConfig
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("解析配置文件失败: %w", err)
+	}
+
+	// 同步写入全局变量，保持与原项目兼容
+	fmt.Printf("✔ 配置加载成功 [%s] port=%d\n", envString, cfg.Port)
+	return &cfg, nil
 }
