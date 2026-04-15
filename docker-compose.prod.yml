@@ -10,7 +10,7 @@ services:
       MYSQL_DATABASE: "gin-admin-api"
       MYSQL_CHARSET: "utf8mb4"
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./gin-admin-api.sql:/docker-entrypoint-initdb.d/init.sql
@@ -29,7 +29,7 @@ services:
     container_name: gin-admin-api-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

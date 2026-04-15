@@ -213,13 +213,37 @@ docker-build:
 	docker build -t $(APP):$(VERSION) -t $(APP):latest .
 	@echo "$(GREEN)✔ 镜像: $(APP):$(VERSION)$(RESET)"
 
+# 本地开发（使用 docker-compose.yml，端口避开本地 MySQL/Redis）
+docker-up: docker-build
+	@echo "$(GREEN)▶ 启动容器（开发环境）...$(RESET)"
+	docker compose -f docker-compose.yml up -d
+	@echo "$(GREEN)✔ 访问: http://localhost:8000$(RESET)"
+
 docker-run:
-	@echo "$(GREEN)▶ 启动容器（含 MySQL）...$(RESET)"
-	docker compose up -d
-	@echo "$(GREEN)✔ 访问: http://localhost:8080$(RESET)"
+	@echo "$(GREEN)▶ 启动容器（开发环境）...$(RESET)"
+	docker compose -f docker-compose.yml up -d
+	@echo "$(GREEN)✔ 访问: http://localhost:8000$(RESET)"
 
 docker-stop:
-	docker compose down
+	docker compose -f docker-compose.yml down
+
+docker-restart: docker-stop docker-up
+
+# 生产部署（使用 docker-compose.prod.yml）
+docker-prod-up: docker-build
+	@echo "$(GREEN)▶ 启动容器（生产环境）...$(RESET)"
+	docker compose -f docker-compose.prod.yml up -d
+	@echo "$(GREEN)✔ 访问: http://localhost:8000$(RESET)"
+
+docker-prod-run:
+	@echo "$(GREEN)▶ 启动容器（生产环境）...$(RESET)"
+	docker compose -f docker-compose.prod.yml up -d
+	@echo "$(GREEN)✔ 访问: http://localhost:8000$(RESET)"
+
+docker-prod-stop:
+	docker compose -f docker-compose.prod.yml down
+
+docker-prod-restart: docker-prod-stop docker-prod-up
 
 # ── 部署（pm2）───────────────────────────────────────────────────
 

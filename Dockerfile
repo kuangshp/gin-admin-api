@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-w -s" -o bin/app main.go wire_gen.go
+    go build -ldflags="-w -s" -o ./app main.go wire_gen.go
 
 # ── 阶段二：运行 ─────────────────────────────────────────────────
 FROM alpine:3.19
@@ -21,11 +21,11 @@ RUN apk add --no-cache tzdata ca-certificates \
 
 WORKDIR /app
 
-COPY --from=builder /app/bin/app .
+COPY --from=builder /app/app .
 COPY --from=builder /app/application.prod.yml .
 
 RUN mkdir -p logs
 
-EXPOSE 8080
+EXPOSE 8000
 
 ENTRYPOINT ["./app", "-envString", "prod"]
