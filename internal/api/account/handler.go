@@ -6,8 +6,7 @@ import (
 	"gin-admin-api/config"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/vo"
-	"gin-admin-api/internal/query/dao"
-	"gin-admin-api/internal/query/model/entity"
+	"gin-admin-api/internal/query/repository"
 	"gin-admin-api/pkg/enum"
 	"gin-admin-api/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -32,10 +31,11 @@ type IAccount interface {
 }
 
 type Account struct {
-	db     *gorm.DB
-	cfg    *config.ServerConfig
-	redis  *redis.Client
-	logger *zap.Logger
+	db                *gorm.DB
+	cfg               *config.ServerConfig
+	redis             *redis.Client
+	logger            *zap.Logger
+	accountRepository repository.IAccountRepository
 }
 
 // CreateAccountApi 创建账号
@@ -51,11 +51,15 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		utils.Fail(ctx, "两次密码不一致")
 		return
 	}
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
 	// 2.判断账号是否已经存在
-	if result, err := queryAccountBuilder.Where(dao.AccountEntity.Username.Eq(createAccountDto.Username)).
-		Select(dao.AccountEntity.ID, dao.AccountEntity.Username).First(); !errors.Is(err, gorm.ErrRecordNotFound) {
-		utils.Fail(ctx, fmt.Sprintf("%s已经存在,不能重复创建", result.Username))
+	exists, err := a.accountRepository.ExistsByUsername(ctx, createAccountDto.Username)
+	if err != nil {
+		a.logger.Error("查询账号失败" + err.Error())
+		utils.Fail(ctx, "创建账号失败")
+		return
+	}
+	if exists {
+		utils.Fail(ctx, fmt.Sprintf("%s已经存在,不能重复创建", createAccountDto.Username))
 		return
 	}
 	// 3.对密码加密
@@ -66,15 +70,8 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		utils.Fail(ctx, "创建账号失败")
 		return
 	}
-	if result := queryAccountBuilder.Select(dao.AccountEntity.Username, dao.AccountEntity.Password,
-		dao.AccountEntity.Status, dao.AccountEntity.IsAdmin).
-		Create(&entity.AccountEntity{
-			Username: createAccountDto.Username,
-			Password: password,
-			Status:   enum.Normal,
-			IsAdmin:  enum.NormalAccount,
-		}); result != nil {
-		a.logger.Error("创建账号失败" + result.Error())
+	if err := a.accountRepository.Create(ctx, createAccountDto.Username, password, salt); err != nil {
+		a.logger.Error("创建账号失败" + err.Error())
 		utils.Fail(ctx, "创建失败")
 		return
 	}
@@ -91,71 +88,69 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 		return
 	}
 	// 根据账号查询数据
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	if result, err := queryAccountBuilder.Where(dao.AccountEntity.Username.Eq(accountDto.Username)).First(); errors.Is(err, gorm.ErrRecordNotFound) {
-		a.logger.Error("账号不存在" + accountDto.Username)
+	result, err := a.accountRepository.GetByUsername(ctx, accountDto.Username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			a.logger.Error("账号不存在" + accountDto.Username)
+			utils.Fail(ctx, "账号或密码错误")
+			return
+		}
+		a.logger.Error("查询账号失败" + err.Error())
 		utils.Fail(ctx, "账号或密码错误")
 		return
-	} else {
-		if result.Status == enum.Forbid {
-			utils.Fail(ctx, "当前账号已经被禁用,请联系管理员")
-			return
-		}
-		isValid := k.CheckPassword(result.Password, accountDto.Password)
-		if !isValid {
-			utils.Fail(ctx, "账号或密码错误")
-			return
-		}
-		// 3.生产token返回给前端
-		hmacUser := utils.HmacUser{
-			AccountId: result.ID,
-			Username:  result.Username,
-		}
-		token, err := utils.GenerateToken(hmacUser)
-		if err != nil {
-			a.logger.Error("生成token失败")
-			utils.Fail(ctx, "账号或密码错误")
-			return
-		}
-		// 更新账号
-		if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(result.ID)).
-			Select(dao.AccountEntity.LastLoginDate, dao.AccountEntity.LastLoginIP).
-			Updates(&entity.AccountEntity{
-				LastLoginDate: time.Now(),
-				LastLoginIP:   ctx.ClientIP(), //最后登录id
-			}); err != nil {
-			a.logger.Error("更新表的时候失败")
-			utils.Fail(ctx, "账号或密码错误")
-			return
-		}
-		utils.Success(ctx, vo.LoginVo{
-			AccountVo: vo.AccountVo{
-				ID:            result.ID,
-				CreatedAt:     result.CreatedAt,
-				UpdatedAt:     result.UpdatedAt,
-				Username:      result.Username, // 用户名
-				Name:          result.Name,     // 真实姓名
-				Mobile:        result.Mobile,   // 手机号码
-				Email:         result.Email,    // 邮箱地址
-				Avatar:        result.Avatar,   // 用户头像
-				IsAdmin:       result.IsAdmin,  // 是否为超级管理员:0否,1是
-				Status:        result.Status,   // 状态1是正常,0是禁用
-				LastLoginDate: time.Now(),
-				LastLoginIP:   result.LastLoginIP,
-			},
-			Token: token,
-		})
+	}
+	if result.Status == enum.StatusForbidEnum {
+		utils.Fail(ctx, "当前账号已经被禁用,请联系管理员")
 		return
 	}
+	isValid := k.CheckPassword(result.Password, accountDto.Password)
+	if !isValid {
+		utils.Fail(ctx, "账号或密码错误")
+		return
+	}
+	// 3.生产token返回给前端
+	hmacUser := utils.HmacUser{
+		AccountId: result.ID,
+		Username:  result.Username,
+	}
+	token, err := utils.GenerateToken(hmacUser)
+	if err != nil {
+		a.logger.Error("生成token失败")
+		utils.Fail(ctx, "账号或密码错误")
+		return
+	}
+	// 更新账号登录信息
+	if err := a.accountRepository.UpdateLoginInfo(ctx, result.ID, ctx.ClientIP()); err != nil {
+		a.logger.Error("更新登录信息失败")
+		utils.Fail(ctx, "账号或密码错误")
+		return
+	}
+	utils.Success(ctx, vo.LoginVo{
+		AccountVo: vo.AccountVo{
+			ID:            result.ID,
+			CreatedAt:     result.CreatedAt,
+			UpdatedAt:     result.UpdatedAt,
+			Username:      result.Username, // 用户名
+			Name:          result.Name,     // 真实姓名
+			Mobile:        result.Mobile,   // 手机号码
+			Email:         result.Email,    // 邮箱地址
+			Avatar:        result.Avatar,   // 用户头像
+			IsAdmin:       result.IsAdmin,  // 是否为超级管理员:0否,1是
+			Status:        result.Status,   // 状态1是正常,0是禁用
+			LastLoginDate: time.Now(),
+			LastLoginIP:   result.LastLoginIP,
+		},
+		Token: token,
+	})
+	return
 }
 
 // DeleteAccountByIdApi 根据id删除数据
 func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt, _ := strconv.ParseInt(id, 10, 64)
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
 	// 1.判断超级管理员不能删除
-	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).First()
+	accountData, err := a.accountRepository.GetByID(ctx, idInt)
 	if err != nil {
 		a.logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "删除失败")
@@ -170,13 +165,12 @@ func (a Account) DeleteAccountByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "自己不能删除自己")
 		return
 	}
-	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Delete(); err == nil {
-		utils.Success(ctx, "删除成功")
-		return
-	} else {
+	if err := a.accountRepository.Delete(ctx, idInt); err != nil {
 		utils.Fail(ctx, "删除失败")
 		return
 	}
+	utils.Success(ctx, "删除成功")
+	return
 }
 
 // ModifyPasswordByIdApi 根据id修改密码
@@ -200,12 +194,7 @@ func (a Account) ModifyPasswordByIdApi(ctx *gin.Context) {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).
-		Select(dao.AccountEntity.Password).
-		Updates(&entity.AccountEntity{
-			Password: password,
-		}); err != nil {
+	if err := a.accountRepository.UpdatePassword(ctx, idInt, password); err != nil {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
@@ -226,8 +215,7 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		utils.Fail(ctx, "两次密码不一致")
 		return
 	}
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Select(dao.AccountEntity.Password).Where(dao.AccountEntity.ID.Eq(accountId)).First()
+	accountData, err := a.accountRepository.GetByID(ctx, accountId)
 	if err != nil {
 		a.logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "修改密码失败")
@@ -246,11 +234,7 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
-	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(accountId)).
-		Select(dao.AccountEntity.Password).
-		Updates(&entity.AccountEntity{
-			Password: password,
-		}); err != nil {
+	if err := a.accountRepository.UpdatePassword(ctx, accountId, password); err != nil {
 		utils.Fail(ctx, "修改密码失败")
 		return
 	}
@@ -262,22 +246,19 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Select(dao.AccountEntity.Status).First()
+	accountData, err := a.accountRepository.GetByID(ctx, idInt)
 	if err != nil {
 		a.logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "修改状态失败")
 		return
 	}
-	status := 0
-	if accountData.Status == enum.Forbid {
-		status = enum.Normal
+	status := int64(0)
+	if accountData.Status == enum.StatusForbidEnum {
+		status = enum.StatusNormalEnum
 	} else {
-		status = enum.Forbid
+		status = enum.StatusForbidEnum
 	}
-	if _, err1 := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Updates(map[string]interface{}{
-		"status": status,
-	}); err1 != nil {
+	if err := a.accountRepository.UpdateStatus(ctx, idInt, status); err != nil {
 		utils.Fail(ctx, "更新失败")
 		return
 	}
@@ -289,8 +270,7 @@ func (a Account) UpdateStatusByIdApi(ctx *gin.Context) {
 func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
-	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).Omit(dao.AccountEntity.Password).First()
+	accountData, err := a.accountRepository.GetByID(ctx, idInt)
 	if err != nil {
 		utils.Fail(ctx, "查询失败")
 		return
@@ -306,21 +286,23 @@ func (a Account) GetAccountByIdApi(ctx *gin.Context) {
 func (a Account) GetAccountPageApi(ctx *gin.Context) {
 	username := ctx.DefaultQuery("username", "")
 	status := ctx.DefaultQuery("status", "")
-	fmt.Println(ctx.Request.URL.Query(), "11111")
-	queryAccountBuilder := dao.AccountEntity.WithContext(ctx)
-	if username != "" {
-		queryAccountBuilder = queryAccountBuilder.Where(dao.AccountEntity.Username.Like("%" + username + "%"))
+	pageNumber, _ := strconv.Atoi(ctx.DefaultQuery("pageNumber", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("pageSize", "10"))
+	if pageNumber <= 0 {
+		pageNumber = 1
 	}
-	if status != "" {
-		statusInt := cast.ToInt64(status)
-		queryAccountBuilder = queryAccountBuilder.Where(dao.AccountEntity.Status.Eq(statusInt))
+	if pageSize <= 0 {
+		pageSize = 10
 	}
-	var accountList = make([]vo.AccountVo, 0)
-	total, _ := queryAccountBuilder.Count()
-	accountDataList, err := queryAccountBuilder.Omit(dao.AccountEntity.Password).Scopes(utils.Paginate(ctx.Request)).Find()
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	offset := (pageNumber - 1) * pageSize
+	accountDataList, total, err := a.accountRepository.GetPage(ctx, username, cast.ToInt64(status), offset, pageSize)
 	if err != nil {
 		a.logger.Error("查询数据失败" + err.Error())
 	}
+	var accountList = make([]vo.AccountVo, 0)
 	for _, item := range accountDataList {
 		var resultData = vo.AccountVo{}
 		_ = utils.CopyProperties(&resultData, item)
@@ -331,11 +313,12 @@ func (a Account) GetAccountPageApi(ctx *gin.Context) {
 	return
 }
 
-func NewAccount(db *gorm.DB, cfg *config.ServerConfig, redis *redis.Client, logger *zap.Logger) IAccount {
+func NewAccount(db *gorm.DB, cfg *config.ServerConfig, redis *redis.Client, logger *zap.Logger, accountRepository repository.IAccountRepository) IAccount {
 	return Account{
-		db:     db,
-		cfg:    cfg,
-		redis:  redis,
-		logger: logger,
+		db:                db,
+		cfg:               cfg,
+		redis:             redis,
+		logger:            logger,
+		accountRepository: accountRepository,
 	}
 }

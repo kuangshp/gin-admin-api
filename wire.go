@@ -4,8 +4,9 @@
 package main
 
 import (
-	"gin-admin-api/internal/api/account"
 	"gin-admin-api/initialize"
+	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/query/repository"
 
 	"github.com/google/wire"
 )
@@ -21,7 +22,8 @@ func InitApp(envString string) (*initialize.App, error) {
 		initialize.NewRedis,
 		// 接入层
 		account.NewAccount,
-
+		// 数据访问层
+		repository.NewAccountRepository,
 		// 路由 & 服务
 		initialize.NewRouter,
 		initialize.NewApp,

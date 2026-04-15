@@ -11,7 +11,7 @@ CREATE TABLE `account` (
    `email` varchar(50) DEFAULT NULL COMMENT '邮箱地址',
    `avatar` varchar(200) DEFAULT NULL COMMENT '用户头像',
    `is_admin` tinyint(4) DEFAULT 0 COMMENT '是否为超级管理员:0否,1是',
-   `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,0是禁用',
+   `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,2是禁用',
    `last_login_ip` varchar(30) COMMENT '最后登录ip地址',
    `last_login_date` timestamp(6) COMMENT '最后登录时间',
    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

@@ -9,6 +9,7 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/query/repository"
 )
 
 // Injectors from wire.go:
@@ -29,7 +30,8 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	iAccount := account.NewAccount(db, serverConfig, client, logger)
+	iAccountRepository := repository.NewAccountRepository()
+	iAccount := account.NewAccount(db, serverConfig, client, logger, iAccountRepository)
 	engine := initialize.NewRouter(serverConfig, logger, iAccount, client)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil
