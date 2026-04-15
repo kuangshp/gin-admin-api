@@ -12,7 +12,7 @@ import (
 type AccountRepository struct{}
 
 type IAccountRepository interface {
-	Create(ctx context.Context, username, password, salt string) error
+	Create(ctx context.Context, username, password string) error
 	GetByUsername(ctx context.Context, username string) (*entity.AccountEntity, error)
 	GetByID(ctx context.Context, id int64) (*entity.AccountEntity, error)
 	Delete(ctx context.Context, id int64) error
@@ -27,7 +27,7 @@ func NewAccountRepository() IAccountRepository {
 	return &AccountRepository{}
 }
 
-func (r *AccountRepository) Create(ctx context.Context, username, password, salt string) error {
+func (r *AccountRepository) Create(ctx context.Context, username, password string) error {
 	return dao.AccountEntity.WithContext(ctx).
 		Create(&entity.AccountEntity{
 			Username: username,

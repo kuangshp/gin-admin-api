@@ -3,9 +3,9 @@ package account
 import (
 	"errors"
 	"fmt"
-	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/vo"
+	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
 	"gin-admin-api/pkg/utils"
@@ -63,14 +63,13 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		return
 	}
 	// 3.对密码加密
-	salt := utils.RandomString(utils.GetRandomNum(5, 10))
-	password, err := utils.MakePassword(createAccountDto.Password, salt)
+	password, err := k.MakePassword(createAccountDto.Password)
 	if err != nil {
 		a.logger.Error("密码加密失败" + err.Error())
 		utils.Fail(ctx, "创建账号失败")
 		return
 	}
-	if err := a.accountRepository.Create(ctx, createAccountDto.Username, password, salt); err != nil {
+	if err := a.accountRepository.Create(ctx, createAccountDto.Username, password); err != nil {
 		a.logger.Error("创建账号失败" + err.Error())
 		utils.Fail(ctx, "创建失败")
 		return
@@ -120,7 +119,7 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 		return
 	}
 	// 更新账号登录信息
-	if err := a.accountRepository.UpdateLoginInfo(ctx, result.ID, ctx.ClientIP()); err != nil {
+	if err = a.accountRepository.UpdateLoginInfo(ctx, result.ID, ctx.ClientIP()); err != nil {
 		a.logger.Error("更新登录信息失败")
 		utils.Fail(ctx, "账号或密码错误")
 		return
