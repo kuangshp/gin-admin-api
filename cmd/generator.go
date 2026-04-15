@@ -3,20 +3,22 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gin-admin-api/internal/config"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
 	"gorm.io/gen/field"
 	"gorm.io/gorm"
-	"strings"
 )
 
 // Case2Camel 下划线转驼峰(大驼峰)
 func Case2Camel(name string) string {
 	name = strings.Replace(name, "_", " ", -1)
-	name = strings.Title(name)
+	name = cases.Title(language.Und).String(name)
 	return strings.Replace(name, " ", "", -1)
 }
 

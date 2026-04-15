@@ -24,7 +24,7 @@ func main() {
 	}
 
 	var serverConfig config.ServerConfig
-	if err := yaml.Unmarshal(data, &serverConfig); err != nil {
+	if err = yaml.Unmarshal(data, &serverConfig); err != nil {
 		panic(fmt.Errorf("cannot parse config file: %w", err))
 	}
 
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	fmt.Println("▶ 开始数据库迁移...")
-	if err := db.AutoMigrate(model.GetAllModels()...); err != nil {
+	if err = db.AutoMigrate(model.GetAllModels()...); err != nil {
 		panic(fmt.Errorf("数据库迁移失败: %w", err))
 	}
 	fmt.Println("✔ 数据库迁移完成")
