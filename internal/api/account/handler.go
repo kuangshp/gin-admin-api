@@ -66,7 +66,7 @@ func (a Account) CreateAccountApi(ctx *gin.Context) {
 		utils.Fail(ctx, "创建账号失败")
 		return
 	}
-	if result := queryAccountBuilder.Select(dao.AccountEntity.Username, dao.AccountEntity.Password, dao.AccountEntity.Salt,
+	if result := queryAccountBuilder.Select(dao.AccountEntity.Username, dao.AccountEntity.Password,
 		dao.AccountEntity.Status, dao.AccountEntity.IsAdmin).
 		Create(&entity.AccountEntity{
 			Username: createAccountDto.Username,
@@ -119,7 +119,7 @@ func (a Account) LoginAccountApi(ctx *gin.Context) {
 		}
 		// 更新账号
 		if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(result.ID)).
-			Select(dao.AccountEntity.ExpireTime, dao.AccountEntity.Token, dao.AccountEntity.LastLoginDate, dao.AccountEntity.LastLoginIP).
+			Select(dao.AccountEntity.LastLoginDate, dao.AccountEntity.LastLoginIP).
 			Updates(&entity.AccountEntity{
 				LastLoginDate: time.Now(),
 				LastLoginIP:   ctx.ClientIP(), //最后登录id
@@ -202,7 +202,7 @@ func (a Account) ModifyPasswordByIdApi(ctx *gin.Context) {
 	}
 	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
 	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(idInt)).
-		Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).
+		Select(dao.AccountEntity.Password).
 		Updates(&entity.AccountEntity{
 			Password: password,
 		}); err != nil {
@@ -227,7 +227,7 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		return
 	}
 	var queryAccountBuilder = dao.AccountEntity.WithContext(ctx)
-	accountData, err := queryAccountBuilder.Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).Where(dao.AccountEntity.ID.Eq(accountId)).First()
+	accountData, err := queryAccountBuilder.Select(dao.AccountEntity.Password).Where(dao.AccountEntity.ID.Eq(accountId)).First()
 	if err != nil {
 		a.logger.Error("根据id查询数据失败" + err.Error())
 		utils.Fail(ctx, "修改密码失败")
@@ -247,7 +247,7 @@ func (a Account) UpdateCurrentAccountPasswordApi(ctx *gin.Context) {
 		return
 	}
 	if _, err := queryAccountBuilder.Where(dao.AccountEntity.ID.Eq(accountId)).
-		Select(dao.AccountEntity.Password, dao.AccountEntity.Salt).
+		Select(dao.AccountEntity.Password).
 		Updates(&entity.AccountEntity{
 			Password: password,
 		}); err != nil {

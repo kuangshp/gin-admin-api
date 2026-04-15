@@ -19,6 +19,7 @@ func NewRouter(
 	accountHandler account.IAccount,
 	redis *redis.Client,
 ) *gin.Engine {
+	// 配置启动模式
 	gin.SetMode(cfg.Mode)
 	r := gin.New()
 

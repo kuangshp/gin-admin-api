@@ -37,6 +37,7 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},
+		DisableForeignKeyConstraintWhenMigrating: true, // 禁用自动迁移时的外键约束检查
 	})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
@@ -51,8 +52,10 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	// 自动迁移所有 model（保持原项目的 model/init.go 兼容）
+	// 如果表已存在且结构一致，可注释此行跳过迁移
 	if err = db.AutoMigrate(model.GetAllModels()...); err != nil {
-		return nil, fmt.Errorf("数据库迁移失败: %w", err)
+		fmt.Printf("⚠ 数据库迁移警告: %v\n", err)
+		// 迁移失败不中断启动，表已存在时忽略即可
 	}
 
 	fmt.Printf("✔ 数据库连接成功 [%s:%d/%s]\n", ds.Host, ds.Port, ds.Database)

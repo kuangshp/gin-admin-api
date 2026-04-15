@@ -1,4 +1,5 @@
 port: 8000
+mode: release
 salt: abcdef
 # 数据库配置
 datasource:
@@ -10,3 +11,9 @@ datasource:
   password: 123456
   charset: utf8mb4
   loc: Asia/Shanghai
+# Redis配置
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
