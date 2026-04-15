@@ -21,6 +21,11 @@ func main() {
 		log.Fatalf("初始化失败: %v", err)
 	}
 
+	// 初始化管理员账号数据
+	if err = app.InitSqlData(); err != nil {
+		log.Fatalf("初始化管理员账号失败: %v", err)
+	}
+
 	if err = app.Run(); err != nil {
 		log.Fatalf("服务异常退出: %v", err)
 	}

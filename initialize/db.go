@@ -3,6 +3,7 @@ package initialize
 import (
 	"fmt"
 	"gin-admin-api/config"
+	"gin-admin-api/internal/query/dao"
 	"log"
 	"os"
 	"time"
@@ -49,6 +50,9 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// 初始化 dao 包的全局变量
+	dao.SetDefault(db)
 
 	fmt.Printf("✔ 数据库连接成功 [%s:%d/%s]\n", ds.Host, ds.Port, ds.Database)
 	return db, nil

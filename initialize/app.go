@@ -27,6 +27,11 @@ func NewApp(cfg *config.ServerConfig, engine *gin.Engine, logger *zap.Logger) *A
 	return &App{cfg: cfg, engine: engine, logger: logger}
 }
 
+// InitSqlData 调用初始化管理员账号
+func (a *App) InitSqlData() error {
+	return InitAccountDataWithDao()
+}
+
 // Run 启动服务，监听系统信号优雅退出
 func (a *App) Run() error {
 	addr := fmt.Sprintf(":%d", a.cfg.Port)
