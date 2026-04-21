@@ -26,6 +26,7 @@ func AuthMiddleWare() gin.HandlerFunc {
 		}
 		fmt.Println(utils.MapToJson(claims), "解析出来")
 		// 从token中解析出来的数据挂载到上下文上,方便后面的控制器使用
+		fmt.Println("AuthMiddleware 设置 accountId:", claims.AccountId)
 		ctx.Set("accountId", claims.AccountId)
 		ctx.Set("userName", claims.Username)
 		ctx.Next()

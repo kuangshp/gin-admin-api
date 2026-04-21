@@ -2,11 +2,14 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"gin-admin-api/internal/dal/dao"
+	"gin-admin-api/internal/dal/model/entity"
+	"gin-admin-api/internal/plugin"
 	"gin-admin-api/pkg/enum"
 	"time"
 
-	"gin-admin-api/internal/dal/dao"
-	"gin-admin-api/internal/dal/model/entity"
+	"github.com/gin-gonic/gin"
 )
 
 type AccountRepository struct{}
@@ -28,13 +31,39 @@ func NewAccountRepository() IAccountRepository {
 }
 
 func (r *AccountRepository) Create(ctx context.Context, username, password string) error {
+	fmt.Printf("Repository Create ctx type=%T, CtxOperatorKey=%v, CtxGinContextKey=%v\n",
+		ctx, ctx.Value(plugin.CtxOperatorKey), ctx.Value(plugin.CtxGinContextKey))
+	// 获取当前操作人
+	operator := getOperatorFromContext(ctx)
+	fmt.Println("Repository Create operator:", operator)
 	return dao.AccountEntity.WithContext(ctx).
+		Omit(dao.AccountEntity.LastLoginDate, dao.AccountEntity.LastLoginIP).
 		Create(&entity.AccountEntity{
 			Username: username,
 			Password: password,
 			Status:   enum.StatusNormalEnum,
 			IsAdmin:  0,
 		})
+}
+
+// getOperatorFromContext 从 context 中获取 operator
+func getOperatorFromContext(ctx context.Context) int64 {
+	if ctx == nil {
+		return 0
+	}
+	// 尝试从 context value 获取
+	if op, ok := ctx.Value(plugin.CtxOperatorKey).(int64); ok {
+		return op
+	}
+	// 尝试从 gin context 获取
+	if ginCtx, ok := ctx.Value(plugin.CtxGinContextKey).(*gin.Context); ok {
+		if op, exists := ginCtx.Get("operator"); exists {
+			if v, ok := op.(int64); ok {
+				return v
+			}
+		}
+	}
+	return 0
 }
 
 func (r *AccountRepository) GetByUsername(ctx context.Context, username string) (*entity.AccountEntity, error) {

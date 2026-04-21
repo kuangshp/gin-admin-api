@@ -1,6 +1,7 @@
 package base
 
 import (
+	"context"
 	"gin-admin-api/internal/config"
 	"gin-admin-api/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -45,6 +46,11 @@ func (b *BaseApi) Fail(ctx *gin.Context, message string, err error) {
 // Success 返回成功响应
 func (b *BaseApi) Success(ctx *gin.Context, data interface{}) {
 	utils.Success(ctx, data)
+}
+
+// Ctx 从 gin.Context 中取出携带中间件数据的 context
+func (b *BaseApi) Ctx(c *gin.Context) context.Context {
+	return c.Request.Context()
 }
 
 // BuildPageData 构造分页响应

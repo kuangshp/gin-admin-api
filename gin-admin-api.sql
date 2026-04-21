@@ -14,6 +14,8 @@ CREATE TABLE `account` (
    `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,2是禁用',
    `last_login_ip` varchar(30) COMMENT '最后登录ip地址',
    `last_login_date` timestamp(6) COMMENT '最后登录时间',
+   `created_by` int DEFAULT NULL COMMENT '创建人',
+   `updated_by` int DEFAULT NULL COMMENT '更新人',
    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
    `deleted_at` timestamp NULL DEFAULT NULL COMMENT '软删除时间',

@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"gin-admin-api/internal/config"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
@@ -17,9 +15,13 @@ import (
 
 // Case2Camel 下划线转驼峰(大驼峰)
 func Case2Camel(name string) string {
-	name = strings.Replace(name, "_", " ", -1)
-	name = cases.Title(language.Und).String(name)
-	return strings.Replace(name, " ", "", -1)
+	parts := strings.Split(name, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + strings.ToLower(part[1:])
+		}
+	}
+	return strings.Join(parts, "")
 }
 
 // LowerCamelCase 转换为小驼峰
@@ -98,7 +100,7 @@ func main() {
 	g.WithDataTypeMap(dataMap)
 
 	g.WithModelNameStrategy(func(tableName string) (modelName string) {
-		return Case2Camel(strings.ToUpper(tableName[:1]) + tableName[1:] + "Entity")
+		return Case2Camel(tableName) + "Entity"
 	})
 
 	jsonField := gen.FieldJSONTagWithNS(func(columnName string) (tagContent string) {

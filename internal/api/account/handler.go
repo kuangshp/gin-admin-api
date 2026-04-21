@@ -46,7 +46,7 @@ func (a *Account) CreateAccountApi(ctx *gin.Context) {
 	}
 	// 2.判断账号是否已经存在
 	exists, err := a.AccountRepository.ExistsByUsername(ctx, createAccountDto.Username)
-	if err != nil {
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		a.Fail(ctx, "创建账号失败", err)
 		return
 	}
@@ -60,7 +60,8 @@ func (a *Account) CreateAccountApi(ctx *gin.Context) {
 		a.Fail(ctx, "创建账号失败", err)
 		return
 	}
-	if err := a.AccountRepository.Create(ctx, createAccountDto.Username, password); err != nil {
+	//ctx1 := ctx.Request.Context()
+	if err = a.AccountRepository.Create(a.Ctx(ctx), createAccountDto.Username, password); err != nil {
 		a.Fail(ctx, "创建失败", err)
 		return
 	}
@@ -229,7 +230,7 @@ func (a *Account) UpdateStatusByIdApi(ctx *gin.Context) {
 	} else {
 		status = enum.StatusForbidEnum
 	}
-	if err = a.AccountRepository.UpdateStatus(ctx, idInt, status); err != nil {
+	if err = a.AccountRepository.UpdateStatus(a.Ctx(ctx), idInt, status); err != nil {
 		a.Fail(ctx, "更新失败", err)
 		return
 	}

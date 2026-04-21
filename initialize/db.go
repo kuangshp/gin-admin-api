@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/dal/dao"
+	"gin-admin-api/internal/plugin"
 	"log"
 	"os"
 	"time"
@@ -53,7 +54,8 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 
 	// 初始化 dao 包的全局变量
 	dao.SetDefault(db)
-
+	// 注册插件
+	db.Use(&plugin.AutoOperatorPlugin{})
 	fmt.Printf("✔ 数据库连接成功 [%s:%d/%s]\n", ds.Host, ds.Port, ds.Database)
 	return db, nil
 }

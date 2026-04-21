@@ -28,6 +28,8 @@ type AccountEntity struct {
 	CreatedAt     time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                // 创建时间
 	UpdatedAt     time.Time      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`                                // 更新时间
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;comment:软删除时间" json:"-"`                        // 软删除时间
+	CreatedBy     int64          `gorm:"column:created_by;type:int;comment:创建人" json:"createdBy"`                        // 创建人
+	UpdatedBy     int64          `gorm:"column:updated_by;type:int;comment:更新人" json:"updatedBy"`                        // 更新人
 }
 
 // TableName AccountEntity's table name

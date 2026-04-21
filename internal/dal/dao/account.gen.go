@@ -6,7 +6,6 @@ package dao
 
 import (
 	"context"
-	"gin-admin-api/internal/dal/model/entity"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,6 +15,8 @@ import (
 	"gorm.io/gen/field"
 
 	"gorm.io/plugin/dbresolver"
+
+	"gin-admin-api/internal/dal/model/entity"
 )
 
 func newAccountEntity(db *gorm.DB, opts ...gen.DOOption) accountEntity {
@@ -40,6 +41,8 @@ func newAccountEntity(db *gorm.DB, opts ...gen.DOOption) accountEntity {
 	_accountEntity.CreatedAt = field.NewTime(tableName, "created_at")
 	_accountEntity.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_accountEntity.DeletedAt = field.NewField(tableName, "deleted_at")
+	_accountEntity.CreatedBy = field.NewInt64(tableName, "created_by")
+	_accountEntity.UpdatedBy = field.NewInt64(tableName, "updated_by")
 
 	_accountEntity.fillFieldMap()
 
@@ -64,6 +67,8 @@ type accountEntity struct {
 	CreatedAt     field.Time   // 创建时间
 	UpdatedAt     field.Time   // 更新时间
 	DeletedAt     field.Field  // 软删除时间
+	CreatedBy     field.Int64  // 创建人
+	UpdatedBy     field.Int64  // 更新人
 
 	fieldMap map[string]field.Expr
 }
@@ -94,6 +99,8 @@ func (a *accountEntity) updateTableName(table string) *accountEntity {
 	a.CreatedAt = field.NewTime(table, "created_at")
 	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.DeletedAt = field.NewField(table, "deleted_at")
+	a.CreatedBy = field.NewInt64(table, "created_by")
+	a.UpdatedBy = field.NewInt64(table, "updated_by")
 
 	a.fillFieldMap()
 
@@ -110,7 +117,7 @@ func (a *accountEntity) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (a *accountEntity) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 14)
+	a.fieldMap = make(map[string]field.Expr, 16)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["username"] = a.Username
 	a.fieldMap["password"] = a.Password
@@ -125,6 +132,8 @@ func (a *accountEntity) fillFieldMap() {
 	a.fieldMap["created_at"] = a.CreatedAt
 	a.fieldMap["updated_at"] = a.UpdatedAt
 	a.fieldMap["deleted_at"] = a.DeletedAt
+	a.fieldMap["created_by"] = a.CreatedBy
+	a.fieldMap["updated_by"] = a.UpdatedBy
 }
 
 func (a accountEntity) clone(db *gorm.DB) accountEntity {
