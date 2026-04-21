@@ -6,6 +6,21 @@ import (
 	"strconv"
 )
 
+// DbPage 获取分页参数
+func DbPage(pageNumber, pageSize int) (offset int, limit int) {
+	if pageNumber == 0 {
+		pageNumber = 1
+	}
+
+	switch {
+	case pageSize > 100:
+		pageSize = 100
+	case pageSize <= 0:
+		pageSize = 10
+	}
+	return (pageNumber - 1) * pageSize, pageSize
+}
+
 func Paginate(r *http.Request) func(db gen.Dao) gen.Dao {
 	return func(db gen.Dao) gen.Dao {
 		q := r.URL.Query()

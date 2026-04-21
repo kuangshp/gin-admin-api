@@ -1,0 +1,66 @@
+package repository
+
+import (
+	"context"
+	"esim-api/common/utils"
+	"esim-api/query/dao"
+	"esim-api/model"
+)
+
+type I{{.ModelName}}Repository interface {
+	CreateApi(ctx context.Context, m *model.{{.ModelName}}Entity) error
+	DeleteByIdApi(ctx context.Context,id int64) error
+	ModifyByIdApi(ctx context.Context, id int64{{- range .Columns}}{{- if not (or (eq .Name "id") (eq .Name "created_at") (eq .Name "updated_at") (eq .Name "deleted_at"))}}, {{.FieldName}} {{.FieldType}}{{- end}}{{- end}}) error
+	GetListApi(ctx context.Context,status int64) (list []*model.{{.ModelName}}Entity, err error)
+	GetPageApi(ctx context.Context, pageNumber int64, pageSize int64) (list []*model.{{.ModelName}}Entity, total int64, err error)
+	GetByIdApi(ctx context.Context,id int64) ({{.EntityName}} *model.{{.ModelName}}Entity, err error)
+}
+
+type {{.ModelName}}Repository struct {
+}
+
+func (r {{.ModelName}}Repository) CreateApi(ctx context.Context, m *model.{{.ModelName}}Entity) error {
+	if err := dao.{{.ModelName}}Entity.WithContext(ctx).Create(m); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func (r {{.ModelName}}Repository) DeleteByIdApi(ctx context.Context,id int64) error {
+	if _, err := dao.{{.ModelName}}Entity.WithContext(ctx).Where(dao.{{.ModelName}}Entity.ID.Eq(id)).Delete(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r {{.ModelName}}Repository) ModifyByIdApi(ctx context.Context, id int64{{- range .Columns}}{{- if not (or (eq .Name "id") (eq .Name "created_at") (eq .Name "updated_at") (eq .Name "deleted_at"))}}, {{.FieldName}} {{.FieldType}}{{- end}}{{- end}}) error {
+	if _, err := dao.{{.ModelName}}Entity.WithContext(ctx).Where(dao.{{.ModelName}}Entity.ID.Eq(id)).UpdateSimple(
+	{{- range $index, $col := .Columns}}{{- if not (or (eq $col.Name "id") (eq $col.Name "created_at") (eq $col.Name "updated_at") (eq $col.Name "deleted_at"))}}
+		dao.{{$.ModelName}}Entity.{{$col.FieldName}}.Value({{$col.FieldName}}),
+	{{- end}}{{- end}}
+	); err != nil {
+		return err
+	}
+	return nil
+}
+func (r {{.ModelName}}Repository) GetListApi(ctx context.Context,status int64) ([]*model.{{.ModelName}}Entity, error) {
+	return dao.{{.ModelName}}Entity.WithContext(ctx).Where(dao.{{.ModelName}}Entity.Status.Eq(status)).Order(dao.{{.ModelName}}Entity.ID.Desc()).Find()
+}
+
+func (r {{.ModelName}}Repository) GetPageApi(ctx context.Context, pageNumber int64, pageSize int64) (list []*model.{{.ModelName}}Entity, total int64, err error) {
+	tx := dao.{{.ModelName}}Entity.WithContext(ctx)
+	offset, limit := utils.DbPage(pageNumber, pageSize)
+	return tx.Order(dao.{{.ModelName}}Entity.ID.Desc()).FindByPage(offset, limit)
+}
+
+
+func (r {{.ModelName}}Repository) GetByIdApi(ctx context.Context,id int64) ({{.EntityName}} *model.{{.ModelName}}Entity, err error) {
+	return dao.{{.ModelName}}Entity.WithContext(ctx).Where(dao.{{.ModelName}}Entity.ID.Eq(id)).First()
+}
+
+func New{{.ModelName}}Repository() I{{.ModelName}}Repository {
+	return {{.ModelName}}Repository{
+
+	}
+}

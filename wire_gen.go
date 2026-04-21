@@ -9,6 +9,7 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/repository"
 )
 
@@ -30,8 +31,9 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	if err != nil {
 		return nil, err
 	}
+	baseApi := base.NewBaseApi(logger, db, serverConfig, client)
 	iAccountRepository := repository.NewAccountRepository()
-	iAccount := account.NewAccount(db, serverConfig, client, logger, iAccountRepository)
+	iAccount := account.NewAccount(baseApi, iAccountRepository)
 	engine := initialize.NewRouter(serverConfig, logger, iAccount, client)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil

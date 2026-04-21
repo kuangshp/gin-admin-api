@@ -6,6 +6,7 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/repository"
 
 	"github.com/google/wire"
@@ -20,10 +21,12 @@ func InitApp(envString string) (*initialize.App, error) {
 		initialize.NewLogger,
 		initialize.NewDB,
 		initialize.NewRedis,
-		// 接入层
-		account.NewAccount,
+		// 基础控制器
+		base.NewBaseApi,
 		// 数据访问层
 		repository.NewAccountRepository,
+		// 接入层
+		account.NewAccount,
 		// 路由 & 服务
 		initialize.NewRouter,
 		initialize.NewApp,

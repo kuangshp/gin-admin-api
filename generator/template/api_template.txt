@@ -1,0 +1,90 @@
+syntax = "v1"
+
+info (
+	title:   "{{.TableComment}}管理"
+	desc:    "{{.TableComment}}管理接口"
+	author:  "esim"
+	email:   "esim@example.com"
+	version: "1.0"
+)
+import "base.api"
+
+type Create{{.ModelName}}Req {
+{{- range .Columns}}
+{{- if not (or (eq .Name "id") (eq .Name "created_at") (eq .Name "updated_at") (eq .Name "deleted_at"))}}
+{{- $fieldName := .FieldName}}
+{{- $jsonTag := .JsonTag}}
+{{- $jsonTagOpt := .JsonTagOpt}}
+{{- $validate := .Validate}}
+{{- $comment := .Comment}}
+	{{$fieldName}} {{.FieldType}} `json:"{{$jsonTag}}{{$jsonTagOpt}}"{{if $validate}} validate:"{{$validate}}"{{end}}` // {{.Comment}}
+{{- end}}
+{{- end}}
+}
+
+type Modify{{.ModelName}}Req {
+	Id int64 `path:"id" validate:"required,number,gte=1"` // 主键id
+    Create{{.ModelName}}Req
+}
+
+type {{.ModelName}}IdReq {
+    Id int64 `path:"id" validate:"required,number,gte=1"` // 主键id
+}
+type (
+	Page{{.ModelName}}Req {
+		PageSize   int64 `json:"pageSize,optional,default=10"` // 当前条数
+        PageNumber int64 `json:"pageNumber,optional,default=1"` // 当前页数
+{{- range .Columns}}
+{{- if not (or (eq .Name "id") (eq .Name "created_at") (eq .Name "updated_at") (eq .Name "deleted_at"))}}
+{{- $fieldName := .FieldName}}
+{{- $jsonTag := .JsonTag}}
+{{- $comment := .Comment}}
+		{{$fieldName}} {{.FieldType}} `json:"{{$jsonTag}},optional"` // {{.Comment}}
+{{- end}}
+{{- end}}
+	}
+	{{.ModelName}}Model {
+{{- range .Columns}}
+{{- if ne .Name "deleted_at"}}
+		{{.FieldName}} {{.FieldType}} `json:"{{.JsonTag}}"` // {{.Comment}}
+{{- end}}
+{{- end}}
+	}
+	{{.ModelName}}PageResp {
+		Total      int64 `json:"total"` // 总条数
+        PageSize   int64 `json:"pageSize"` // 当前条数
+        PageNumber int64 `json:"pageNumber"` // 当前页数
+		Data []{{.ModelName}}Model `json:"data"`
+	}
+)
+
+@server (
+	prefix:     api/v1/admin/{{.TableName}}
+	group:      {{.TableName}}
+	middleware: AuthMiddleware,LoggerMiddleWare
+)
+service admin-api {
+	@doc "创建{{.TableComment}}"
+	@handler Create{{.ModelName}}Api
+	post / (Create{{.ModelName}}Req) returns (string)
+
+	@doc "根据id删除{{.TableComment}}"
+	@handler Delete{{.ModelName}}ByIdApi
+	delete /:id ({{.ModelName}}IdReq) returns (string)
+
+	@doc "根据id修改{{.TableComment}}"
+	@handler Modify{{.ModelName}}ByIdApi
+	put /:id (Modify{{.ModelName}}Req) returns (string)
+
+	@doc "分页获取{{.TableComment}}"
+	@handler Get{{.ModelName}}PageApi
+	post /page (Page{{.ModelName}}Req) returns ({{.ModelName}}PageResp)
+
+	@doc "获取{{.TableComment}}列表"
+	@handler Get{{.ModelName}}ListApi
+	get /list returns ([]{{.ModelName}}Model)
+
+	@doc "根据id获取{{.TableComment}}详情"
+    @handler Get{{.ModelName}}DetailApi
+    get /detail/:id({{.ModelName}}IdReq) returns ({{.ModelName}}Model)
+}
