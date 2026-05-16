@@ -99,7 +99,7 @@ func (a *Account) LoginAccountApi(ctx *gin.Context) {
 		AccountId: result.ID,
 		Username:  result.Username,
 	}
-	token, err := utils.GenerateToken(hmacUser)
+	token, err := utils.GenerateToken(hmacUser, []byte(a.Cfg.JWT.SigningKey))
 	if err != nil {
 		a.Fail(ctx, "账号或密码错误", err)
 		return

@@ -7,8 +7,8 @@ datasource:
   host: localhost
   port: 3306
   database: gin-admin-api
-  username: root
-  password: 123456
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
   charset: utf8mb4
   loc: Asia/Shanghai
 # Redis配置
@@ -17,3 +17,6 @@ redis:
   port: 6379
   password: ""
   db: 0
+jwt:
+  signingKey: ${JWT_SIGNING_KEY}
+  expireTime: 10080

@@ -38,7 +38,7 @@ func NewRouter(
 	// 配置全局路径
 	ApiGroup := r.Group("/api/v1/admin")
 	// 注册路由
-	router.InitAccountRouter(ApiGroup, redis, accountHandler) // 账号中心
+	router.InitAccountRouter(ApiGroup, redis, accountHandler, []byte(cfg.JWT.SigningKey)) // 账号中心
 
 	return r
 }

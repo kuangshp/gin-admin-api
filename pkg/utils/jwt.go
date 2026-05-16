@@ -23,11 +23,8 @@ type LoginStruct struct {
 	Password string `json:"password"`
 }
 
-// 证书签名密钥
-var jwtKey = []byte("abc")
-
 // GenerateToken 定义生成token的方法
-func GenerateToken(u HmacUser) (string, error) {
+func GenerateToken(u HmacUser, signingKey []byte) (string, error) {
 	// 定义过期时间,7天后过期
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &MyClaims{
@@ -42,7 +39,7 @@ func GenerateToken(u HmacUser) (string, error) {
 	}
 	// 注意单词别写错了
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := token.SignedString(signingKey)
 	if err != nil {
 		return "", err
 	}
@@ -50,10 +47,10 @@ func GenerateToken(u HmacUser) (string, error) {
 }
 
 // ParseToken 定义解析token的方法
-func ParseToken(tokenString string) (*jwt.Token, *MyClaims, error) {
+func ParseToken(tokenString string, signingKey []byte) (*jwt.Token, *MyClaims, error) {
 	claims := &MyClaims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return signingKey, nil
 	})
 	return token, claims, err
 }
