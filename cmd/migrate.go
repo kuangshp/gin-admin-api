@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gin-admin-api/internal/dal/model"
+	"gin-admin-api/internal/dal"
 	"os"
 
 	"gin-admin-api/internal/config"
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	fmt.Println("▶ 开始数据库迁移...")
-	if err = db.AutoMigrate(model.GetAllModels()...); err != nil {
+	if err = db.AutoMigrate(dal.GetAllModels()...); err != nil {
 		panic(fmt.Errorf("数据库迁移失败: %w", err))
 	}
 	fmt.Println("✔ 数据库迁移完成")

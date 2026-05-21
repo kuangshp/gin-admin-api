@@ -1,6 +1,6 @@
 module gin-admin-api
 
-go 1.25.0
+go 1.26.3
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -16,23 +16,25 @@ require (
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/viper v1.9.0
 	go.uber.org/zap v1.19.1
-	golang.org/x/crypto v0.49.0
+	golang.org/x/crypto v0.50.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/mysql v1.5.1
-	gorm.io/gen v0.3.23
-	gorm.io/gorm v1.25.7
-	gorm.io/plugin/dbresolver v1.4.1
+	gorm.io/driver/mysql v1.6.0
+	gorm.io/gen v0.3.27
+	gorm.io/gorm v1.31.1
+	gorm.io/plugin/dbresolver v1.6.2
 	gorm.io/plugin/optimisticlock v1.1.1
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/go-sql-driver/mysql v1.7.1 // indirect
+	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -63,15 +65,15 @@ require (
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
-	golang.org/x/tools v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/datatypes v1.2.0 // indirect
+	gorm.io/datatypes v1.2.7 // indirect
 	gorm.io/hints v1.1.2 // indirect
 )
