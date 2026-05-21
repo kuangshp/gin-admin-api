@@ -148,7 +148,7 @@ wireCheck:
 ## gen: 使用 dev 配置生成 GORM 查询代码
 gen:
 	@echo "$(GREEN)▶ 运行 gorm-gen（dev 环境）...$(RESET)"
-	$(GO) run ./cmd/generator.go application.dev.yml
+	$(GO) run ./cmd/generator.go
 	@echo "$(GREEN)✔ dao/ 和 model/ 已更新$(RESET)"
 
 ## gen-prod: 使用 prod 配置生成 GORM 查询代码
