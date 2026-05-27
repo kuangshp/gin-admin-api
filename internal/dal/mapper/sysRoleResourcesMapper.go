@@ -4,7 +4,6 @@ import (
 	"gin-admin-api/internal/dal/dto"
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
-	"time"
 )
 
 // ISysRoleResourcesMapper 角色和资源中间表 mapper 接口
@@ -12,7 +11,7 @@ type ISysRoleResourcesMapper interface {
 	// DtoToEntity 将请求结构体映射到数据库实体
 	DtoToEntity(d *dto.CreateSysRoleResourcesDTO) *model.SysRoleResourcesEntity
 	// EntityToVo 将数据库实体映射到响应结构体
-	EntityToVo(e *model.SysRoleResourcesEntity) *vo.SysRoleResourcesVo
+	EntityToVo(e *model.SysRoleResourcesEntity) *vo.SysRoleResourcesVO
 }
 
 // sysRoleResourcesMapper mapper 实现
@@ -32,12 +31,12 @@ func (m *sysRoleResourcesMapper) DtoToEntity(d *dto.CreateSysRoleResourcesDTO) *
 	return e
 }
 
-// EntityToVo 将 SysRoleResourcesEntity 映射到 SysRoleResourcesVo
-func (m *sysRoleResourcesMapper) EntityToVo(e *model.SysRoleResourcesEntity) *vo.SysRoleResourcesVo {
+// EntityToVo 将 SysRoleResourcesEntity 映射到 SysRoleResourcesVO
+func (m *sysRoleResourcesMapper) EntityToVo(e *model.SysRoleResourcesEntity) *vo.SysRoleResourcesVO {
 	if e == nil {
 		return nil
 	}
-	return &vo.SysRoleResourcesVo{
+	return &vo.SysRoleResourcesVO{
 		ID:          e.ID,               // 主键id
 		ResourcesID: e.ResourcesID,      // 关联到sys_resources表主键id
 		RoleID:      e.RoleID,           // 关联到sys_role表主键id

@@ -108,8 +108,17 @@ func (a Auth) GetCaptchaApi(ctx *gin.Context) {
 }
 
 func (a Auth) VerifyCaptchaApi(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	var req dto.VerifyCaptchaDTO
+	if err := a.BindAndValidateJSON(ctx, &req); err != nil {
+		return
+	}
+	isOk := captcha.Verify(req.CaptchaId, req.CaptchaValue, true)
+	if !isOk {
+		a.Fail(ctx, errors.New("验证码失败"), "验证码失败")
+		return
+	}
+	a.Success(ctx, "验证码成功")
+	return
 }
 func NewAuth(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, sysAccountMapper mapper.ISysAccountMapper) IAuth {
 	return Auth{

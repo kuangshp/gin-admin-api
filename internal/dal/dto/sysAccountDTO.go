@@ -38,3 +38,8 @@ type AccountLoginDTO struct {
 	CaptchaId    string `json:"captchaId" validate:"required"`    // 图形验证码id
 	CaptchaValue string `json:"captchaValue" validate:"required"` // 图形验证码
 }
+
+type VerifyCaptchaDTO struct {
+	CaptchaId    string `json:"captchaId" validate:"required"`    // 图形验证码id
+	CaptchaValue string `json:"captchaValue" validate:"required"` // 图形验证码
+}

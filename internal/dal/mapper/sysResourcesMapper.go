@@ -4,7 +4,6 @@ import (
 	"gin-admin-api/internal/dal/dto"
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
-	"time"
 )
 
 // ISysResourcesMapper 资源表 mapper 接口
@@ -12,7 +11,7 @@ type ISysResourcesMapper interface {
 	// DtoToEntity 将请求结构体映射到数据库实体
 	DtoToEntity(d *dto.CreateSysResourcesDTO) *model.SysResourcesEntity
 	// EntityToVo 将数据库实体映射到响应结构体
-	EntityToVo(e *model.SysResourcesEntity) *vo.SysResourcesVo
+	EntityToVo(e *model.SysResourcesEntity) *vo.SysResourcesVO
 }
 
 // sysResourcesMapper mapper 实现
@@ -43,12 +42,12 @@ func (m *sysResourcesMapper) DtoToEntity(d *dto.CreateSysResourcesDTO) *model.Sy
 	return e
 }
 
-// EntityToVo 将 SysResourcesEntity 映射到 SysResourcesVo
-func (m *sysResourcesMapper) EntityToVo(e *model.SysResourcesEntity) *vo.SysResourcesVo {
+// EntityToVo 将 SysResourcesEntity 映射到 SysResourcesVO
+func (m *sysResourcesMapper) EntityToVo(e *model.SysResourcesEntity) *vo.SysResourcesVO {
 	if e == nil {
 		return nil
 	}
-	return &vo.SysResourcesVo{
+	return &vo.SysResourcesVO{
 		ID:            e.ID,               // 主键id
 		Title:         e.Title,            // 名称:按钮标题,或菜单标题
 		URL:           e.URL,              // 按钮请求url,或菜单路由

@@ -41,11 +41,13 @@ func (b *BaseApi) Fail(ctx *gin.Context, err error, message string) {
 		b.Logger.Error(message + err.Error())
 	}
 	utils.Fail(ctx, message)
+	return
 }
 
 // Success 返回成功响应
 func (b *BaseApi) Success(ctx *gin.Context, data interface{}) {
 	utils.Success(ctx, data)
+	return
 }
 
 // Ctx 从 gin.Context 中取出携带中间件数据的 context

@@ -4,7 +4,6 @@ import (
 	"gin-admin-api/internal/dal/dto"
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
-	"time"
 )
 
 // ISysRoleMapper 角色表 mapper 接口
@@ -12,7 +11,7 @@ type ISysRoleMapper interface {
 	// DtoToEntity 将请求结构体映射到数据库实体
 	DtoToEntity(d *dto.CreateSysRoleDTO) *model.SysRoleEntity
 	// EntityToVo 将数据库实体映射到响应结构体
-	EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVo
+	EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVO
 }
 
 // sysRoleMapper mapper 实现
@@ -34,12 +33,12 @@ func (m *sysRoleMapper) DtoToEntity(d *dto.CreateSysRoleDTO) *model.SysRoleEntit
 	return e
 }
 
-// EntityToVo 将 SysRoleEntity 映射到 SysRoleVo
-func (m *sysRoleMapper) EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVo {
+// EntityToVo 将 SysRoleEntity 映射到 SysRoleVO
+func (m *sysRoleMapper) EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVO {
 	if e == nil {
 		return nil
 	}
-	return &vo.SysRoleVo{
+	return &vo.SysRoleVO{
 		ID:          e.ID,               // 主键id
 		Name:        e.Name,             // 角色名称
 		Description: e.Description,      // 描述
