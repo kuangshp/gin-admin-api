@@ -7,8 +7,9 @@ import (
 
 // HmacUser 签名需要传递的参数(根据自己定义)
 type HmacUser struct {
-	AccountId int64  `json:"accountId"`
-	Username  string `json:"username"`
+	AccountId int64  `json:"accountId"` // 账号id
+	Username  string `json:"username"`  // 用户名
+	IsAdmin   int64  `json:"isAdmin"`   // 是否为超管1表是,2表示否
 }
 
 type MyClaims struct {

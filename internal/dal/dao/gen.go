@@ -16,34 +16,54 @@ import (
 )
 
 var (
-	Q             = new(Query)
-	AccountEntity *accountEntity
+	Q                      = new(Query)
+	SysAccountEntity       *sysAccountEntity
+	SysAccountRoleEntity   *sysAccountRoleEntity
+	SysResourcesEntity     *sysResourcesEntity
+	SysRoleEntity          *sysRoleEntity
+	SysRoleResourcesEntity *sysRoleResourcesEntity
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	AccountEntity = &Q.AccountEntity
+	SysAccountEntity = &Q.SysAccountEntity
+	SysAccountRoleEntity = &Q.SysAccountRoleEntity
+	SysResourcesEntity = &Q.SysResourcesEntity
+	SysRoleEntity = &Q.SysRoleEntity
+	SysRoleResourcesEntity = &Q.SysRoleResourcesEntity
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:            db,
-		AccountEntity: newAccountEntity(db, opts...),
+		db:                     db,
+		SysAccountEntity:       newSysAccountEntity(db, opts...),
+		SysAccountRoleEntity:   newSysAccountRoleEntity(db, opts...),
+		SysResourcesEntity:     newSysResourcesEntity(db, opts...),
+		SysRoleEntity:          newSysRoleEntity(db, opts...),
+		SysRoleResourcesEntity: newSysRoleResourcesEntity(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	AccountEntity accountEntity
+	SysAccountEntity       sysAccountEntity
+	SysAccountRoleEntity   sysAccountRoleEntity
+	SysResourcesEntity     sysResourcesEntity
+	SysRoleEntity          sysRoleEntity
+	SysRoleResourcesEntity sysRoleResourcesEntity
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:            db,
-		AccountEntity: q.AccountEntity.clone(db),
+		db:                     db,
+		SysAccountEntity:       q.SysAccountEntity.clone(db),
+		SysAccountRoleEntity:   q.SysAccountRoleEntity.clone(db),
+		SysResourcesEntity:     q.SysResourcesEntity.clone(db),
+		SysRoleEntity:          q.SysRoleEntity.clone(db),
+		SysRoleResourcesEntity: q.SysRoleResourcesEntity.clone(db),
 	}
 }
 
@@ -57,18 +77,30 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:            db,
-		AccountEntity: q.AccountEntity.replaceDB(db),
+		db:                     db,
+		SysAccountEntity:       q.SysAccountEntity.replaceDB(db),
+		SysAccountRoleEntity:   q.SysAccountRoleEntity.replaceDB(db),
+		SysResourcesEntity:     q.SysResourcesEntity.replaceDB(db),
+		SysRoleEntity:          q.SysRoleEntity.replaceDB(db),
+		SysRoleResourcesEntity: q.SysRoleResourcesEntity.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	AccountEntity IAccountEntityDo
+	SysAccountEntity       ISysAccountEntityDo
+	SysAccountRoleEntity   ISysAccountRoleEntityDo
+	SysResourcesEntity     ISysResourcesEntityDo
+	SysRoleEntity          ISysRoleEntityDo
+	SysRoleResourcesEntity ISysRoleResourcesEntityDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		AccountEntity: q.AccountEntity.WithContext(ctx),
+		SysAccountEntity:       q.SysAccountEntity.WithContext(ctx),
+		SysAccountRoleEntity:   q.SysAccountRoleEntity.WithContext(ctx),
+		SysResourcesEntity:     q.SysResourcesEntity.WithContext(ctx),
+		SysRoleEntity:          q.SysRoleEntity.WithContext(ctx),
+		SysRoleResourcesEntity: q.SysRoleResourcesEntity.WithContext(ctx),
 	}
 }
 

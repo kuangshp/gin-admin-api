@@ -12,7 +12,7 @@ func main() {
 		Port:         3306,                      // 数据库端口(postgres 默认 5432,sqlserver 默认 1433,sqlite 忽略)
 		Username:     "root",                    // 数据库账号(sqlite 忽略)
 		Password:     "123456",                  // 数据库密码(sqlite 忽略)
-		Database:     "gin-admin-api",           // 数据库名(sqlite 时为文件路径,如 "./data.db")
+		Database:     "gin-rbac",                // 数据库名(sqlite 时为文件路径,如 "./data.db")
 		OutPath:      "internal/dal/dao",        // dao输出路径，如 "./query/dao"
 		ModelPkgPath: "internal/dal/model",      // model包路径，如 "./query/model"
 		RepoPath:     "internal/dal/repository", // repository输出路径，如 "./query/repository"

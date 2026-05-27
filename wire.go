@@ -6,7 +6,9 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/api/auth"
 	"gin-admin-api/internal/api/base"
+	"gin-admin-api/internal/dal/mapper"
 	"gin-admin-api/internal/dal/repository"
 
 	"github.com/google/wire"
@@ -24,9 +26,12 @@ func InitApp(envString string) (*initialize.App, error) {
 		// 基础控制器
 		base.NewBaseApi,
 		// 数据访问层
-		repository.NewAccountRepository,
+		repository.NewSysAccountRepository,
+		// mapper转换层
+		mapper.NewSysAccountMapper,
 		// 接入层
-		account.NewAccount,
+		auth.NewAuth,
+		account.NewSysAccount,
 		// 路由 & 服务
 		initialize.NewRouter,
 		initialize.NewApp,
