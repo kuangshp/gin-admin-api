@@ -2,12 +2,12 @@ package auth
 
 import (
 	"errors"
+	"gin-admin-api/internal/api/auth/dto"
+	"gin-admin-api/internal/api/auth/mapper"
+	"gin-admin-api/internal/api/auth/vo"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/dao"
-	"gin-admin-api/internal/dal/dto"
-	"gin-admin-api/internal/dal/mapper"
 	"gin-admin-api/internal/dal/repository"
-	"gin-admin-api/internal/dal/vo"
 	"gin-admin-api/pkg/enum"
 	"gin-admin-api/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ type IAuth interface {
 type Auth struct {
 	*base.BaseApi
 	SysAccountRepository repository.SysAccountRepository
-	SysAccountMapper     mapper.ISysAccountMapper
+	AuthMapper           mapper.IAuthMapper
 }
 
 // AccountLoginApi 账号登录
@@ -105,7 +105,7 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		a.Fail(ctx, err, "登录失败")
 		return
 	}
-	loginToVo := a.SysAccountMapper.LoginToVo(accountEntity, clientIP, token)
+	loginToVo := a.AuthMapper.LoginToVo(accountEntity, clientIP, token)
 	a.Success(ctx, loginToVo)
 	return
 }
@@ -181,10 +181,10 @@ func (a Auth) VerifyCaptchaApi(ctx *gin.Context) {
 	a.Success(ctx, "验证码成功")
 	return
 }
-func NewAuth(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, sysAccountMapper mapper.ISysAccountMapper) IAuth {
+func NewAuth(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, authMapper mapper.IAuthMapper) IAuth {
 	return Auth{
 		BaseApi:              baseApi,
 		SysAccountRepository: accountRepository,
-		SysAccountMapper:     sysAccountMapper,
+		AuthMapper:           authMapper,
 	}
 }

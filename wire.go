@@ -6,9 +6,10 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	accountMapper "gin-admin-api/internal/api/account/mapper"
 	"gin-admin-api/internal/api/auth"
+	authMapper "gin-admin-api/internal/api/auth/mapper"
 	"gin-admin-api/internal/api/base"
-	"gin-admin-api/internal/dal/mapper"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/internal/router"
 
@@ -30,7 +31,8 @@ func InitApp(envString string) (*initialize.App, error) {
 		repository.NewSysAccountRepository,
 		repository.NewSysAccountRoleRepository,
 		// mapper转换层
-		mapper.NewSysAccountMapper,
+		accountMapper.NewSysAccountMapper,
+		authMapper.NewAuthMapper,
 		// 接入层
 		auth.NewAuth,
 		account.NewSysAccount,

@@ -34,18 +34,6 @@ type ModifyCurrentPasswordDTO struct {
 	ConfirmPassword string `json:"confirmPassword" binding:"required,min=6,max=16,eqfield=Password"`
 }
 
-type AccountLoginDTO struct {
-	Username     string `json:"username" validate:"required"`     // 登录帐号
-	Password     string `json:"password" validate:"required"`     // 登录密码
-	CaptchaId    string `json:"captchaId" validate:"required"`    // 图形验证码id
-	CaptchaValue string `json:"captchaValue" validate:"required"` // 图形验证码
-}
-
-type VerifyCaptchaDTO struct {
-	CaptchaId    string `json:"captchaId" validate:"required"`    // 图形验证码id
-	CaptchaValue string `json:"captchaValue" validate:"required"` // 图形验证码
-}
-
 type GetSysAccountPageDTO struct {
 	Username   string `json:"username"` // 登录帐号
 	Email      string `json:"email"`    // 邮箱
