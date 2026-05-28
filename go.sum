@@ -332,6 +332,8 @@ github.com/kuangshp/go-utils v1.0.9 h1:to6Pndap78uz8G+65Sg5wSKYp71lFmALdJrail/pS
 github.com/kuangshp/go-utils v1.0.9/go.mod h1:cV2xQ0OA6hLaVB9mrSHNcks84GDSP5pz9Lgn9d7L9fE=
 github.com/kuangshp/gorm-plus v1.0.14 h1:4XhErGCa4mvu+iqv+PgncWePlQIIL2HzQMa2SVOF3jo=
 github.com/kuangshp/gorm-plus v1.0.14/go.mod h1:KN3R6EI4HQyutcnXacdfUOG85TeBvwyNaX1IMW3ItUQ=
+github.com/kuangshp/gorm-plus v1.0.15 h1:sFlZY2kYb7f/mYtB0heoyWCWDMibBxzfXKpx4eBH6v4=
+github.com/kuangshp/gorm-plus v1.0.15/go.mod h1:KN3R6EI4HQyutcnXacdfUOG85TeBvwyNaX1IMW3ItUQ=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/leodido/go-urn v1.2.4 h1:XlAE/cm/ms7TE/VMVoduSpNBoyc2dOxHs5MZSwAN63Q=

@@ -20,6 +20,61 @@ definitions:
     - password
     - username
     type: object
+  dto.CreateSysAccountDTO:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      confirmPassword:
+        description: 确定密码
+        maxLength: 16
+        minLength: 6
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      password:
+        description: 登录密码
+        maxLength: 16
+        minLength: 6
+        type: string
+      roleIdList:
+        description: 授权的角色id
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      username:
+        description: 登录帐号
+        type: string
+    required:
+    - confirmPassword
+    - password
+    - roleIdList
+    - username
+    type: object
+  dto.GetSysAccountPageDTO:
+    properties:
+      email:
+        description: 邮箱
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      pageNumber:
+        type: integer
+      pageSize:
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      username:
+        description: 登录帐号
+        type: string
+    type: object
   dto.ModifyCurrentPasswordDTO:
     properties:
       confirmPassword:
@@ -54,6 +109,12 @@ definitions:
       mobile:
         description: 手机号
         type: string
+      roleIdList:
+        description: 授权的角色id
+        items:
+          type: integer
+        minItems: 1
+        type: array
       status:
         description: 状态1是正常,2是禁用
         enum:
@@ -65,6 +126,7 @@ definitions:
         type: string
     required:
     - id
+    - roleIdList
     - status
     - username
     type: object
@@ -74,12 +136,16 @@ definitions:
         maxLength: 16
         minLength: 6
         type: string
+      id:
+        description: 主键id
+        type: integer
       password:
         maxLength: 16
         minLength: 6
         type: string
     required:
     - confirmPassword
+    - id
     - password
     type: object
   dto.VerifyCaptchaDTO:
@@ -94,8 +160,89 @@ definitions:
     - captchaId
     - captchaValue
     type: object
-  gin.H:
-    additionalProperties: {}
+  vo.AccountLoginVO:
+    properties:
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      isAdmin:
+        description: 1是超级管理员，2是普通管理员
+        type: integer
+      lastLoginDate:
+        description: 最后一次登录时间
+        type: integer
+      lastLoginIp:
+        description: 最后一次登录ip
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      token:
+        description: token
+        type: string
+      username:
+        description: 登录帐号
+        type: string
+    type: object
+  vo.GetCaptchaVO:
+    properties:
+      base64:
+        description: base64
+        type: string
+      captchaId:
+        description: 唯一码
+        type: string
+      code:
+        description: 验证码
+        type: string
+    type: object
+  vo.SysAccountVO:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      createdAt:
+        description: 创建时间
+        type: integer
+      createdBy:
+        description: 创建人
+        type: integer
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      isAdmin:
+        description: 1是超级管理员，2是普通管理员
+        type: integer
+      lastLoginDate:
+        description: 最后一次登录时间
+        type: integer
+      lastLoginIP:
+        description: 最后一次登录ip
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      password:
+        description: 登录密码
+        type: string
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      updatedAt:
+        description: 更新时间
+        type: integer
+      updatedBy:
+        description: 更新人
+        type: integer
+      username:
+        description: 登录帐号
+        type: string
     type: object
 info:
   contact: {}
@@ -103,46 +250,6 @@ info:
   title: gin-admin-api
   version: "1.0"
 paths:
-  /api/v1/admin/account:
-    get:
-      consumes:
-      - application/json
-      description: 根据查询条件分页获取账号列表
-      parameters:
-      - description: 页码
-        in: query
-        name: pageNumber
-        type: integer
-      - description: 每页数量
-        in: query
-        name: pageSize
-        type: integer
-      - description: 登录账号
-        in: query
-        name: username
-        type: string
-      - description: 手机号
-        in: query
-        name: mobile
-        type: string
-      - description: 邮箱
-        in: query
-        name: email
-        type: string
-      - description: 状态：1正常，2禁用
-        in: query
-        name: status
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 失败响应
-          schema:
-            $ref: '#/definitions/gin.H'
-      summary: 分页获取账号
-      tags:
-      - 账号中心
   /api/v1/admin/account/{id}:
     delete:
       consumes:
@@ -158,9 +265,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 删除成功
           schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 删除账号
       tags:
       - 账号中心
@@ -178,9 +285,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/vo.SysAccountVO'
       summary: 获取账号详情
       tags:
       - 账号中心
@@ -194,59 +301,23 @@ paths:
         in: query
         name: username
         type: string
-      - description: 手机号
-        in: query
-        name: mobile
-        type: string
-      - description: 邮箱
-        in: query
-        name: email
-        type: string
-      - description: 状态：1正常，2禁用
-        in: query
-        name: status
-        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 账号列表
           schema:
-            $ref: '#/definitions/gin.H'
+            items:
+              $ref: '#/definitions/vo.SysAccountVO'
+            type: array
       summary: 获取账号列表
       tags:
       - 账号中心
   /api/v1/admin/account/modify/{id}:
-    patch:
-      consumes:
-      - application/json
-      description: 根据账号 ID 修改账号基础信息
-      parameters:
-      - description: 账号ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 修改账号参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ModifySysAccountDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 失败响应
-          schema:
-            $ref: '#/definitions/gin.H'
-      summary: 修改账号
-      tags:
-      - 账号中心
     put:
       consumes:
       - application/json
-      description: 根据账号 ID 修改账号基础信息
+      description: 根据账号 ID 修改账号基础信息和角色关系
       parameters:
       - description: 账号ID
         in: path
@@ -263,14 +334,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 修改成功
           schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 修改账号
       tags:
       - 账号中心
   /api/v1/admin/account/modifyCurrentPassword:
-    patch:
+    post:
       consumes:
       - application/json
       description: 修改当前登录账号密码
@@ -285,35 +356,60 @@ paths:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 修改当前账号密码成功
           schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 修改当前账号密码
       tags:
       - 账号中心
-    put:
+  /api/v1/admin/account/page:
+    post:
       consumes:
       - application/json
-      description: 修改当前登录账号密码
+      description: 根据查询条件分页获取账号列表
       parameters:
-      - description: 修改当前账号密码参数
+      - description: 分页查询参数
         in: body
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.ModifyCurrentPasswordDTO'
+          $ref: '#/definitions/dto.GetSysAccountPageDTO'
       produces:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null
           schema:
-            $ref: '#/definitions/gin.H'
-      summary: 修改当前账号密码
+            items:
+              $ref: '#/definitions/vo.SysAccountVO'
+            type: array
+      summary: 分页获取账号
       tags:
       - 账号中心
-  /api/v1/admin/account/modifyPassword/{id}:
-    patch:
+  /api/v1/admin/account/register:
+    post:
+      consumes:
+      - application/json
+      description: 创建后台账号，并分配角色关系
+      parameters:
+      - description: 创建账号参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSysAccountDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            type: string
+      summary: 创建账号
+      tags:
+      - 账号中心
+  /api/v1/admin/account/resetPassword/{id}:
+    post:
       consumes:
       - application/json
       description: 根据账号 ID 重置账号密码
@@ -333,35 +429,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 失败响应
+          description: 重置密码成功
           schema:
-            $ref: '#/definitions/gin.H'
-      summary: 重置账号密码
-      tags:
-      - 账号中心
-    put:
-      consumes:
-      - application/json
-      description: 根据账号 ID 重置账号密码
-      parameters:
-      - description: 账号ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 重置密码参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ResetPasswordDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 失败响应
-          schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 重置账号密码
       tags:
       - 账号中心
@@ -376,7 +446,7 @@ paths:
         "200":
           description: 统一响应，code=0 时 result 为 vo.GetCaptchaVO，code=1 时 result 为 null
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/vo.GetCaptchaVO'
       summary: 获取图形验证码图片
       tags:
       - 认证中心
@@ -396,9 +466,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 统一响应，code=0 时 result 为验证码成功，code=1 时 result 为 null
+          description: 验证码成功
           schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 验证图形验证码
       tags:
       - 认证中心
@@ -421,7 +491,7 @@ paths:
           description: 统一响应，code=0 时 result 为 vo.AccountLoginVO，code=1 时 result 为
             null
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/vo.AccountLoginVO'
       summary: 账号登录
       tags:
       - 认证中心
@@ -440,9 +510,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 统一响应，code=0 时 result 为退出登录成功，code=1 时 result 为 null
+          description: 退出登录成功
           schema:
-            $ref: '#/definitions/gin.H'
+            type: string
       summary: 用户退出登录
       tags:
       - 认证中心

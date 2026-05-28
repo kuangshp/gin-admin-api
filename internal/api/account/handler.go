@@ -9,10 +9,8 @@ import (
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
-	"gin-admin-api/pkg/utils"
-	"strconv"
-
 	"github.com/kuangshp/go-utils/k"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	gormplus "github.com/kuangshp/gorm-plus"
@@ -37,6 +35,15 @@ type SysAccount struct {
 	SysAccountMapper         mapper.ISysAccountMapper
 }
 
+// CreateSysAccountApi 创建账号
+// @Summary 创建账号
+// @Description 创建后台账号，并分配角色关系
+// @Tags 账号中心
+// @Accept json
+// @Produce json
+// @Param data body dto.CreateSysAccountDTO true "创建账号参数"
+// @Success 200 {string} string "创建成功"
+// @Router /api/v1/admin/account/register [post]
 func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 	var req dto.CreateSysAccountDTO
 	if !s.BindAndValidateJSON(ctx, &req) {
@@ -53,9 +60,7 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 		return
 	}
 
-	if err = gormplus.TransactionAs(s.Db, func(db *gorm.DB) *dao.Query {
-		return dao.Use(db)
-	}, func(tx *dao.Query) error {
+	if err = gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
 		accountEntity := s.SysAccountMapper.DtoToEntity(&req, password, enum.StatusNormalEnum)
 		if err = s.SysAccountRepository.CreateTx(ctx, tx, accountEntity, dao.SysAccountEntity.LastLoginIP, dao.SysAccountEntity.LastLoginDate); err != nil {
 			s.Logger.Error("创建失败")
@@ -63,13 +68,7 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 		}
 		// 2.分配角色
 		if len(req.RoleIdList) > 0 {
-			var accountRoleEntity = make([]*model.SysAccountRoleEntity, 0)
-			for _, item := range req.RoleIdList {
-				accountRoleEntity = append(accountRoleEntity, &model.SysAccountRoleEntity{
-					RoleID:    item,
-					AccountID: accountEntity.ID,
-				})
-			}
+			accountRoleEntity := s.buildAccountRoleEntityList(accountEntity.ID, req.RoleIdList)
 			if err = s.SysAccountRoleRepository.CreateBatchTx(ctx, tx, accountRoleEntity); err != nil {
 				s.Logger.Error("创建账号角色失败")
 				return err
@@ -90,11 +89,10 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "账号ID"
-// @Success 200 {object} gin.H "成功响应"
-// @Failure 200 {object} gin.H "失败响应"
+// @Success 200 {string} string "删除成功"
 // @Router /api/v1/admin/account/{id} [delete]
 func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
-	id, ok := s.getIDParam(ctx)
+	id, ok := s.getIdParam(ctx)
 	if !ok {
 		return
 	}
@@ -106,9 +104,7 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "删除失败")
 		return
 	}
-	if err := gormplus.TransactionAsCtx(ctx, s.Db, func(db *gorm.DB) *dao.Query {
-		return dao.Use(db)
-	}, func(tx *dao.Query) error {
+	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
 		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
 			g.WhereIf(true, dao.SysAccountRoleEntity.AccountID.Eq(id))
 		}); err != nil {
@@ -124,18 +120,16 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 
 // ModifySysAccountByIdApi 修改账号
 // @Summary 修改账号
-// @Description 根据账号 ID 修改账号基础信息
+// @Description 根据账号 ID 修改账号基础信息和角色关系
 // @Tags 账号中心
 // @Accept json
 // @Produce json
 // @Param id path int true "账号ID"
 // @Param data body dto.ModifySysAccountDTO true "修改账号参数"
-// @Success 200 {object} gin.H "成功响应"
-// @Failure 200 {object} gin.H "失败响应"
+// @Success 200 {string} string "修改成功"
 // @Router /api/v1/admin/account/modify/{id} [put]
-// @Router /api/v1/admin/account/modify/{id} [patch]
 func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
-	id, ok := s.getIDParam(ctx)
+	id, ok := s.getIdParam(ctx)
 	if !ok {
 		return
 	}
@@ -155,15 +149,30 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 	if !s.checkAccountUnique(ctx, req.Username, req.Mobile, req.Email, id) {
 		return
 	}
-	if err := s.SysAccountRepository.UpdateById(
-		ctx,
-		id,
-		dao.SysAccountEntity.Username.Value(req.Username),
-		dao.SysAccountEntity.Email.Value(req.Email),
-		dao.SysAccountEntity.Mobile.Value(req.Mobile),
-		dao.SysAccountEntity.Status.Value(req.Status),
-		dao.SysAccountEntity.Avatar.Value(req.Avatar),
-	); err != nil {
+	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
+		if err := s.SysAccountRepository.UpdateByIdTx(
+			ctx,
+			tx,
+			id,
+			dao.SysAccountEntity.Username.Value(req.Username),
+			dao.SysAccountEntity.Email.Value(req.Email),
+			dao.SysAccountEntity.Mobile.Value(req.Mobile),
+			dao.SysAccountEntity.Status.Value(req.Status),
+			dao.SysAccountEntity.Avatar.Value(req.Avatar),
+		); err != nil {
+			return err
+		}
+		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
+			g.Where(dao.SysAccountRoleEntity.AccountID.Eq(id))
+		}); err != nil {
+			return err
+		}
+		accountRoleEntity := s.buildAccountRoleEntityList(id, req.RoleIdList)
+		if len(accountRoleEntity) == 0 {
+			return nil
+		}
+		return s.SysAccountRoleRepository.CreateBatchTx(ctx, tx, accountRoleEntity)
+	}); err != nil {
 		s.Fail(ctx, err, "修改失败")
 		return
 	}
@@ -176,33 +185,27 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 // @Tags 账号中心
 // @Accept json
 // @Produce json
-// @Param pageNumber query int false "页码"
-// @Param pageSize query int false "每页数量"
-// @Param username query string false "登录账号"
-// @Param mobile query string false "手机号"
-// @Param email query string false "邮箱"
-// @Param status query int false "状态：1正常，2禁用"
-// @Success 200 {object} gin.H "成功响应，result 为分页数据"
-// @Failure 200 {object} gin.H "失败响应"
-// @Router /api/v1/admin/account [get]
+// @Param data body dto.GetSysAccountPageDTO true "分页查询参数"
+// @Success 200 {array} vo.SysAccountVO "统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null"
+// @Router /api/v1/admin/account/page [post]
 func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
-	pageSize, pageNumber := utils.GetQueryPage(ctx.Request)
-	status, _ := strconv.ParseInt(ctx.Query("status"), 10, 64)
-	username := ctx.Query("username")
-	mobile := ctx.Query("mobile")
-	email := ctx.Query("email")
-
-	list, total, err := s.SysAccountRepository.FindPageByWrapper(ctx, pageNumber, pageSize, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
-		g.RawWhereIf(username != "", "username LIKE ?", "%"+username+"%").
-			RawWhereIf(mobile != "", "mobile LIKE ?", "%"+mobile+"%").
-			RawWhereIf(email != "", "email LIKE ?", "%"+email+"%").
-			WhereIf(status != 0, dao.SysAccountEntity.Status.Eq(status))
+	var req dto.GetSysAccountPageDTO
+	if !s.BindAndValidateJSON(ctx, &req) {
+		return
+	}
+	list, total, err := s.SysAccountRepository.FindPageByWrapper(ctx, req.PageNumber, req.PageSize, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
+		g.
+			WhereIf(req.Username != "", dao.SysAccountEntity.Username.Like("%"+req.Username+"%")).
+			WhereIf(req.Email != "", dao.SysAccountEntity.Email.Like("%"+req.Email+"%")).
+			WhereIf(req.Mobile != "", dao.SysAccountEntity.Mobile.Like("%"+req.Mobile+"%")).
+			WhereIf(req.Status != 0, dao.SysAccountEntity.Status.Eq(req.Status))
 	})
 	if err != nil {
 		s.Fail(ctx, err, "获取账号分页失败")
 		return
 	}
 	s.BuildPageData(ctx, s.SysAccountMapper.EntityListToVo(list), total)
+	return
 }
 
 // GetSysAccountListApi 获取账号列表
@@ -212,23 +215,12 @@ func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param username query string false "登录账号"
-// @Param mobile query string false "手机号"
-// @Param email query string false "邮箱"
-// @Param status query int false "状态：1正常，2禁用"
-// @Success 200 {object} gin.H "成功响应，result 为账号列表"
-// @Failure 200 {object} gin.H "失败响应"
+// @Success 200 {array} vo.SysAccountVO "账号列表"
 // @Router /api/v1/admin/account/list [get]
 func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
-	status, _ := strconv.ParseInt(ctx.Query("status"), 10, 64)
-	username := ctx.Query("username")
-	mobile := ctx.Query("mobile")
-	email := ctx.Query("email")
-
+	username := ctx.DefaultQuery("username", "")
 	list, err := s.SysAccountRepository.FindListByWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
-		g.RawWhereIf(username != "", "username LIKE ?", "%"+username+"%").
-			RawWhereIf(mobile != "", "mobile LIKE ?", "%"+mobile+"%").
-			RawWhereIf(email != "", "email LIKE ?", "%"+email+"%").
-			WhereIf(status != 0, dao.SysAccountEntity.Status.Eq(status))
+		g.WhereIf(username != "", dao.SysAccountEntity.Username.Like("%"+username+"%"))
 	})
 	if err != nil {
 		s.Fail(ctx, err, "获取账号列表失败")
@@ -244,11 +236,10 @@ func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "账号ID"
-// @Success 200 {object} gin.H "成功响应，result 为 vo.SysAccountVO"
-// @Failure 200 {object} gin.H "失败响应"
+// @Success 200 {object} vo.SysAccountVO "统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null"
 // @Router /api/v1/admin/account/{id} [get]
 func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
-	id, ok := s.getIDParam(ctx)
+	id, ok := s.getIdParam(ctx)
 	if !ok {
 		return
 	}
@@ -272,12 +263,10 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "账号ID"
 // @Param data body dto.ResetPasswordDTO true "重置密码参数"
-// @Success 200 {object} gin.H "成功响应"
-// @Failure 200 {object} gin.H "失败响应"
-// @Router /api/v1/admin/account/modifyPassword/{id} [put]
-// @Router /api/v1/admin/account/modifyPassword/{id} [patch]
+// @Success 200 {string} string "重置密码成功"
+// @Router /api/v1/admin/account/resetPassword/{id} [post]
 func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
-	id, ok := s.getIDParam(ctx)
+	id, ok := s.getIdParam(ctx)
 	if !ok {
 		return
 	}
@@ -316,10 +305,8 @@ func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param data body dto.ModifyCurrentPasswordDTO true "修改当前账号密码参数"
-// @Success 200 {object} gin.H "成功响应"
-// @Failure 200 {object} gin.H "失败响应"
-// @Router /api/v1/admin/account/modifyCurrentPassword [put]
-// @Router /api/v1/admin/account/modifyCurrentPassword [patch]
+// @Success 200 {string} string "修改当前账号密码成功"
+// @Router /api/v1/admin/account/modifyCurrentPassword [post]
 func (s SysAccount) ModifyCurrentSysAccountPasswordApi(ctx *gin.Context) {
 	accountID, ok := s.getCurrentAccountID(ctx)
 	if !ok {
@@ -358,7 +345,7 @@ func (s SysAccount) ModifyCurrentSysAccountPasswordApi(ctx *gin.Context) {
 	s.Success(ctx, "修改当前账号密码成功")
 }
 
-func (s SysAccount) getIDParam(ctx *gin.Context) (int64, bool) {
+func (s SysAccount) getIdParam(ctx *gin.Context) (int64, bool) {
 	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
 	if err != nil || id <= 0 {
 		s.Fail(ctx, err, "参数id错误")
@@ -382,19 +369,13 @@ func (s SysAccount) getCurrentAccountID(ctx *gin.Context) (int64, bool) {
 }
 
 func (s SysAccount) checkAccountUnique(ctx *gin.Context, username, mobile, email string, excludeID int64) bool {
-	sql := "username = ?"
-	args := []any{username}
-	if mobile != "" {
-		sql += " OR mobile = ?"
-		args = append(args, mobile)
-	}
-	if email != "" {
-		sql += " OR email = ?"
-		args = append(args, email)
-	}
 	existsAccount, err := s.SysAccountRepository.FindOneWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
 		g.WhereIf(excludeID > 0, dao.SysAccountEntity.ID.Neq(excludeID)).
-			RawWhere("("+sql+")", args...)
+			WhereGroupFn(func(w gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
+				w.Where(dao.SysAccountEntity.Username.Eq(username)).
+					OrWhereIf(mobile != "", dao.SysAccountEntity.Mobile.Eq(mobile)).
+					OrWhereIf(email != "", dao.SysAccountEntity.Email.Eq(email))
+			})
 	})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.Fail(ctx, err, "账号重复校验失败")
@@ -414,6 +395,21 @@ func (s SysAccount) checkAccountUnique(ctx *gin.Context, username, mobile, email
 		s.Fail(ctx, errors.New("账号信息已经存在,不能重复"), "账号信息已经存在,不能重复")
 	}
 	return false
+}
+
+func useQuery(db *gorm.DB) *dao.Query {
+	return dao.Use(db)
+}
+
+func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int64) []*model.SysAccountRoleEntity {
+	accountRoleEntity := make([]*model.SysAccountRoleEntity, 0, len(roleIDList))
+	for _, roleID := range roleIDList {
+		accountRoleEntity = append(accountRoleEntity, &model.SysAccountRoleEntity{
+			RoleID:    roleID,
+			AccountID: accountID,
+		})
+	}
+	return accountRoleEntity
 }
 
 func NewSysAccount(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, sysAccountRoleRepository repository.SysAccountRoleRepository, sysAccountMapper mapper.ISysAccountMapper) ISysAccount {

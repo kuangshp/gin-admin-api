@@ -13,15 +13,17 @@ type CreateSysAccountDTO struct {
 
 // ModifySysAccountDTO 修改后台账号表请求
 type ModifySysAccountDTO struct {
-	ID       int64  `json:"id" validate:"required,number,gte=1"`  // 主键id
-	Username string `json:"username" validate:"required"`         // 登录帐号
-	Email    string `json:"email"`                                // 邮箱
-	Mobile   string `json:"mobile"`                               // 手机号
-	Status   int64  `json:"status" validate:"required,oneof=1 2"` // 状态1是正常,2是禁用
-	Avatar   string `json:"avatar"`                               // 头像
+	ID         int64   `json:"id" validate:"required,number,gte=1"`  // 主键id
+	Username   string  `json:"username" validate:"required"`         // 登录帐号
+	Email      string  `json:"email"`                                // 邮箱
+	Mobile     string  `json:"mobile"`                               // 手机号
+	Status     int64   `json:"status" validate:"required,oneof=1 2"` // 状态1是正常,2是禁用
+	Avatar     string  `json:"avatar"`                               // 头像
+	RoleIdList []int64 `json:"roleIdList" validate:"required,min=1"` // 授权的角色id
 }
 
 type ResetPasswordDTO struct {
+	Id              int64  `json:"id" validate:"required"` // 主键id
 	Password        string `json:"password" binding:"required,min=6,max=16"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required,min=6,max=16"`
 }
@@ -42,4 +44,13 @@ type AccountLoginDTO struct {
 type VerifyCaptchaDTO struct {
 	CaptchaId    string `json:"captchaId" validate:"required"`    // 图形验证码id
 	CaptchaValue string `json:"captchaValue" validate:"required"` // 图形验证码
+}
+
+type GetSysAccountPageDTO struct {
+	Username   string `json:"username"` // 登录帐号
+	Email      string `json:"email"`    // 邮箱
+	Mobile     string `json:"mobile"`   // 手机号
+	Status     int64  `json:"status"`   // 状态1是正常,2是禁用
+	PageNumber int64  `json:"pageNumber"`
+	PageSize   int64  `json:"pageSize"`
 }

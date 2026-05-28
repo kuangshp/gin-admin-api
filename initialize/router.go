@@ -37,7 +37,12 @@ func NewRouter(
 	})
 
 	r.GET(SwaggerJSONPath, func(c *gin.Context) {
-		c.File("docs/swagger.json")
+		file, err := SwaggerJSONFile()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+		c.File(file)
 	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL(SwaggerJSONPath)))
 

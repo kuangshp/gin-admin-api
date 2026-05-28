@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+type ResponseVo struct {
+	Code    int         `json:"code"`    // 业务状态码，0成功，1失败
+	Message string      `json:"message"` // 响应消息
+	Result  interface{} `json:"result"`  // 响应数据
+}
+
 func Response(ctx *gin.Context, code int, message string, data interface{}) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code":    code,

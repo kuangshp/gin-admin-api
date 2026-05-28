@@ -15,67 +15,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/admin/account": {
-            "get": {
-                "description": "根据查询条件分页获取账号列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "账号中心"
-                ],
-                "summary": "分页获取账号",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "pageNumber",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "pageSize",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "登录账号",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "手机号",
-                        "name": "mobile",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "邮箱",
-                        "name": "email",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "状态：1正常，2禁用",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "失败响应",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/admin/account/list": {
             "get": {
                 "description": "根据查询条件获取账号列表",
@@ -95,31 +34,16 @@ const docTemplate = `{
                         "description": "登录账号",
                         "name": "username",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "手机号",
-                        "name": "mobile",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "邮箱",
-                        "name": "email",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "状态：1正常，2禁用",
-                        "name": "status",
-                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "账号列表",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.SysAccountVO"
+                            }
                         }
                     }
                 }
@@ -127,7 +51,7 @@ const docTemplate = `{
         },
         "/api/v1/admin/account/modify/{id}": {
             "put": {
-                "description": "根据账号 ID 修改账号基础信息",
+                "description": "根据账号 ID 修改账号基础信息和角色关系",
                 "consumes": [
                     "application/json"
                 ],
@@ -158,55 +82,16 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "修改成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "根据账号 ID 修改账号基础信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "账号中心"
-                ],
-                "summary": "修改账号",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "账号ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "修改账号参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ModifySysAccountDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "失败响应",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
             }
         },
         "/api/v1/admin/account/modifyCurrentPassword": {
-            "put": {
+            "post": {
                 "description": "修改当前登录账号密码",
                 "consumes": [
                     "application/json"
@@ -231,49 +116,17 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "修改当前账号密码成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "修改当前登录账号密码",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "账号中心"
-                ],
-                "summary": "修改当前账号密码",
-                "parameters": [
-                    {
-                        "description": "修改当前账号密码参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ModifyCurrentPasswordDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "失败响应",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
             }
         },
-        "/api/v1/admin/account/modifyPassword/{id}": {
-            "put": {
-                "description": "根据账号 ID 重置账号密码",
+        "/api/v1/admin/account/page": {
+            "post": {
+                "description": "根据查询条件分页获取账号列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -283,35 +136,67 @@ const docTemplate = `{
                 "tags": [
                     "账号中心"
                 ],
-                "summary": "重置账号密码",
+                "summary": "分页获取账号",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "账号ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "重置密码参数",
+                        "description": "分页查询参数",
                         "name": "data",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.ResetPasswordDTO"
+                            "$ref": "#/definitions/dto.GetSysAccountPageDTO"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.SysAccountVO"
+                            }
                         }
                     }
                 }
-            },
-            "patch": {
+            }
+        },
+        "/api/v1/admin/account/register": {
+            "post": {
+                "description": "创建后台账号，并分配角色关系",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账号中心"
+                ],
+                "summary": "创建账号",
+                "parameters": [
+                    {
+                        "description": "创建账号参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateSysAccountDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/account/resetPassword/{id}": {
+            "post": {
                 "description": "根据账号 ID 重置账号密码",
                 "consumes": [
                     "application/json"
@@ -343,9 +228,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "重置密码成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
@@ -375,9 +260,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/vo.SysAccountVO"
                         }
                     }
                 }
@@ -405,9 +290,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "失败响应",
+                        "description": "删除成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
@@ -430,7 +315,7 @@ const docTemplate = `{
                     "200": {
                         "description": "统一响应，code=0 时 result 为 vo.GetCaptchaVO，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/vo.GetCaptchaVO"
                         }
                     }
                 }
@@ -462,9 +347,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "统一响应，code=0 时 result 为验证码成功，code=1 时 result 为 null",
+                        "description": "验证码成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
@@ -498,7 +383,7 @@ const docTemplate = `{
                     "200": {
                         "description": "统一响应，code=0 时 result 为 vo.AccountLoginVO，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/vo.AccountLoginVO"
                         }
                     }
                 }
@@ -528,9 +413,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "统一响应，code=0 时 result 为退出登录成功，code=1 时 result 为 null",
+                        "description": "退出登录成功",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "string"
                         }
                     }
                 }
@@ -558,6 +443,80 @@ const docTemplate = `{
                 "password": {
                     "description": "登录密码",
                     "type": "string"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateSysAccountDTO": {
+            "type": "object",
+            "required": [
+                "confirmPassword",
+                "password",
+                "roleIdList",
+                "username"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "confirmPassword": {
+                    "description": "确定密码",
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "登录密码",
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                },
+                "roleIdList": {
+                    "description": "授权的角色id",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetSysAccountPageDTO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
                 },
                 "username": {
                     "description": "登录帐号",
@@ -594,6 +553,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
+                "roleIdList",
                 "status",
                 "username"
             ],
@@ -615,6 +575,14 @@ const docTemplate = `{
                     "description": "手机号",
                     "type": "string"
                 },
+                "roleIdList": {
+                    "description": "授权的角色id",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "status": {
                     "description": "状态1是正常,2是禁用",
                     "type": "integer",
@@ -633,6 +601,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "confirmPassword",
+                "id",
                 "password"
             ],
             "properties": {
@@ -640,6 +609,10 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 16,
                     "minLength": 6
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
                 },
                 "password": {
                     "type": "string",
@@ -665,9 +638,120 @@ const docTemplate = `{
                 }
             }
         },
-        "gin.H": {
+        "vo.AccountLoginVO": {
             "type": "object",
-            "additionalProperties": {}
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "description": "1是超级管理员，2是普通管理员",
+                    "type": "integer"
+                },
+                "lastLoginDate": {
+                    "description": "最后一次登录时间",
+                    "type": "integer"
+                },
+                "lastLoginIp": {
+                    "description": "最后一次登录ip",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "token",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.GetCaptchaVO": {
+            "type": "object",
+            "properties": {
+                "base64": {
+                    "description": "base64",
+                    "type": "string"
+                },
+                "captchaId": {
+                    "description": "唯一码",
+                    "type": "string"
+                },
+                "code": {
+                    "description": "验证码",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.SysAccountVO": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "createdBy": {
+                    "description": "创建人",
+                    "type": "integer"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "description": "1是超级管理员，2是普通管理员",
+                    "type": "integer"
+                },
+                "lastLoginDate": {
+                    "description": "最后一次登录时间",
+                    "type": "integer"
+                },
+                "lastLoginIP": {
+                    "description": "最后一次登录ip",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "登录密码",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "updatedBy": {
+                    "description": "更新人",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
         }
     }
 }`

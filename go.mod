@@ -11,7 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/wire v0.7.0
 	github.com/kuangshp/go-utils v1.0.9
-	github.com/kuangshp/gorm-plus v1.0.14
+	github.com/kuangshp/gorm-plus v1.0.15
 	github.com/lestrrat/go-file-rotatelogs v0.0.0-20180223000712-d3151e2a480f
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cast v1.5.1

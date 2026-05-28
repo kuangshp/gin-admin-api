@@ -38,7 +38,7 @@ type Auth struct {
 // @Accept json
 // @Produce json
 // @Param data body dto.AccountLoginDTO true "登录参数"
-// @Success 200 {object} gin.H "统一响应，code=0 时 result 为 vo.AccountLoginVO，code=1 时 result 为 null"
+// @Success 200 {object} vo.AccountLoginVO "统一响应，code=0 时 result 为 vo.AccountLoginVO，code=1 时 result 为 null"
 // @Router /api/v1/admin/auth/login [post]
 func (a Auth) AccountLoginApi(ctx *gin.Context) {
 	req := dto.AccountLoginDTO{}
@@ -117,7 +117,7 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param token header string true "登录 token"
-// @Success 200 {object} gin.H "统一响应，code=0 时 result 为退出登录成功，code=1 时 result 为 null"
+// @Success 200 {string} string "退出登录成功"
 // @Router /api/v1/admin/auth/logout [post]
 func (a Auth) LogOutApi(ctx *gin.Context) {
 	tokenString := ctx.GetHeader("token")
@@ -142,7 +142,7 @@ func (a Auth) LogOutApi(ctx *gin.Context) {
 // @Tags 认证中心
 // @Accept json
 // @Produce json
-// @Success 200 {object} gin.H "统一响应，code=0 时 result 为 vo.GetCaptchaVO，code=1 时 result 为 null"
+// @Success 200 {object} vo.GetCaptchaVO "统一响应，code=0 时 result 为 vo.GetCaptchaVO，code=1 时 result 为 null"
 // @Router /api/v1/admin/auth/captcha [get]
 func (a Auth) GetCaptchaApi(ctx *gin.Context) {
 	id, s, answer, err := captcha.DriverDigitFunc()
@@ -166,7 +166,7 @@ func (a Auth) GetCaptchaApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param data body dto.VerifyCaptchaDTO true "验证码参数"
-// @Success 200 {object} gin.H "统一响应，code=0 时 result 为验证码成功，code=1 时 result 为 null"
+// @Success 200 {string} string "验证码成功"
 // @Router /api/v1/admin/auth/captcha/verify [post]
 func (a Auth) VerifyCaptchaApi(ctx *gin.Context) {
 	var req dto.VerifyCaptchaDTO
