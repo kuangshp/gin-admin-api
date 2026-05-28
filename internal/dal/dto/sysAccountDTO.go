@@ -2,13 +2,13 @@ package dto
 
 // CreateSysAccountDTO 创建后台账号表请求
 type CreateSysAccountDTO struct {
-	Username        string `json:"username" validate:"required"`                                     // 登录帐号
-	Email           string `json:"email"`                                                            // 邮箱
-	Mobile          string `json:"mobile"`                                                           // 手机号
-	Password        string `json:"password" validate:"required,min=6,max=16"`                        // 登录密码
-	ConfirmPassword string `json:"confirmPassword" binding:"required,min=6,max=16,eqfield=Password"` // 确定密码
-	Avatar          string `json:"avatar"`                                                           // 头像
-
+	Username        string  `json:"username" validate:"required"`                                     // 登录帐号
+	Email           string  `json:"email"`                                                            // 邮箱
+	Mobile          string  `json:"mobile"`                                                           // 手机号
+	Password        string  `json:"password" validate:"required,min=6,max=16"`                        // 登录密码
+	ConfirmPassword string  `json:"confirmPassword" binding:"required,min=6,max=16,eqfield=Password"` // 确定密码
+	Avatar          string  `json:"avatar"`                                                           // 头像
+	RoleIdList      []int64 `json:"roleIdList" validate:"required,min=1"`                             // 授权的角色id
 }
 
 // ModifySysAccountDTO 修改后台账号表请求

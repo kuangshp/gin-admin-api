@@ -45,6 +45,7 @@ func (a *App) Run() error {
 	go func() {
 		a.logger.Info("服务启动", zap.String("addr", addr))
 		fmt.Printf("✔ 服务已启动: http://localhost%s\n", addr)
+		fmt.Printf("✔ Swagger 文档地址: http://localhost%s%s\n", addr, SwaggerUIPath)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("服务启动失败: %v", err)
 		}

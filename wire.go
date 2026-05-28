@@ -28,6 +28,7 @@ func InitApp(envString string) (*initialize.App, error) {
 		base.NewBaseApi,
 		// 数据访问层
 		repository.NewSysAccountRepository,
+		repository.NewSysAccountRoleRepository,
 		// mapper转换层
 		mapper.NewSysAccountMapper,
 		// 接入层

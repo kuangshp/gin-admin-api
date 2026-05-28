@@ -27,12 +27,12 @@ func NewBaseApi(logger *zap.Logger, db *gorm.DB, cfg *config.ServerConfig, redis
 }
 
 // BindAndValidateJSON 绑定 JSON 并验证，失败直接返回错误响应
-func (b *BaseApi) BindAndValidateJSON(ctx *gin.Context, dto interface{}) error {
+func (b *BaseApi) BindAndValidateJSON(ctx *gin.Context, dto interface{}) bool {
 	if err := ctx.ShouldBindJSON(dto); err != nil {
 		b.Fail(ctx, err, utils.ShowErrorMessage(err))
-		return err
+		return false
 	}
-	return nil
+	return true
 }
 
 // Fail 输出日志并返回失败响应

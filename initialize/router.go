@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -33,6 +35,11 @@ func NewRouter(
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	r.GET(SwaggerJSONPath, func(c *gin.Context) {
+		c.File("docs/swagger.json")
+	})
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL(SwaggerJSONPath)))
 
 	// 配置全局路径
 	ApiGroup := r.Group("/api/v1/admin")

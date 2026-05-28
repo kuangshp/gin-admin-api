@@ -17,6 +17,7 @@ func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, newAccount 
 	registerRouter.PUT("/modifyPassword/:id", middleware.AuthMiddleWare(redis), newAccount.ResetPasswordByIdApi)                                     // 根据id重置密码
 	registerRouter.PATCH("/modifyCurrentPassword", middleware.AuthMiddleWare(redis), newAccount.ModifyCurrentSysAccountPasswordApi)                  // 修改当前账号密码
 	registerRouter.PUT("/modifyCurrentPassword", middleware.AuthMiddleWare(redis), newAccount.ModifyCurrentSysAccountPasswordApi)                    // 修改当前账号密码
+	registerRouter.GET("/list", middleware.AuthMiddleWare(redis), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetSysAccountListApi)  // 获取数据列表
 	registerRouter.GET("/:id", middleware.AuthMiddleWare(redis), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetSysAccountDetailApi) // 根据id获取数据
 	registerRouter.GET("", middleware.AuthMiddleWare(redis), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetSysAccountPageApi)       // 分页获取数据
 }

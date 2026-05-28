@@ -10,9 +10,10 @@ import (
 // ISysAccountMapper 后台账号表 mapper 接口
 type ISysAccountMapper interface {
 	// DtoToEntity 将请求结构体映射到数据库实体
-	DtoToEntity(d *dto.CreateSysAccountDTO, status int64) *model.SysAccountEntity
+	DtoToEntity(d *dto.CreateSysAccountDTO, password string, status int64) *model.SysAccountEntity
 	// EntityToVo 将数据库实体映射到响应结构体
 	EntityToVo(e *model.SysAccountEntity) *vo.SysAccountVO
+	EntityListToVo(list []*model.SysAccountEntity) []*vo.SysAccountVO
 	LoginToVo(e *model.SysAccountEntity, lastLoginIp, token string) *vo.AccountLoginVO
 }
 
@@ -25,12 +26,12 @@ func NewSysAccountMapper() ISysAccountMapper {
 }
 
 // DtoToEntity 将 CreateSysAccountDTO 映射到 SysAccountEntity
-func (m *sysAccountMapper) DtoToEntity(d *dto.CreateSysAccountDTO, status int64) *model.SysAccountEntity {
+func (m *sysAccountMapper) DtoToEntity(d *dto.CreateSysAccountDTO, password string, status int64) *model.SysAccountEntity {
 	e := &model.SysAccountEntity{
 		Username: d.Username, // 登录帐号
 		Email:    d.Email,    // 邮箱
 		Mobile:   d.Mobile,   // 手机号
-		Password: d.Password, // 登录密码
+		Password: password,   // 登录密码
 		Status:   status,     // 状态1是正常,2是禁用
 		Avatar:   d.Avatar,   // 头像
 	}
@@ -58,6 +59,14 @@ func (m *sysAccountMapper) EntityToVo(e *model.SysAccountEntity) *vo.SysAccountV
 		CreatedBy:     e.CreatedBy,            // 创建人
 		UpdatedBy:     e.UpdatedBy,            // 更新人
 	}
+}
+
+func (m *sysAccountMapper) EntityListToVo(list []*model.SysAccountEntity) []*vo.SysAccountVO {
+	result := make([]*vo.SysAccountVO, 0, len(list))
+	for _, item := range list {
+		result = append(result, m.EntityToVo(item))
+	}
+	return result
 }
 
 func (m *sysAccountMapper) LoginToVo(e *model.SysAccountEntity, lastLoginIp, token string) *vo.AccountLoginVO {

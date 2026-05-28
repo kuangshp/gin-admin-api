@@ -1,0 +1,449 @@
+basePath: /
+definitions:
+  dto.AccountLoginDTO:
+    properties:
+      captchaId:
+        description: 图形验证码id
+        type: string
+      captchaValue:
+        description: 图形验证码
+        type: string
+      password:
+        description: 登录密码
+        type: string
+      username:
+        description: 登录帐号
+        type: string
+    required:
+    - captchaId
+    - captchaValue
+    - password
+    - username
+    type: object
+  dto.ModifyCurrentPasswordDTO:
+    properties:
+      confirmPassword:
+        maxLength: 16
+        minLength: 6
+        type: string
+      newPassword:
+        maxLength: 16
+        minLength: 6
+        type: string
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - confirmPassword
+    - newPassword
+    - password
+    type: object
+  dto.ModifySysAccountDTO:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键id
+        minimum: 1
+        type: integer
+      mobile:
+        description: 手机号
+        type: string
+      status:
+        description: 状态1是正常,2是禁用
+        enum:
+        - 1
+        - 2
+        type: integer
+      username:
+        description: 登录帐号
+        type: string
+    required:
+    - id
+    - status
+    - username
+    type: object
+  dto.ResetPasswordDTO:
+    properties:
+      confirmPassword:
+        maxLength: 16
+        minLength: 6
+        type: string
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - confirmPassword
+    - password
+    type: object
+  dto.VerifyCaptchaDTO:
+    properties:
+      captchaId:
+        description: 图形验证码id
+        type: string
+      captchaValue:
+        description: 图形验证码
+        type: string
+    required:
+    - captchaId
+    - captchaValue
+    type: object
+  gin.H:
+    additionalProperties: {}
+    type: object
+info:
+  contact: {}
+  description: gin-admin-api 后台管理接口文档
+  title: gin-admin-api
+  version: "1.0"
+paths:
+  /api/v1/admin/account:
+    get:
+      consumes:
+      - application/json
+      description: 根据查询条件分页获取账号列表
+      parameters:
+      - description: 页码
+        in: query
+        name: pageNumber
+        type: integer
+      - description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      - description: 登录账号
+        in: query
+        name: username
+        type: string
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 邮箱
+        in: query
+        name: email
+        type: string
+      - description: 状态：1正常，2禁用
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 分页获取账号
+      tags:
+      - 账号中心
+  /api/v1/admin/account/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据账号 ID 删除账号，并清理账号角色关系
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 删除账号
+      tags:
+      - 账号中心
+    get:
+      consumes:
+      - application/json
+      description: 根据账号 ID 获取账号详情
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 获取账号详情
+      tags:
+      - 账号中心
+  /api/v1/admin/account/list:
+    get:
+      consumes:
+      - application/json
+      description: 根据查询条件获取账号列表
+      parameters:
+      - description: 登录账号
+        in: query
+        name: username
+        type: string
+      - description: 手机号
+        in: query
+        name: mobile
+        type: string
+      - description: 邮箱
+        in: query
+        name: email
+        type: string
+      - description: 状态：1正常，2禁用
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 获取账号列表
+      tags:
+      - 账号中心
+  /api/v1/admin/account/modify/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: 根据账号 ID 修改账号基础信息
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改账号参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ModifySysAccountDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 修改账号
+      tags:
+      - 账号中心
+    put:
+      consumes:
+      - application/json
+      description: 根据账号 ID 修改账号基础信息
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改账号参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ModifySysAccountDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 修改账号
+      tags:
+      - 账号中心
+  /api/v1/admin/account/modifyCurrentPassword:
+    patch:
+      consumes:
+      - application/json
+      description: 修改当前登录账号密码
+      parameters:
+      - description: 修改当前账号密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ModifyCurrentPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 修改当前账号密码
+      tags:
+      - 账号中心
+    put:
+      consumes:
+      - application/json
+      description: 修改当前登录账号密码
+      parameters:
+      - description: 修改当前账号密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ModifyCurrentPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 修改当前账号密码
+      tags:
+      - 账号中心
+  /api/v1/admin/account/modifyPassword/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: 根据账号 ID 重置账号密码
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 重置密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 重置账号密码
+      tags:
+      - 账号中心
+    put:
+      consumes:
+      - application/json
+      description: 根据账号 ID 重置账号密码
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 重置密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 失败响应
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 重置账号密码
+      tags:
+      - 账号中心
+  /api/v1/admin/auth/captcha:
+    get:
+      consumes:
+      - application/json
+      description: 生成图形验证码，返回验证码图片 Base64、验证码 ID 和验证码值
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 统一响应，code=0 时 result 为 vo.GetCaptchaVO，code=1 时 result 为 null
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 获取图形验证码图片
+      tags:
+      - 认证中心
+  /api/v1/admin/auth/captcha/verify:
+    post:
+      consumes:
+      - application/json
+      description: 根据验证码 ID 和验证码值校验图形验证码
+      parameters:
+      - description: 验证码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyCaptchaDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 统一响应，code=0 时 result 为验证码成功，code=1 时 result 为 null
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 验证图形验证码
+      tags:
+      - 认证中心
+  /api/v1/admin/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用账号、邮箱或手机号登录，登录成功后返回账号信息和 token
+      parameters:
+      - description: 登录参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AccountLoginDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 统一响应，code=0 时 result 为 vo.AccountLoginVO，code=1 时 result 为
+            null
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 账号登录
+      tags:
+      - 认证中心
+  /api/v1/admin/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: 删除当前登录用户的 token 缓存
+      parameters:
+      - description: 登录 token
+        in: header
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 统一响应，code=0 时 result 为退出登录成功，code=1 时 result 为 null
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: 用户退出登录
+      tags:
+      - 认证中心
+swagger: "2.0"

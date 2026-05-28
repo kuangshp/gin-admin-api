@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gin-admin-api/initialize"
 	"log"
 )
 
@@ -12,9 +13,17 @@ func init() {
 	flag.StringVar(&envString, "envString", "dev", "环境配置：dev | prod")
 }
 
+// @title gin-admin-api
+// @version 1.0
+// @description gin-admin-api 后台管理接口文档
+// @BasePath /
 func main() {
 	flag.Parse()
 	fmt.Printf("▶ 启动环境: %s\n", envString)
+
+	if err := initialize.GenerateSwaggerDocs(); err != nil {
+		log.Fatalf("生成 Swagger 文档失败: %v", err)
+	}
 
 	app, err := InitApp(envString)
 	if err != nil {
