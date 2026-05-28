@@ -14,6 +14,7 @@ import (
 	"github.com/kuangshp/go-utils/k"
 	"github.com/kuangshp/go-utils/k/captcha"
 	"github.com/kuangshp/gorm-plus"
+	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"time"
 )
@@ -51,17 +52,17 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		return
 	}
 	accountEntity, err := a.SysAccountRepository.FindOneWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
-		g.OrGroup(
+		g.WhereGroup(field.Or(
 			dao.SysAccountEntity.Username.Eq(req.Username),
 			dao.SysAccountEntity.Email.Eq(req.Username),
 			dao.SysAccountEntity.Mobile.Eq(req.Username),
-		)
+		))
 	})
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		a.Fail(ctx, err, "用户名或密码错误")
-		return
-	}
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			a.Fail(ctx, err, "用户名或密码错误")
+			return
+		}
 		a.Fail(ctx, err, "登录失败")
 		return
 	}

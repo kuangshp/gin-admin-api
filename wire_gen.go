@@ -9,9 +9,9 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
-	accountMapper "gin-admin-api/internal/api/account/mapper"
+	mapper2 "gin-admin-api/internal/api/account/mapper"
 	"gin-admin-api/internal/api/auth"
-	authMapper "gin-admin-api/internal/api/auth/mapper"
+	"gin-admin-api/internal/api/auth/mapper"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/internal/router"
@@ -37,10 +37,10 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	}
 	baseApi := base.NewBaseApi(logger, db, serverConfig, client)
 	sysAccountRepository := repository.NewSysAccountRepository()
-	iAuthMapper := authMapper.NewAuthMapper()
+	iAuthMapper := mapper.NewAuthMapper()
 	iAuth := auth.NewAuth(baseApi, sysAccountRepository, iAuthMapper)
 	sysAccountRoleRepository := repository.NewSysAccountRoleRepository()
-	iSysAccountMapper := accountMapper.NewSysAccountMapper()
+	iSysAccountMapper := mapper2.NewSysAccountMapper()
 	iSysAccount := account.NewSysAccount(baseApi, sysAccountRepository, sysAccountRoleRepository, iSysAccountMapper)
 	adminRouter := router.NewAdminRouter(iAuth, iSysAccount)
 	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client)
