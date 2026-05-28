@@ -1,7 +1,6 @@
 package initialize
 
 import (
-	"gin-admin-api/internal/api/account"
 	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/middleware"
 	"gin-admin-api/internal/router"
@@ -16,7 +15,7 @@ import (
 func NewRouter(
 	cfg *config.ServerConfig,
 	logger *zap.Logger,
-	accountHandler account.IAccount,
+	adminRouter *router.AdminRouter,
 	redis *redis.Client,
 ) *gin.Engine {
 	// 配置启动模式
@@ -38,7 +37,7 @@ func NewRouter(
 	// 配置全局路径
 	ApiGroup := r.Group("/api/v1/admin")
 	// 注册路由
-	router.InitAccountRouter(ApiGroup, redis, accountHandler) // 账号中心
+	adminRouter.Register(ApiGroup, redis)
 
 	return r
 }

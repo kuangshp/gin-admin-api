@@ -7,17 +7,16 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, newAccount account.IAccount) {
+func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, newAccount account.ISysAccount) {
 	registerRouter := Router.Group("account")
-	registerRouter.POST("register", middleware.AuthMiddleWare(), middleware.OperatorMiddleware(), newAccount.CreateAccountApi)             // 创建账号
-	registerRouter.POST("login", newAccount.LoginAccountApi)                                                                               // 登录
-	registerRouter.DELETE("/:id", middleware.AuthMiddleWare(), newAccount.DeleteAccountByIdApi)                                            // 根据id删除
-	registerRouter.PUT("/modifyPassword/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordByIdApi)                               // 根据id修改密码
-	registerRouter.PATCH("/modifyPassword/:id", middleware.AuthMiddleWare(), newAccount.ModifyPasswordByIdApi)                             // 根据id修改密码
-	registerRouter.PATCH("/modifyCurrentPassword", middleware.AuthMiddleWare(), newAccount.UpdateCurrentAccountPasswordApi)                // 修改当前账号密码
-	registerRouter.PUT("/modifyCurrentPassword", middleware.AuthMiddleWare(), newAccount.UpdateCurrentAccountPasswordApi)                  // 修改当前账号密码
-	registerRouter.PATCH("/status/:id", middleware.AuthMiddleWare(), newAccount.UpdateStatusByIdApi)                                       // 根据id修改状态
-	registerRouter.PUT("/status/:id", middleware.AuthMiddleWare(), middleware.OperatorMiddleware(), newAccount.UpdateStatusByIdApi)        // 根据id修改状态
-	registerRouter.GET("/:id", middleware.AuthMiddleWare(), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetAccountByIdApi) // 根据id获取数据
-	registerRouter.GET("", middleware.AuthMiddleWare(), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetAccountPageApi)     // 分页获取数据
+	registerRouter.POST("register", middleware.AuthMiddleWare(redis), middleware.OperatorMiddleware(), newAccount.CreateSysAccountApi)               // 创建账号
+	registerRouter.DELETE("/:id", middleware.AuthMiddleWare(redis), newAccount.DeleteSysAccountByIdApi)                                              // 根据id删除
+	registerRouter.PUT("/modify/:id", middleware.AuthMiddleWare(redis), newAccount.ModifySysAccountByIdApi)                                          // 根据id修改
+	registerRouter.PATCH("/modify/:id", middleware.AuthMiddleWare(redis), newAccount.ModifySysAccountByIdApi)                                        // 根据id修改
+	registerRouter.PATCH("/modifyPassword/:id", middleware.AuthMiddleWare(redis), newAccount.ResetPasswordByIdApi)                                   // 根据id重置密码
+	registerRouter.PUT("/modifyPassword/:id", middleware.AuthMiddleWare(redis), newAccount.ResetPasswordByIdApi)                                     // 根据id重置密码
+	registerRouter.PATCH("/modifyCurrentPassword", middleware.AuthMiddleWare(redis), newAccount.ModifyCurrentSysAccountPasswordApi)                  // 修改当前账号密码
+	registerRouter.PUT("/modifyCurrentPassword", middleware.AuthMiddleWare(redis), newAccount.ModifyCurrentSysAccountPasswordApi)                    // 修改当前账号密码
+	registerRouter.GET("/:id", middleware.AuthMiddleWare(redis), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetSysAccountDetailApi) // 根据id获取数据
+	registerRouter.GET("", middleware.AuthMiddleWare(redis), middleware.CacheMiddleWare(redis, "repository"), newAccount.GetSysAccountPageApi)       // 分页获取数据
 }

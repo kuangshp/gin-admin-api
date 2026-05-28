@@ -10,6 +10,7 @@ import (
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/mapper"
 	"gin-admin-api/internal/dal/repository"
+	"gin-admin-api/internal/router"
 
 	"github.com/google/wire"
 )
@@ -33,6 +34,7 @@ func InitApp(envString string) (*initialize.App, error) {
 		auth.NewAuth,
 		account.NewSysAccount,
 		// 路由 & 服务
+		router.NewAdminRouter,
 		initialize.NewRouter,
 		initialize.NewApp,
 	)

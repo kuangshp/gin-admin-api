@@ -9,8 +9,11 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
+	"gin-admin-api/internal/api/auth"
 	"gin-admin-api/internal/api/base"
+	"gin-admin-api/internal/dal/mapper"
 	"gin-admin-api/internal/dal/repository"
+	"gin-admin-api/internal/router"
 )
 
 // Injectors from wire.go:
@@ -32,9 +35,12 @@ func InitApp(envString2 string) (*initialize.App, error) {
 		return nil, err
 	}
 	baseApi := base.NewBaseApi(logger, db, serverConfig, client)
-	iAccountRepository := repository.NewAccountRepository()
-	iAccount := account.NewAccount(baseApi, iAccountRepository)
-	engine := initialize.NewRouter(serverConfig, logger, iAccount, client)
+	sysAccountRepository := repository.NewSysAccountRepository()
+	iSysAccountMapper := mapper.NewSysAccountMapper()
+	iAuth := auth.NewAuth(baseApi, sysAccountRepository, iSysAccountMapper)
+	iSysAccount := account.NewSysAccount(baseApi, sysAccountRepository)
+	adminRouter := router.NewAdminRouter(iAuth, iSysAccount)
+	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil
 }

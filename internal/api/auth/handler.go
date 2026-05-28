@@ -31,6 +31,16 @@ type Auth struct {
 	SysAccountMapper     mapper.ISysAccountMapper
 }
 
+// AccountLoginApi 账号登录
+// @Summary 账号登录
+// @Description 使用账号、邮箱或手机号登录，登录成功后返回账号信息和 token
+// @Tags 认证中心
+// @Accept json
+// @Produce json
+// @Param data body dto.AccountLoginDTO true "登录参数"
+// @Success 200 {object} gin.H "成功响应，result 为 vo.AccountLoginVO"
+// @Failure 200 {object} gin.H "失败响应"
+// @Router /api/v1/admin/auth/login [post]
 func (a Auth) AccountLoginApi(ctx *gin.Context) {
 	req := dto.AccountLoginDTO{}
 	if err := a.BindAndValidateJSON(ctx, &req); err != nil {
@@ -52,8 +62,12 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		a.Fail(ctx, err, "用户名或密码错误")
 		return
 	}
+	if err != nil {
+		a.Fail(ctx, err, "登录失败")
+		return
+	}
 	if accountEntity.Status == enum.StatusForbidEnum {
-		err = errors.New("用户被禁用登录,请联系管理员")
+		a.Fail(ctx, errors.New("用户被禁用登录,请联系管理员"), "用户被禁用登录,请联系管理员")
 		return
 	}
 	// 判断账号密码是否正确
@@ -82,16 +96,57 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		a.Fail(ctx, errors.New("修改最后一次登录信息失败"), "登录失败")
 		return
 	}
+	redisDb := utils.NewRedisUtils(a.Redis)
+	if err = redisDb.SetRedisValue(
+		ctx,
+		utils.AuthTokenRedisKey(accountEntity.ID, token),
+		accountEntity.ID,
+		int64(utils.TokenExpiration/time.Second),
+	); err != nil {
+		a.Fail(ctx, err, "登录失败")
+		return
+	}
 	loginToVo := a.SysAccountMapper.LoginToVo(accountEntity, clientIP, token)
 	a.Success(ctx, loginToVo)
 	return
 }
 
+// LogOutApi 用户退出登录
+// @Summary 用户退出登录
+// @Description 删除当前登录用户的 token 缓存
+// @Tags 认证中心
+// @Accept json
+// @Produce json
+// @Param token header string true "登录 token"
+// @Success 200 {object} gin.H "成功响应，result 为退出登录成功"
+// @Failure 200 {object} gin.H "失败响应"
+// @Router /api/v1/admin/auth/logout [post]
 func (a Auth) LogOutApi(ctx *gin.Context) {
-	//TODO implement me
-	panic("implement me")
+	tokenString := ctx.GetHeader("token")
+	accountIDValue, exists := ctx.Get("accountId")
+	if !exists {
+		a.Fail(ctx, errors.New("未获取到当前登录用户"), "退出登录失败")
+		return
+	}
+	accountID, ok := accountIDValue.(int64)
+	if !ok {
+		a.Fail(ctx, errors.New("当前登录用户数据错误"), "退出登录失败")
+		return
+	}
+	redisDb := utils.NewRedisUtils(a.Redis)
+	redisDb.DelRedisKey(ctx, utils.AuthTokenRedisKey(accountID, tokenString))
+	a.Success(ctx, "退出登录成功")
 }
 
+// GetCaptchaApi 获取图形验证码图片
+// @Summary 获取图形验证码图片
+// @Description 生成图形验证码，返回验证码图片 Base64、验证码 ID 和验证码值
+// @Tags 认证中心
+// @Accept json
+// @Produce json
+// @Success 200 {object} gin.H "成功响应，result 为 vo.GetCaptchaVO"
+// @Failure 200 {object} gin.H "失败响应"
+// @Router /api/v1/admin/auth/captcha [get]
 func (a Auth) GetCaptchaApi(ctx *gin.Context) {
 	id, s, answer, err := captcha.DriverDigitFunc()
 	if err != nil {
@@ -107,6 +162,16 @@ func (a Auth) GetCaptchaApi(ctx *gin.Context) {
 	return
 }
 
+// VerifyCaptchaApi 验证图形验证码
+// @Summary 验证图形验证码
+// @Description 根据验证码 ID 和验证码值校验图形验证码
+// @Tags 认证中心
+// @Accept json
+// @Produce json
+// @Param data body dto.VerifyCaptchaDTO true "验证码参数"
+// @Success 200 {object} gin.H "成功响应，result 为验证码成功"
+// @Failure 200 {object} gin.H "失败响应"
+// @Router /api/v1/admin/auth/captcha/verify [post]
 func (a Auth) VerifyCaptchaApi(ctx *gin.Context) {
 	var req dto.VerifyCaptchaDTO
 	if err := a.BindAndValidateJSON(ctx, &req); err != nil {

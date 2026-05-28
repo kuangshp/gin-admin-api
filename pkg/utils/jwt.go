@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
+
+const TokenExpiration = 7 * 24 * time.Hour
 
 // HmacUser 签名需要传递的参数(根据自己定义)
 type HmacUser struct {
@@ -15,6 +18,7 @@ type HmacUser struct {
 type MyClaims struct {
 	AccountId int64  `json:"accountId"`
 	Username  string `json:"username"`
+	IsAdmin   int64  `json:"isAdmin"` // 是否为超管1表是,2表示否
 	jwt.StandardClaims
 }
 
@@ -30,10 +34,11 @@ var jwtKey = []byte("abc")
 // GenerateToken 定义生成token的方法
 func GenerateToken(u HmacUser) (string, error) {
 	// 定义过期时间,7天后过期
-	expirationTime := time.Now().Add(7 * 24 * time.Hour)
+	expirationTime := time.Now().Add(TokenExpiration)
 	claims := &MyClaims{
 		AccountId: u.AccountId,
 		Username:  u.Username,
+		IsAdmin:   u.IsAdmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(), // 过期时间
 			IssuedAt:  time.Now().Unix(),     // 发布时间
@@ -48,6 +53,10 @@ func GenerateToken(u HmacUser) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func AuthTokenRedisKey(accountId int64, token string) string {
+	return fmt.Sprintf("auth:token:%d:%s", accountId, Md5(token))
 }
 
 // ParseToken 定义解析token的方法

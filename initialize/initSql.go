@@ -3,14 +3,14 @@ package initialize
 import (
 	"fmt"
 	"gin-admin-api/internal/dal/dao"
-	"gin-admin-api/internal/dal/model/entity"
+	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/pkg/enum"
 	"github.com/kuangshp/go-utils/k"
 	"time"
 )
 
 func InitAccountDataWithDao() error {
-	total, err := dao.AccountEntity.Count()
+	total, err := dao.SysAccountEntity.Count()
 	if err != nil {
 		return fmt.Errorf("查询账号数量失败: %w", err)
 	}
@@ -25,16 +25,15 @@ func InitAccountDataWithDao() error {
 		return fmt.Errorf("密码加密失败: %w", err)
 	}
 
-	admin := &entity.AccountEntity{
+	admin := &model.SysAccountEntity{
 		Username:      "admin",
 		Password:      password,
-		Name:          "超级管理员",
 		IsAdmin:       enum.AdminAccount,
 		Status:        enum.StatusNormalEnum,
 		LastLoginDate: time.Now(),
 	}
 
-	if err := dao.AccountEntity.Create(admin); err != nil {
+	if err := dao.SysAccountEntity.Create(admin); err != nil {
 		return fmt.Errorf("创建默认账号失败: %w", err)
 	}
 
