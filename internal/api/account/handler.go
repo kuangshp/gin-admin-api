@@ -412,11 +412,11 @@ func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int
 	return accountRoleEntity
 }
 
-func NewSysAccount(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, sysAccountRoleRepository repository.SysAccountRoleRepository, sysAccountMapper mapper.ISysAccountMapper) ISysAccount {
+func NewSysAccount(baseApi *base.BaseApi) ISysAccount {
 	return &SysAccount{
 		BaseApi:                  baseApi,
-		SysAccountRepository:     accountRepository,
-		SysAccountRoleRepository: sysAccountRoleRepository,
-		SysAccountMapper:         sysAccountMapper,
+		SysAccountRepository:     repository.NewSysAccountRepository(),
+		SysAccountRoleRepository: repository.NewSysAccountRoleRepository(),
+		SysAccountMapper:         mapper.NewSysAccountMapper(),
 	}
 }

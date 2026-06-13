@@ -6,11 +6,8 @@ package main
 import (
 	"gin-admin-api/initialize"
 	"gin-admin-api/internal/api/account"
-	accountMapper "gin-admin-api/internal/api/account/mapper"
 	"gin-admin-api/internal/api/auth"
-	authMapper "gin-admin-api/internal/api/auth/mapper"
 	"gin-admin-api/internal/api/base"
-	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/internal/router"
 
 	"github.com/google/wire"
@@ -27,12 +24,6 @@ func InitApp(envString string) (*initialize.App, error) {
 		initialize.NewRedis,
 		// 基础控制器
 		base.NewBaseApi,
-		// 数据访问层
-		repository.NewSysAccountRepository,
-		repository.NewSysAccountRoleRepository,
-		// mapper转换层
-		accountMapper.NewSysAccountMapper,
-		authMapper.NewAuthMapper,
 		// 接入层
 		auth.NewAuth,
 		account.NewSysAccount,

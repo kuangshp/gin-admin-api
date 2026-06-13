@@ -182,10 +182,10 @@ func (a Auth) VerifyCaptchaApi(ctx *gin.Context) {
 	a.Success(ctx, "验证码成功")
 	return
 }
-func NewAuth(baseApi *base.BaseApi, accountRepository repository.SysAccountRepository, authMapper mapper.IAuthMapper) IAuth {
+func NewAuth(baseApi *base.BaseApi) IAuth {
 	return Auth{
 		BaseApi:              baseApi,
-		SysAccountRepository: accountRepository,
-		AuthMapper:           authMapper,
+		SysAccountRepository: repository.NewSysAccountRepository(),
+		AuthMapper:           mapper.NewAuthMapper(),
 	}
 }
