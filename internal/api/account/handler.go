@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/mapper"
+	_ "gin-admin-api/internal/api/account/vo"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/dao"
 	"gin-admin-api/internal/dal/model"
@@ -191,7 +192,7 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param data body dto.GetSysAccountPageDTO true "分页查询参数"
-// @Success 200 {array} vo.SysAccountVO "统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null"
+// @Success 200 {array} vo.SysAccountVO
 // @Router /api/v1/admin/account/page [post]
 func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 	var req dto.GetSysAccountPageDTO

@@ -42,7 +42,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/vo.SysAccountVO"
+                                "$ref": "#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO"
                             }
                         }
                     }
@@ -76,7 +76,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.ModifySysAccountDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO"
                         }
                     }
                 ],
@@ -150,11 +150,11 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null",
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/vo.SysAccountVO"
+                                "$ref": "#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO"
                             }
                         }
                     }
@@ -181,7 +181,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateSysAccountDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO"
                         }
                     }
                 ],
@@ -262,7 +262,7 @@ const docTemplate = `{
                     "200": {
                         "description": "统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/vo.SysAccountVO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO"
                         }
                     }
                 }
@@ -450,53 +450,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateSysAccountDTO": {
-            "type": "object",
-            "required": [
-                "confirmPassword",
-                "password",
-                "roleIdList",
-                "username"
-            ],
-            "properties": {
-                "avatar": {
-                    "description": "头像",
-                    "type": "string"
-                },
-                "confirmPassword": {
-                    "description": "确定密码",
-                    "type": "string",
-                    "maxLength": 16,
-                    "minLength": 6
-                },
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
-                "mobile": {
-                    "description": "手机号",
-                    "type": "string"
-                },
-                "password": {
-                    "description": "登录密码",
-                    "type": "string",
-                    "maxLength": 16,
-                    "minLength": 6
-                },
-                "roleIdList": {
-                    "description": "授权的角色id",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "username": {
-                    "description": "登录帐号",
-                    "type": "string"
-                }
-            }
-        },
         "dto.GetSysAccountPageDTO": {
             "type": "object",
             "properties": {
@@ -549,7 +502,95 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ModifySysAccountDTO": {
+        "dto.ResetPasswordDTO": {
+            "type": "object",
+            "required": [
+                "confirmPassword",
+                "id",
+                "password"
+            ],
+            "properties": {
+                "confirmPassword": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                }
+            }
+        },
+        "dto.VerifyCaptchaDTO": {
+            "type": "object",
+            "required": [
+                "captchaId",
+                "captchaValue"
+            ],
+            "properties": {
+                "captchaId": {
+                    "description": "图形验证码id",
+                    "type": "string"
+                },
+                "captchaValue": {
+                    "description": "图形验证码",
+                    "type": "string"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_account_dto.CreateSysAccountDTO": {
+            "type": "object",
+            "required": [
+                "confirmPassword",
+                "password",
+                "roleIdList",
+                "username"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "confirmPassword": {
+                    "description": "确定密码",
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "登录密码",
+                    "type": "string",
+                    "maxLength": 16,
+                    "minLength": 6
+                },
+                "roleIdList": {
+                    "description": "授权的角色id",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_account_dto.ModifySysAccountDTO": {
             "type": "object",
             "required": [
                 "id",
@@ -597,102 +638,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ResetPasswordDTO": {
-            "type": "object",
-            "required": [
-                "confirmPassword",
-                "id",
-                "password"
-            ],
-            "properties": {
-                "confirmPassword": {
-                    "type": "string",
-                    "maxLength": 16,
-                    "minLength": 6
-                },
-                "id": {
-                    "description": "主键id",
-                    "type": "integer"
-                },
-                "password": {
-                    "type": "string",
-                    "maxLength": 16,
-                    "minLength": 6
-                }
-            }
-        },
-        "dto.VerifyCaptchaDTO": {
-            "type": "object",
-            "required": [
-                "captchaId",
-                "captchaValue"
-            ],
-            "properties": {
-                "captchaId": {
-                    "description": "图形验证码id",
-                    "type": "string"
-                },
-                "captchaValue": {
-                    "description": "图形验证码",
-                    "type": "string"
-                }
-            }
-        },
-        "vo.AccountLoginVO": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "主键id",
-                    "type": "integer"
-                },
-                "isAdmin": {
-                    "description": "1是超级管理员，2是普通管理员",
-                    "type": "integer"
-                },
-                "lastLoginDate": {
-                    "description": "最后一次登录时间",
-                    "type": "integer"
-                },
-                "lastLoginIp": {
-                    "description": "最后一次登录ip",
-                    "type": "string"
-                },
-                "mobile": {
-                    "description": "手机号",
-                    "type": "string"
-                },
-                "token": {
-                    "description": "token",
-                    "type": "string"
-                },
-                "username": {
-                    "description": "登录帐号",
-                    "type": "string"
-                }
-            }
-        },
-        "vo.GetCaptchaVO": {
-            "type": "object",
-            "properties": {
-                "base64": {
-                    "description": "base64",
-                    "type": "string"
-                },
-                "captchaId": {
-                    "description": "唯一码",
-                    "type": "string"
-                },
-                "code": {
-                    "description": "验证码",
-                    "type": "string"
-                }
-            }
-        },
-        "vo.SysAccountVO": {
+        "gin-admin-api_internal_api_account_vo.SysAccountVO": {
             "type": "object",
             "properties": {
                 "avatar": {
@@ -749,6 +695,60 @@ const docTemplate = `{
                 },
                 "username": {
                     "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.AccountLoginVO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "description": "1是超级管理员，2是普通管理员",
+                    "type": "integer"
+                },
+                "lastLoginDate": {
+                    "description": "最后一次登录时间",
+                    "type": "integer"
+                },
+                "lastLoginIp": {
+                    "description": "最后一次登录ip",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "token",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.GetCaptchaVO": {
+            "type": "object",
+            "properties": {
+                "base64": {
+                    "description": "base64",
+                    "type": "string"
+                },
+                "captchaId": {
+                    "description": "唯一码",
+                    "type": "string"
+                },
+                "code": {
+                    "description": "验证码",
                     "type": "string"
                 }
             }

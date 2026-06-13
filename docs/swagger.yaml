@@ -20,42 +20,6 @@ definitions:
     - password
     - username
     type: object
-  dto.CreateSysAccountDTO:
-    properties:
-      avatar:
-        description: 头像
-        type: string
-      confirmPassword:
-        description: 确定密码
-        maxLength: 16
-        minLength: 6
-        type: string
-      email:
-        description: 邮箱
-        type: string
-      mobile:
-        description: 手机号
-        type: string
-      password:
-        description: 登录密码
-        maxLength: 16
-        minLength: 6
-        type: string
-      roleIdList:
-        description: 授权的角色id
-        items:
-          type: integer
-        minItems: 1
-        type: array
-      username:
-        description: 登录帐号
-        type: string
-    required:
-    - confirmPassword
-    - password
-    - roleIdList
-    - username
-    type: object
   dto.GetSysAccountPageDTO:
     properties:
       email:
@@ -94,7 +58,73 @@ definitions:
     - newPassword
     - password
     type: object
-  dto.ModifySysAccountDTO:
+  dto.ResetPasswordDTO:
+    properties:
+      confirmPassword:
+        maxLength: 16
+        minLength: 6
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      password:
+        maxLength: 16
+        minLength: 6
+        type: string
+    required:
+    - confirmPassword
+    - id
+    - password
+    type: object
+  dto.VerifyCaptchaDTO:
+    properties:
+      captchaId:
+        description: 图形验证码id
+        type: string
+      captchaValue:
+        description: 图形验证码
+        type: string
+    required:
+    - captchaId
+    - captchaValue
+    type: object
+  gin-admin-api_internal_api_account_dto.CreateSysAccountDTO:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      confirmPassword:
+        description: 确定密码
+        maxLength: 16
+        minLength: 6
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      password:
+        description: 登录密码
+        maxLength: 16
+        minLength: 6
+        type: string
+      roleIdList:
+        description: 授权的角色id
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      username:
+        description: 登录帐号
+        type: string
+    required:
+    - confirmPassword
+    - password
+    - roleIdList
+    - username
+    type: object
+  gin-admin-api_internal_api_account_dto.ModifySysAccountDTO:
     properties:
       avatar:
         description: 头像
@@ -130,76 +160,7 @@ definitions:
     - status
     - username
     type: object
-  dto.ResetPasswordDTO:
-    properties:
-      confirmPassword:
-        maxLength: 16
-        minLength: 6
-        type: string
-      id:
-        description: 主键id
-        type: integer
-      password:
-        maxLength: 16
-        minLength: 6
-        type: string
-    required:
-    - confirmPassword
-    - id
-    - password
-    type: object
-  dto.VerifyCaptchaDTO:
-    properties:
-      captchaId:
-        description: 图形验证码id
-        type: string
-      captchaValue:
-        description: 图形验证码
-        type: string
-    required:
-    - captchaId
-    - captchaValue
-    type: object
-  vo.AccountLoginVO:
-    properties:
-      email:
-        description: 邮箱
-        type: string
-      id:
-        description: 主键id
-        type: integer
-      isAdmin:
-        description: 1是超级管理员，2是普通管理员
-        type: integer
-      lastLoginDate:
-        description: 最后一次登录时间
-        type: integer
-      lastLoginIp:
-        description: 最后一次登录ip
-        type: string
-      mobile:
-        description: 手机号
-        type: string
-      token:
-        description: token
-        type: string
-      username:
-        description: 登录帐号
-        type: string
-    type: object
-  vo.GetCaptchaVO:
-    properties:
-      base64:
-        description: base64
-        type: string
-      captchaId:
-        description: 唯一码
-        type: string
-      code:
-        description: 验证码
-        type: string
-    type: object
-  vo.SysAccountVO:
+  gin-admin-api_internal_api_account_vo.SysAccountVO:
     properties:
       avatar:
         description: 头像
@@ -242,6 +203,45 @@ definitions:
         type: integer
       username:
         description: 登录帐号
+        type: string
+    type: object
+  vo.AccountLoginVO:
+    properties:
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      isAdmin:
+        description: 1是超级管理员，2是普通管理员
+        type: integer
+      lastLoginDate:
+        description: 最后一次登录时间
+        type: integer
+      lastLoginIp:
+        description: 最后一次登录ip
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      token:
+        description: token
+        type: string
+      username:
+        description: 登录帐号
+        type: string
+    type: object
+  vo.GetCaptchaVO:
+    properties:
+      base64:
+        description: base64
+        type: string
+      captchaId:
+        description: 唯一码
+        type: string
+      code:
+        description: 验证码
         type: string
     type: object
 info:
@@ -287,7 +287,7 @@ paths:
         "200":
           description: 统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null
           schema:
-            $ref: '#/definitions/vo.SysAccountVO'
+            $ref: '#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO'
       summary: 获取账号详情
       tags:
       - 账号中心
@@ -308,7 +308,7 @@ paths:
           description: 账号列表
           schema:
             items:
-              $ref: '#/definitions/vo.SysAccountVO'
+              $ref: '#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO'
             type: array
       summary: 获取账号列表
       tags:
@@ -329,7 +329,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.ModifySysAccountDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO'
       produces:
       - application/json
       responses:
@@ -378,10 +378,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: 统一响应，code=0 时 result 为账号分页数据，code=1 时 result 为 null
+          description: OK
           schema:
             items:
-              $ref: '#/definitions/vo.SysAccountVO'
+              $ref: '#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO'
             type: array
       summary: 分页获取账号
       tags:
@@ -397,7 +397,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateSysAccountDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO'
       produces:
       - application/json
       responses:
