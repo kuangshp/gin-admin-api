@@ -90,8 +90,10 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 	if err = a.SysAccountRepository.UpdateById(
 		ctx,
 		accountEntity.ID,
-		dao.SysAccountEntity.LastLoginIP.Value(clientIP),
-		dao.SysAccountEntity.LastLoginDate.Value(time.Now()),
+		gormplus.Update().WithColumns(
+			dao.SysAccountEntity.LastLoginIP.Value(clientIP),
+			dao.SysAccountEntity.LastLoginDate.Value(time.Now()),
+		).Build(),
 	); err != nil {
 		a.Fail(ctx, errors.New("修改最后一次登录信息失败"), "登录失败")
 		return

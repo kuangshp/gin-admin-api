@@ -5,6 +5,7 @@ import (
 	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/dal/dao"
 	"gin-admin-api/internal/plugin"
+	gormplus "github.com/kuangshp/gorm-plus"
 	"log"
 	"os"
 	"time"
@@ -23,18 +24,13 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 		ds.Username, ds.Password, ds.Host, ds.Port, ds.Database,
 	)
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: gormplus.NewSQLCallerLogger(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  logger.Info,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
-		},
-	)
-
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: newLogger,
+		}),
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},

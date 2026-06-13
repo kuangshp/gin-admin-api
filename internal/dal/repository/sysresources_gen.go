@@ -5,7 +5,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"gorm.io/gen/field"
 	"github.com/kuangshp/gorm-plus"
 	"gorm.io/gen"
 	"gin-admin-api/internal/dal/dao"
@@ -17,32 +16,32 @@ type defaultSysResourcesRepository struct {
 
 type iDefaultSysResourcesRepository interface {
 	// Create 创建记录（自动失效 FindList / FindPage / Count / Exists 前缀缓存）
-	Create(ctx context.Context, m *model.SysResourcesEntity, omitFields ...field.Expr) error
-	CreateTx(ctx context.Context, tx *dao.Query, m *model.SysResourcesEntity, omitFields ...field.Expr) error
+	Create(ctx context.Context, m *model.SysResourcesEntity, opts ...gormplus.CreateOption) error
+	CreateTx(ctx context.Context, tx *dao.Query, m *model.SysResourcesEntity, opts ...gormplus.CreateOption) error
 	// CreateBatch 批量创建（自动失效 FindList / FindPage / Count / Exists 前缀缓存）
-	CreateBatch(ctx context.Context, m []*model.SysResourcesEntity, omitFields ...field.Expr) error
-	CreateBatchTx(ctx context.Context, tx *dao.Query, m []*model.SysResourcesEntity, omitFields ...field.Expr) error
-	// DeleteById 根据ID删除（自动失效该 ID 的 FindById，以及 FindList/FindPage/Count/Exists 前缀缓存）
-	DeleteById(ctx context.Context, sysResourcesId int64) error
-	DeleteByIdTx(ctx context.Context, tx *dao.Query, sysResourcesId int64) error
+	CreateBatch(ctx context.Context, m []*model.SysResourcesEntity, opts ...gormplus.CreateOption) error
+	CreateBatchTx(ctx context.Context, tx *dao.Query, m []*model.SysResourcesEntity, opts ...gormplus.CreateOption) error
+	// DeleteById 根据ID删除（默认软删除；传 gormplus.Delete().WithPhysicalDelete().Build() 时物理删除。自动失效该 ID 的 FindById，以及 FindList/FindPage/Count/Exists 前缀缓存）
+	DeleteById(ctx context.Context, sysResourcesId int64, opts ...gormplus.DeleteOption) error
+	DeleteByIdTx(ctx context.Context, tx *dao.Query, sysResourcesId int64, opts ...gormplus.DeleteOption) error
 	// DeleteByIdList 根据ID列表批量删除（自动失效每个 ID 的 FindById，以及 FindList/FindPage/Count/Exists 前缀缓存）
-	DeleteByIdList(ctx context.Context, sysResourcesIds []int64) error
-	DeleteByIdListTx(ctx context.Context, tx *dao.Query, sysResourcesIds []int64) error
-	// DeleteByCondition 根据原生条件删除（自动按表名前缀失效全部缓存，因无法预知影响的 ID）
+	DeleteByIdList(ctx context.Context, sysResourcesIds []int64, opts ...gormplus.DeleteOption) error
+	DeleteByIdListTx(ctx context.Context, tx *dao.Query, sysResourcesIds []int64, opts ...gormplus.DeleteOption) error
+	// DeleteByCondition 根据原生条件删除（默认软删除；传 gormplus.Delete().WithPhysicalDelete().Build() 时物理删除。自动按表名前缀失效全部缓存，因无法预知影响的 ID）
 	DeleteByCondition(ctx context.Context, cond ...gen.Condition) error
 	DeleteByConditionTx(ctx context.Context, tx *dao.Query, cond ...gen.Condition) error
-	// DeleteByWrapper 根据wrapper条件删除（自动按表名前缀失效全部缓存，因无法预知影响的 ID）
-	DeleteByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo])) error
-	DeleteByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo])) error
+	// DeleteByWrapper 根据wrapper条件删除（默认软删除；传 gormplus.Delete().WithPhysicalDelete().Build() 时物理删除。自动按表名前缀失效全部缓存，因无法预知影响的 ID）
+	DeleteByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.DeleteOption) error
+	DeleteByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.DeleteOption) error
 	// UpdateById 根据ID更新指定字段（自动失效该 ID 的 FindById，以及 FindList/FindPage 前缀缓存）
-	UpdateById(ctx context.Context, sysResourcesId int64, columns ...field.AssignExpr) error
-	UpdateByIdTx(ctx context.Context, tx *dao.Query, sysResourcesId int64, columns ...field.AssignExpr) error
+	UpdateById(ctx context.Context, sysResourcesId int64, opts ...gormplus.UpdateOption) error
+	UpdateByIdTx(ctx context.Context, tx *dao.Query, sysResourcesId int64, opts ...gormplus.UpdateOption) error
 	// UpdateMapById 根据ID更新Map数据（自动失效该 ID 的 FindById，以及 FindList/FindPage 前缀缓存）
 	UpdateMapById(ctx context.Context, sysResourcesId int64, data map[string]any) error
 	UpdateMapByIdTx(ctx context.Context, tx *dao.Query, sysResourcesId int64, data map[string]any) error
 	// UpdateByWrapper 根据wrapper条件更新（自动按表名前缀失效全部缓存，因无法预知影响的 ID）
-	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), columns ...field.AssignExpr) error
-	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), columns ...field.AssignExpr) error
+	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.UpdateOption) error
+	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
 	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysResourcesEntity, error)
 	// FindListByWrapper 根据wrapper条件获取列表
@@ -115,8 +114,14 @@ func (r *defaultSysResourcesRepository) buildTx(ctx context.Context, query []gor
 	if len(query) == 0 {
 		return dao.SysResourcesEntity.WithContext(ctx).Order(dao.SysResourcesEntity.ID.Desc())
 	}
-	q := query[0]
+	q := gormplus.MergeQueryOptions(query...)
 	tx := dao.SysResourcesEntity.WithContext(ctx)
+	if q.Unscoped {
+		tx = tx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		tx = tx.Clauses(q.Clauses...)
+	}
 	if len(q.Cond) > 0 {
 		tx = tx.Where(q.Cond...)
 	}
@@ -138,14 +143,24 @@ func (r *defaultSysResourcesRepository) buildTx(ctx context.Context, query []gor
 }
 
 func (r *defaultSysResourcesRepository) buildWrapperTx(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), query []gormplus.QueryOption) dao.ISysResourcesEntityDo {
-	tx := gormplus.GenWrap(dao.SysResourcesEntity.WithContext(ctx))
+	q := gormplus.MergeQueryOptions(query...)
+	baseTx := dao.SysResourcesEntity.WithContext(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
 
     if fn != nil {
         fn(tx)
     }
     entityDo := tx.Apply()
     if len(query) > 0 {
-        q := query[0]
         if len(q.Cond) > 0 {
             entityDo = entityDo.Where(q.Cond...)
         }
@@ -169,10 +184,14 @@ func (r *defaultSysResourcesRepository) buildWrapperTx(ctx context.Context, fn f
 
 // ==================== 实现 ====================
 
-func (r *defaultSysResourcesRepository) Create(ctx context.Context, m *model.SysResourcesEntity, omitFields ...field.Expr) error {
+func (r *defaultSysResourcesRepository) Create(ctx context.Context, m *model.SysResourcesEntity, opts ...gormplus.CreateOption) error {
+	createOpts := gormplus.ResolveCreateOptions(opts)
 	tx := dao.SysResourcesEntity.WithContext(ctx)
-	if len(omitFields) > 0 {
-		tx = tx.Omit(omitFields...)
+	if len(createOpts.OmitFields) > 0 {
+		tx = tx.Omit(createOpts.OmitFields...)
+	}
+	if len(createOpts.Clauses) > 0 {
+		tx = tx.Clauses(createOpts.Clauses...)
 	}
 	err := tx.Create(m)
 	if err == nil {
@@ -182,10 +201,14 @@ func (r *defaultSysResourcesRepository) Create(ctx context.Context, m *model.Sys
 	return err
 }
 
-func (r *defaultSysResourcesRepository) CreateTx(ctx context.Context, daoTx *dao.Query, m *model.SysResourcesEntity, omitFields ...field.Expr) error {
+func (r *defaultSysResourcesRepository) CreateTx(ctx context.Context, daoTx *dao.Query, m *model.SysResourcesEntity, opts ...gormplus.CreateOption) error {
+	createOpts := gormplus.ResolveCreateOptions(opts)
 	tx := daoTx.SysResourcesEntity.WithContext(ctx)
-	if len(omitFields) > 0 {
-		tx = tx.Omit(omitFields...)
+	if len(createOpts.OmitFields) > 0 {
+		tx = tx.Omit(createOpts.OmitFields...)
+	}
+	if len(createOpts.Clauses) > 0 {
+		tx = tx.Clauses(createOpts.Clauses...)
 	}
 	err := tx.Create(m)
 	if err == nil {
@@ -194,10 +217,17 @@ func (r *defaultSysResourcesRepository) CreateTx(ctx context.Context, daoTx *dao
 	return err
 }
 
-func (r *defaultSysResourcesRepository) CreateBatch(ctx context.Context, m []*model.SysResourcesEntity, omitFields ...field.Expr) error {
+func (r *defaultSysResourcesRepository) CreateBatch(ctx context.Context, m []*model.SysResourcesEntity, opts ...gormplus.CreateOption) error {
+	if len(m) == 0 {
+		return nil
+	}
+	createOpts := gormplus.ResolveCreateOptions(opts)
 	tx := dao.SysResourcesEntity.WithContext(ctx)
-	if len(omitFields) > 0 {
-		tx = tx.Omit(omitFields...)
+	if len(createOpts.OmitFields) > 0 {
+		tx = tx.Omit(createOpts.OmitFields...)
+	}
+	if len(createOpts.Clauses) > 0 {
+		tx = tx.Clauses(createOpts.Clauses...)
 	}
 	err := tx.CreateInBatches(m, len(m))
 	if err == nil {
@@ -206,10 +236,17 @@ func (r *defaultSysResourcesRepository) CreateBatch(ctx context.Context, m []*mo
 	return err
 }
 
-func (r *defaultSysResourcesRepository) CreateBatchTx(ctx context.Context, daoTx *dao.Query, m []*model.SysResourcesEntity, omitFields ...field.Expr) error {
+func (r *defaultSysResourcesRepository) CreateBatchTx(ctx context.Context, daoTx *dao.Query, m []*model.SysResourcesEntity, opts ...gormplus.CreateOption) error {
+	if len(m) == 0 {
+		return nil
+	}
+	createOpts := gormplus.ResolveCreateOptions(opts)
 	tx := daoTx.SysResourcesEntity.WithContext(ctx)
-	if len(omitFields) > 0 {
-		tx = tx.Omit(omitFields...)
+	if len(createOpts.OmitFields) > 0 {
+		tx = tx.Omit(createOpts.OmitFields...)
+	}
+	if len(createOpts.Clauses) > 0 {
+		tx = tx.Clauses(createOpts.Clauses...)
 	}
 	err := tx.CreateInBatches(m, len(m))
 	if err == nil {
@@ -218,8 +255,18 @@ func (r *defaultSysResourcesRepository) CreateBatchTx(ctx context.Context, daoTx
 	return err
 }
 
-func (r *defaultSysResourcesRepository) DeleteById(ctx context.Context, sysResourcesId int64) error {
-	_, err := dao.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).Delete()
+func (r *defaultSysResourcesRepository) DeleteById(ctx context.Context, sysResourcesId int64, opts ...gormplus.DeleteOption) error {
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	tx := dao.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(
+		dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+	).Delete()
 	if err == nil {
 		// 删除：单条精确失效 + 列表/分页前缀失效 + 数量/存在性前缀失效
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
@@ -228,17 +275,37 @@ func (r *defaultSysResourcesRepository) DeleteById(ctx context.Context, sysResou
 	return err
 }
 
-func (r *defaultSysResourcesRepository) DeleteByIdTx(ctx context.Context, daoTx *dao.Query, sysResourcesId int64) error {
-	_, err := daoTx.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).Delete()
+func (r *defaultSysResourcesRepository) DeleteByIdTx(ctx context.Context, daoTx *dao.Query, sysResourcesId int64, opts ...gormplus.DeleteOption) error {
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	tx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(
+		dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+	).Delete()
 	if err == nil {
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
 		r.invalidateWriteCaches()
 	}
 	return err
 }
-
-func (r *defaultSysResourcesRepository) DeleteByIdList(ctx context.Context, sysResourcesIds []int64) error {
-	_, err := dao.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.In(sysResourcesIds...)).Delete()
+func (r *defaultSysResourcesRepository) DeleteByIdList(ctx context.Context, sysResourcesIds []int64, opts ...gormplus.DeleteOption) error {
+	if len(sysResourcesIds) == 0 {
+		return nil
+	}
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	tx := dao.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(dao.SysResourcesEntity.ID.In(sysResourcesIds...)).Delete()
 	if err == nil {
 		for _, id := range sysResourcesIds {
 			gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", id))
@@ -248,8 +315,19 @@ func (r *defaultSysResourcesRepository) DeleteByIdList(ctx context.Context, sysR
 	return err
 }
 
-func (r *defaultSysResourcesRepository) DeleteByIdListTx(ctx context.Context, daoTx *dao.Query, sysResourcesIds []int64) error {
-	_, err := daoTx.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.In(sysResourcesIds...)).Delete()
+func (r *defaultSysResourcesRepository) DeleteByIdListTx(ctx context.Context, daoTx *dao.Query, sysResourcesIds []int64, opts ...gormplus.DeleteOption) error {
+	if len(sysResourcesIds) == 0 {
+		return nil
+	}
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	tx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(dao.SysResourcesEntity.ID.In(sysResourcesIds...)).Delete()
 	if err == nil {
 		for _, id := range sysResourcesIds {
 			gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", id))
@@ -260,10 +338,18 @@ func (r *defaultSysResourcesRepository) DeleteByIdListTx(ctx context.Context, da
 }
 
 func (r *defaultSysResourcesRepository) DeleteByCondition(ctx context.Context, cond ...gen.Condition) error {
+	cond, deleteOpts := gormplus.SplitDeleteConditions(cond)
 	if len(cond) == 0 {
 		return errors.New("删除条件不能为空")
 	}
-	_, err := dao.SysResourcesEntity.WithContext(ctx).Where(cond...).Delete()
+	tx := dao.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(cond...).Delete()
 	if err == nil {
 		// 条件删除无法预知影响哪些 ID，全表缓存清掉最安全
 		r.invalidateAllTableCaches()
@@ -272,21 +358,40 @@ func (r *defaultSysResourcesRepository) DeleteByCondition(ctx context.Context, c
 }
 
 func (r *defaultSysResourcesRepository) DeleteByConditionTx(ctx context.Context, daoTx *dao.Query, cond ...gen.Condition) error {
+	cond, deleteOpts := gormplus.SplitDeleteConditions(cond)
 	if len(cond) == 0 {
 		return errors.New("删除条件不能为空")
 	}
-	_, err := daoTx.SysResourcesEntity.WithContext(ctx).Where(cond...).Delete()
+	tx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		tx = tx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		tx = tx.Clauses(deleteOpts.Clauses...)
+	}
+	_, err := tx.Where(cond...).Delete()
 	if err == nil {
 		r.invalidateAllTableCaches()
 	}
 	return err
 }
 
-func (r *defaultSysResourcesRepository) DeleteByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo])) error {
+func (r *defaultSysResourcesRepository) DeleteByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.DeleteOption) error {
 	if fn == nil {
 		return errors.New("删除条件不能为空")
 	}
-	tx := gormplus.GenWrap(dao.SysResourcesEntity.WithContext(ctx))
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	baseTx := dao.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		baseTx = baseTx.Clauses(deleteOpts.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if deleteOpts.Physical {
+		tx.WithDeleted()
+	}
 	fn(tx)
 	_, err := tx.Apply().Delete()
 	if err == nil {
@@ -295,11 +400,22 @@ func (r *defaultSysResourcesRepository) DeleteByWrapper(ctx context.Context, fn 
 	return err
 }
 
-func (r *defaultSysResourcesRepository) DeleteByWrapperTx(ctx context.Context, daoTx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo])) error {
+func (r *defaultSysResourcesRepository) DeleteByWrapperTx(ctx context.Context, daoTx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.DeleteOption) error {
 	if fn == nil {
 		return errors.New("删除条件不能为空")
 	}
-	tx := gormplus.GenWrap(daoTx.SysResourcesEntity.WithContext(ctx))
+	deleteOpts := gormplus.ResolveDeleteOptions(opts)
+	baseTx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if deleteOpts.Physical {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(deleteOpts.Clauses) > 0 {
+		baseTx = baseTx.Clauses(deleteOpts.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if deleteOpts.Physical {
+		tx.WithDeleted()
+	}
 	fn(tx)
 	_, err := tx.Apply().Delete()
 	if err == nil {
@@ -308,8 +424,18 @@ func (r *defaultSysResourcesRepository) DeleteByWrapperTx(ctx context.Context, d
 	return err
 }
 
-func (r *defaultSysResourcesRepository) UpdateById(ctx context.Context, sysResourcesId int64, columns ...field.AssignExpr) error {
-	_, err := dao.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).UpdateSimple(columns...)
+func (r *defaultSysResourcesRepository) UpdateById(ctx context.Context, sysResourcesId int64, opts ...gormplus.UpdateOption) error {
+	updateOpts := gormplus.ResolveUpdateOptions(opts)
+	if len(updateOpts.Columns) == 0 {
+		return nil
+	}
+	tx := dao.SysResourcesEntity.WithContext(ctx)
+	if len(updateOpts.Clauses) > 0 {
+		tx = tx.Clauses(updateOpts.Clauses...)
+	}
+	_, err := tx.Where(
+		dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+	).UpdateSimple(updateOpts.Columns...)
 	if err == nil {
 		// 修改：单条精确失效 + 列表/分页前缀失效（数量/存在性一般不受影响）
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
@@ -318,8 +444,18 @@ func (r *defaultSysResourcesRepository) UpdateById(ctx context.Context, sysResou
 	return err
 }
 
-func (r *defaultSysResourcesRepository) UpdateByIdTx(ctx context.Context, daoTx *dao.Query, sysResourcesId int64, columns ...field.AssignExpr) error {
-	_, err := daoTx.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).UpdateSimple(columns...)
+func (r *defaultSysResourcesRepository) UpdateByIdTx(ctx context.Context, daoTx *dao.Query, sysResourcesId int64, opts ...gormplus.UpdateOption) error {
+	updateOpts := gormplus.ResolveUpdateOptions(opts)
+	if len(updateOpts.Columns) == 0 {
+		return nil
+	}
+	tx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if len(updateOpts.Clauses) > 0 {
+		tx = tx.Clauses(updateOpts.Clauses...)
+	}
+	_, err := tx.Where(
+		dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+	).UpdateSimple(updateOpts.Columns...)
 	if err == nil {
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
 		r.invalidateWriteCaches()
@@ -328,8 +464,13 @@ func (r *defaultSysResourcesRepository) UpdateByIdTx(ctx context.Context, daoTx 
 }
 
 func (r *defaultSysResourcesRepository) UpdateMapById(ctx context.Context, sysResourcesId int64, data map[string]any) error {
+	if len(data) == 0 {
+		return nil
+	}
 	_, err := dao.SysResourcesEntity.WithContext(ctx).
-		Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).
+		Where(
+			dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+		).
 		Updates(data)
 	if err == nil {
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
@@ -339,8 +480,13 @@ func (r *defaultSysResourcesRepository) UpdateMapById(ctx context.Context, sysRe
 }
 
 func (r *defaultSysResourcesRepository) UpdateMapByIdTx(ctx context.Context, daoTx *dao.Query, sysResourcesId int64, data map[string]any) error {
+	if len(data) == 0 {
+		return nil
+	}
 	_, err := daoTx.SysResourcesEntity.WithContext(ctx).
-		Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).
+		Where(
+			dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+		).
 		Updates(data)
 	if err == nil {
 		gormplus.SFInvalidate("sys_resources.FindById", gormplus.BuildArgs("id", sysResourcesId))
@@ -349,13 +495,21 @@ func (r *defaultSysResourcesRepository) UpdateMapByIdTx(ctx context.Context, dao
 	return err
 }
 
-func (r *defaultSysResourcesRepository) UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), columns ...field.AssignExpr) error {
+func (r *defaultSysResourcesRepository) UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.UpdateOption) error {
 	if fn == nil {
 		return errors.New("更新条件不能为空")
 	}
-	tx := gormplus.GenWrap(dao.SysResourcesEntity.WithContext(ctx))
+	updateOpts := gormplus.ResolveUpdateOptions(opts)
+	if len(updateOpts.Columns) == 0 {
+		return nil
+	}
+	baseTx := dao.SysResourcesEntity.WithContext(ctx)
+	if len(updateOpts.Clauses) > 0 {
+		baseTx = baseTx.Clauses(updateOpts.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
 	fn(tx)
-	_, err := tx.Apply().UpdateSimple(columns...)
+	_, err := tx.Apply().UpdateSimple(updateOpts.Columns...)
 	if err == nil {
 		// 条件更新无法预知影响哪些 ID，全表缓存清掉最安全
 		r.invalidateAllTableCaches()
@@ -363,13 +517,21 @@ func (r *defaultSysResourcesRepository) UpdateByWrapper(ctx context.Context, fn 
 	return err
 }
 
-func (r *defaultSysResourcesRepository) UpdateByWrapperTx(ctx context.Context, daoTx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), columns ...field.AssignExpr) error {
+func (r *defaultSysResourcesRepository) UpdateByWrapperTx(ctx context.Context, daoTx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysResourcesEntityDo]), opts ...gormplus.UpdateOption) error {
 	if fn == nil {
 		return errors.New("更新条件不能为空")
 	}
-	tx := gormplus.GenWrap(daoTx.SysResourcesEntity.WithContext(ctx))
+	updateOpts := gormplus.ResolveUpdateOptions(opts)
+	if len(updateOpts.Columns) == 0 {
+		return nil
+	}
+	baseTx := daoTx.SysResourcesEntity.WithContext(ctx)
+	if len(updateOpts.Clauses) > 0 {
+		baseTx = baseTx.Clauses(updateOpts.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
 	fn(tx)
-	_, err := tx.Apply().UpdateSimple(columns...)
+	_, err := tx.Apply().UpdateSimple(updateOpts.Columns...)
 	if err == nil {
 		r.invalidateAllTableCaches()
 	}
@@ -423,17 +585,34 @@ func (r *defaultSysResourcesRepository) FindById(ctx context.Context, sysResourc
 	return gormplus.ExecuteQuery(opt, "sys_resources.FindById",
 		gormplus.BuildArgs("id", sysResourcesId),
 		func() (*model.SysResourcesEntity, error) {
-			return dao.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.Eq(sysResourcesId)).First()
+			tx := dao.SysResourcesEntity.WithContext(ctx)
+			if opt.Unscoped {
+				tx = tx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				tx = tx.Clauses(opt.Clauses...)
+			}
+			return tx.Where(
+				dao.SysResourcesEntity.ID.Eq(sysResourcesId),
+			).First()
 		},
 	)
 }
-
 func (r *defaultSysResourcesRepository) FindByIdList(ctx context.Context, sysResourcesIds []int64, query ...gormplus.QueryOption) ([]*model.SysResourcesEntity, error) {
+	if len(sysResourcesIds) == 0 {
+		return []*model.SysResourcesEntity{}, nil
+	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_resources.FindByIdList",
 		gormplus.BuildArgs("ids", sysResourcesIds),
 		func() ([]*model.SysResourcesEntity, error) {
 			tx := dao.SysResourcesEntity.WithContext(ctx).Where(dao.SysResourcesEntity.ID.In(sysResourcesIds...))
+			if opt.Unscoped {
+				tx = tx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				tx = tx.Clauses(opt.Clauses...)
+			}
 			if len(opt.Cond) > 0 {
 				tx = tx.Where(opt.Cond...)
 			}
@@ -477,6 +656,12 @@ func (r *defaultSysResourcesRepository) Exists(ctx context.Context, query ...gor
 	return gormplus.ExecuteQuery(opt, "sys_resources.Exists", nil,
 		func() (bool, error) {
 			tx := dao.SysResourcesEntity.WithContext(ctx)
+			if opt.Unscoped {
+				tx = tx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				tx = tx.Clauses(opt.Clauses...)
+			}
 			if len(opt.Cond) > 0 {
 				tx = tx.Where(opt.Cond...)
 			}
@@ -493,7 +678,17 @@ func (r *defaultSysResourcesRepository) ExistsByWrapper(ctx context.Context, fn 
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_resources.ExistsByWrapper", nil,
 		func() (bool, error) {
-			tx := gormplus.GenWrap(dao.SysResourcesEntity.WithContext(ctx))
+			baseTx := dao.SysResourcesEntity.WithContext(ctx)
+			if opt.Unscoped {
+				baseTx = baseTx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				baseTx = baseTx.Clauses(opt.Clauses...)
+			}
+			tx := gormplus.GenWrap(baseTx)
+			if opt.Unscoped {
+				tx.WithDeleted()
+			}
 			if fn != nil {
 				fn(tx)
 			}
@@ -511,6 +706,12 @@ func (r *defaultSysResourcesRepository) Count(ctx context.Context, query ...gorm
 	return gormplus.ExecuteQuery(opt, "sys_resources.Count", nil,
 		func() (int64, error) {
 			tx := dao.SysResourcesEntity.WithContext(ctx)
+			if opt.Unscoped {
+				tx = tx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				tx = tx.Clauses(opt.Clauses...)
+			}
 			if len(opt.Cond) > 0 {
 				tx = tx.Where(opt.Cond...)
 			}
@@ -523,7 +724,17 @@ func (r *defaultSysResourcesRepository) CountByWrapper(ctx context.Context, fn f
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_resources.CountByWrapper", nil,
 		func() (int64, error) {
-			tx := gormplus.GenWrap(dao.SysResourcesEntity.WithContext(ctx))
+			baseTx := dao.SysResourcesEntity.WithContext(ctx)
+			if opt.Unscoped {
+				baseTx = baseTx.Unscoped()
+			}
+			if len(opt.Clauses) > 0 {
+				baseTx = baseTx.Clauses(opt.Clauses...)
+			}
+			tx := gormplus.GenWrap(baseTx)
+			if opt.Unscoped {
+				tx.WithDeleted()
+			}
 			if fn != nil {
 				fn(tx)
 			}

@@ -62,7 +62,10 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 
 	if err = gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
 		accountEntity := s.SysAccountMapper.DtoToEntity(&req, password, enum.StatusNormalEnum)
-		if err = s.SysAccountRepository.CreateTx(ctx, tx, accountEntity, dao.SysAccountEntity.LastLoginIP, dao.SysAccountEntity.LastLoginDate); err != nil {
+		if err = s.SysAccountRepository.CreateTx(ctx, tx, accountEntity, gormplus.Create().WithOmit(
+			dao.SysAccountEntity.LastLoginIP,
+			dao.SysAccountEntity.LastLoginDate,
+		).Build()); err != nil {
 			s.Logger.Error("创建失败")
 			return err
 		}
@@ -154,11 +157,13 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 			ctx,
 			tx,
 			id,
-			dao.SysAccountEntity.Username.Value(req.Username),
-			dao.SysAccountEntity.Email.Value(req.Email),
-			dao.SysAccountEntity.Mobile.Value(req.Mobile),
-			dao.SysAccountEntity.Status.Value(req.Status),
-			dao.SysAccountEntity.Avatar.Value(req.Avatar),
+			gormplus.Update().WithColumns(
+				dao.SysAccountEntity.Username.Value(req.Username),
+				dao.SysAccountEntity.Email.Value(req.Email),
+				dao.SysAccountEntity.Mobile.Value(req.Mobile),
+				dao.SysAccountEntity.Status.Value(req.Status),
+				dao.SysAccountEntity.Avatar.Value(req.Avatar),
+			).Build(),
 		); err != nil {
 			return err
 		}
@@ -291,7 +296,9 @@ func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "重置密码失败")
 		return
 	}
-	if err = s.SysAccountRepository.UpdateById(ctx, id, dao.SysAccountEntity.Password.Value(password)); err != nil {
+	if err = s.SysAccountRepository.UpdateById(ctx, id, gormplus.Update().WithColumns(
+		dao.SysAccountEntity.Password.Value(password),
+	).Build()); err != nil {
 		s.Fail(ctx, err, "重置密码失败")
 		return
 	}
@@ -338,7 +345,9 @@ func (s SysAccount) ModifyCurrentSysAccountPasswordApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "修改当前账号密码失败")
 		return
 	}
-	if err = s.SysAccountRepository.UpdateById(ctx, accountID, dao.SysAccountEntity.Password.Value(password)); err != nil {
+	if err = s.SysAccountRepository.UpdateById(ctx, accountID, gormplus.Update().WithColumns(
+		dao.SysAccountEntity.Password.Value(password),
+	).Build()); err != nil {
 		s.Fail(ctx, err, "修改当前账号密码失败")
 		return
 	}

@@ -20,7 +20,7 @@ type SysAccountEntity struct {
 	Mobile        string         `gorm:"column:mobile;type:varchar(11);comment:手机号" json:"mobile"`                               // 手机号
 	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:登录密码" json:"password"`                // 登录密码
 	LastLoginDate time.Time      `gorm:"column:last_login_date;type:datetime;comment:最后一次登录时间" json:"lastLoginDate"`             // 最后一次登录时间
-	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后一次登录ip" json:"lastLoginIP"`              // 最后一次登录ip
+	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后一次登录ip" json:"lastLoginIp"`              // 最后一次登录ip
 	Status        int64          `gorm:"column:status;type:tinyint;not null;default:1;comment:状态1是正常,2是禁用" json:"status"`        // 状态1是正常,2是禁用
 	Avatar        string         `gorm:"column:avatar;type:varchar(200);comment:头像" json:"avatar"`                               // 头像
 	IsAdmin       int64          `gorm:"column:is_admin;type:tinyint;not null;default:2;comment:1是超级管理员，2是普通管理员" json:"isAdmin"` // 1是超级管理员，2是普通管理员
