@@ -114,7 +114,6 @@ func (r Resources) DeleteResourcesByIdApi(ctx *gin.Context) {
 	// 兜底清理 casbin 中残留的该资源策略
 	if resourceEntity.ResourcesType == 3 && resourceEntity.URL != "" && resourceEntity.Method != "" {
 		_, _ = r.Enforcer.RemoveFilteredPolicy(1, resourceEntity.URL, resourceEntity.Method)
-		_ = r.Enforcer.SavePolicy()
 	}
 	r.Success(ctx, "操作成功")
 	return
@@ -378,7 +377,7 @@ func (r Resources) syncRoleResourcesCasbin(ctx *gin.Context, roleID int64) error
 			return err
 		}
 	}
-	return r.Enforcer.SavePolicy()
+	return nil
 }
 
 func NewResources(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IResources {

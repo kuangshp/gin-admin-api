@@ -50,7 +50,7 @@ m = g(r.sub, p.sub) && keyMatch2(r.obj, p.obj) && (r.act == p.act || p.act == "*
 	if err = enforcer.LoadPolicy(); err != nil {
 		return nil, fmt.Errorf("casbin 策略加载失败: %w", err)
 	}
-	//enforcer.EnableAutoSave(true)
+	enforcer.EnableAutoSave(true)
 
 	fmt.Println("✔ Casbin 初始化成功")
 	return enforcer, nil

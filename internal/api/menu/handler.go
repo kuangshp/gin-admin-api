@@ -47,7 +47,10 @@ func (m Menu) GetMenusApi(ctx *gin.Context) {
 		}
 
 		// 根据资源id查询资源
-		resourcesEntities, err = m.ResourcesRepository.FindByIdList(ctx, resourcesIdList)
+		resourcesEntities, err = m.ResourcesRepository.FindByIdList(ctx, resourcesIdList, gormplus.QueryOpt().Where(
+			dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
+			dao.SysResourcesEntity.ResourcesType.Neq(3),
+		).Build())
 		if err != nil {
 			m.Success(ctx, make([]vo.MenusVO, 0))
 			return
@@ -56,6 +59,7 @@ func (m Menu) GetMenusApi(ctx *gin.Context) {
 		// 超管直接查询
 		resourcesEntities, err = m.ResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(
 			dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
+			dao.SysResourcesEntity.ResourcesType.Neq(3),
 		).Order(dao.SysResourcesEntity.Sort).Build())
 		if err != nil {
 			m.Success(ctx, make([]vo.MenusVO, 0))
