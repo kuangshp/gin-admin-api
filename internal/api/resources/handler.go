@@ -22,6 +22,7 @@ type IResources interface {
 	GetResourcesTreePageApi(ctx *gin.Context) // 获取资源树
 	GetResourcesCatalogApi(ctx *gin.Context)  //  查询目录或者目录和菜单
 	GetResourcesListApi(ctx *gin.Context)     // 获取全部的目录及菜单
+	GetDetailByIdApi(ctx *gin.Context)        // 根据id获取详情
 }
 
 type Resources struct {
@@ -278,6 +279,17 @@ func (r Resources) GetResourcesListApi(ctx *gin.Context) {
 	return
 }
 
+func (r Resources) GetDetailByIdApi(ctx *gin.Context) {
+	id := ctx.Param("id")
+	idInt := cast.ToInt64(id)
+	resourcesEntity, err := r.ResourcesRepository.FindById(ctx, idInt)
+	if err != nil {
+		r.Fail(ctx, err, "主键错误")
+		return
+	}
+	r.Success(ctx, r.ResourcesMapper.EntityToVo(resourcesEntity))
+	return
+}
 func NewResources(baseApi *base.BaseApi) IResources {
 	return Resources{
 		BaseApi:                 baseApi,

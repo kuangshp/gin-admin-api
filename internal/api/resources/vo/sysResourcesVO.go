@@ -4,7 +4,7 @@ package vo
 type SysResourcesVO struct {
 	ID            int64  `json:"id"`            // 主键id
 	Title         string `json:"title"`         // 名称:按钮标题,或菜单标题
-	URL           string `json:"uRL"`           // 按钮请求url,或菜单路由
+	URL           string `json:"url"`           // 按钮请求url,或菜单路由
 	Method        string `json:"method"`        // 接口的请求方式
 	Icon          string `json:"icon"`          // 菜单小图标
 	ResourcesType int64  `json:"resourcesType"` // 类型:1表示目录,2表示菜单,3表示接口

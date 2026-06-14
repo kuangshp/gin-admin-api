@@ -490,12 +490,12 @@ definitions:
       title:
         description: 名称:按钮标题,或菜单标题
         type: string
-      uRL:
-        description: 按钮请求url,或菜单路由
-        type: string
       updatedAt:
         description: 更新时间
         type: integer
+      url:
+        description: 按钮请求url,或菜单路由
+        type: string
     type: object
   vo.SysRoleDetailVO:
     properties:
@@ -948,7 +948,7 @@ paths:
       summary: 获取资源列表
       tags:
       - 资源中心
-  /api/v1/admin/resources/page:
+  /api/v1/admin/resources/pageTree:
     post:
       consumes:
       - application/json

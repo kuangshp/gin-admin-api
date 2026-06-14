@@ -16,4 +16,5 @@ func InitResourcesRouter(Router *gin.RouterGroup, redis *redis.Client, resources
 	authRouter.POST("pageTree", resourcesHandler.GetResourcesTreePageApi) // 分页获取资源树
 	authRouter.GET("catalog", resourcesHandler.GetResourcesCatalogApi)    // 获取资源目录
 	authRouter.GET("list", resourcesHandler.GetResourcesListApi)          // 获取资源列表
+	authRouter.GET("detail/:id", resourcesHandler.GetDetailByIdApi)       // 根据id获取详情
 }

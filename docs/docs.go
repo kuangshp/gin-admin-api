@@ -541,7 +541,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/resources/page": {
+        "/api/v1/admin/resources/pageTree": {
             "post": {
                 "description": "根据查询条件分页获取资源列表，并标记是否存在子节点",
                 "consumes": [
@@ -1518,13 +1518,13 @@ const docTemplate = `{
                     "description": "名称:按钮标题,或菜单标题",
                     "type": "string"
                 },
-                "uRL": {
-                    "description": "按钮请求url,或菜单路由",
-                    "type": "string"
-                },
                 "updatedAt": {
                     "description": "更新时间",
                     "type": "integer"
+                },
+                "url": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
                 }
             }
         },
