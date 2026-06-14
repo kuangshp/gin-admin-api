@@ -25,6 +25,8 @@ func InitApp(envString string) (*initialize.App, error) {
 		initialize.NewLogger,
 		initialize.NewDB,
 		initialize.NewRedis,
+		// 初始化casbin
+		initialize.NewCasbin,
 		// 基础控制器
 		base.NewBaseApi,
 		//接口实现

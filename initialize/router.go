@@ -4,6 +4,7 @@ import (
 	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/middleware"
 	"gin-admin-api/internal/router"
+	"github.com/casbin/casbin/v2"
 	"github.com/go-redis/redis/v8"
 	"net/http"
 
@@ -19,6 +20,7 @@ func NewRouter(
 	logger *zap.Logger,
 	adminRouter *router.AdminRouter,
 	redis *redis.Client,
+	enforcer *casbin.Enforcer,
 ) *gin.Engine {
 	// 配置启动模式
 	gin.SetMode(cfg.Mode)
@@ -49,7 +51,7 @@ func NewRouter(
 	// 配置全局路径
 	ApiGroup := r.Group("/api/v1/admin")
 	// 注册路由
-	adminRouter.Register(ApiGroup, redis)
+	adminRouter.Register(ApiGroup, redis, enforcer)
 
 	return r
 }

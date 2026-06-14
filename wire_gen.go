@@ -42,7 +42,11 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	iResources := resources.NewResources(baseApi)
 	iMenu := menu.NewMenu(baseApi)
 	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources, iMenu)
-	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client)
+	enforcer, err := initialize.NewCasbin(db)
+	if err != nil {
+		return nil, err
+	}
+	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client, enforcer)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil
 }

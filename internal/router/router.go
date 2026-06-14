@@ -6,6 +6,7 @@ import (
 	"gin-admin-api/internal/api/menu"
 	"gin-admin-api/internal/api/resources"
 	"gin-admin-api/internal/api/role"
+	"github.com/casbin/casbin/v2"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -29,10 +30,10 @@ func NewAdminRouter(authHandler auth.IAuth, accountHandler account.ISysAccount, 
 	}
 }
 
-func (r *AdminRouter) Register(group *gin.RouterGroup, redis *redis.Client) {
-	InitAuthRouter(group, redis, r.authHandler)           // 认证中心
-	InitAccountRouter(group, redis, r.accountHandler)     // 账号中心
-	InitRoleRouter(group, redis, r.roleHandler)           // 角色中心
-	InitResourcesRouter(group, redis, r.resourcesHandler) // 资源中心
-	InitMenuRouter(group, redis, r.menuHandler)           // 菜单中心
+func (r *AdminRouter) Register(group *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer) {
+	InitAuthRouter(group, redis, r.authHandler)                     // 认证中心
+	InitAccountRouter(group, redis, enforcer, r.accountHandler)     // 账号中心
+	InitRoleRouter(group, redis, enforcer, r.roleHandler)           // 角色中心
+	InitResourcesRouter(group, redis, enforcer, r.resourcesHandler) // 资源中心
+	InitMenuRouter(group, redis, enforcer, r.menuHandler)           // 菜单中心
 }
