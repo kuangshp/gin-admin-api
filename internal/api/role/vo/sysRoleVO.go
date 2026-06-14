@@ -10,3 +10,8 @@ type SysRoleVO struct {
 	CreatedAt   int64  `json:"createdAt"`   // 创建时间
 	UpdatedAt   int64  `json:"updatedAt"`   // 更新时间
 }
+
+type SysRoleDetailVO struct {
+	SysRoleVO
+	ResourcesIdList []int64 `json:"resourcesIdList"` // 授权的资源id
+}

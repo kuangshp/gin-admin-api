@@ -18,11 +18,12 @@ import (
 )
 
 type IRole interface {
-	CreateRoleApi(ctx *gin.Context)     // 创建角色
-	DeleteRoleByIdApi(ctx *gin.Context) // 根据id删除角色
-	ModifyRoleByIdApi(ctx *gin.Context) // 根据id修改角色
-	GetRolePageApi(ctx *gin.Context)    // 分页获取角色
-	GetRoleListApi(ctx *gin.Context)    // 获取角色列表
+	CreateRoleApi(ctx *gin.Context)        // 创建角色
+	DeleteRoleByIdApi(ctx *gin.Context)    // 根据id删除角色
+	ModifyRoleByIdApi(ctx *gin.Context)    // 根据id修改角色
+	GetRolePageApi(ctx *gin.Context)       // 分页获取角色
+	GetRoleListApi(ctx *gin.Context)       // 获取角色列表
+	GetRoleDetailByIdApi(ctx *gin.Context) // 根据角色id获取角色详情
 }
 
 type Role struct {
@@ -230,6 +231,37 @@ func (r Role) GetRoleListApi(ctx *gin.Context) {
 	}))
 }
 
+// GetRoleDetailByIdApi 获取角色详情
+// @Summary 获取角色详情
+// @Description 根据角色 ID 获取角色详情和已授权资源 ID 列表
+// @Tags 角色中心
+// @Accept json
+// @Produce json
+// @Param id path int true "角色ID"
+// @Success 200 {object} vo.SysRoleDetailVO "角色详情"
+// @Router /api/v1/admin/role/detail/{id} [get]
+func (r Role) GetRoleDetailByIdApi(ctx *gin.Context) {
+	id := ctx.Param("id")
+	idInt := cast.ToInt64(id)
+	roleEntity, err := r.RoleRepository.FindById(ctx, idInt)
+	if err != nil {
+		r.Fail(ctx, err, "传递的角色id错误")
+		return
+	}
+	// 根据角色获取授权的资源
+	list, err := r.RoleResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(dao.SysRoleResourcesEntity.RoleID.Eq(idInt)).Build())
+	resourcesIdList := make([]int64, 0)
+	if err == nil && len(list) > 0 {
+		resourcesIdList = k.Map(list, func(item *model.SysRoleResourcesEntity, index int) int64 {
+			return item.ResourcesID
+		})
+	}
+	roleVO := r.RoleMapper.EntityToVo(roleEntity)
+	r.Success(ctx, vo.SysRoleDetailVO{
+		SysRoleVO:       *roleVO,
+		ResourcesIdList: resourcesIdList,
+	})
+}
 func NewRole(baseApi *base.BaseApi) IRole {
 	return Role{
 		BaseApi:                 baseApi,

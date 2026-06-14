@@ -1,9 +1,9 @@
 package mapper
 
 import (
-	"gin-admin-api/internal/dal/dto"
+	"gin-admin-api/internal/api/resources/dto"
+	"gin-admin-api/internal/api/resources/vo"
 	"gin-admin-api/internal/dal/model"
-	"gin-admin-api/internal/dal/vo"
 )
 
 // ISysResourcesMapper 资源表 mapper 接口
