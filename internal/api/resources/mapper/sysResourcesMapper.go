@@ -37,7 +37,6 @@ func (m *sysResourcesMapper) DtoToEntity(d *dto.CreateSysResourcesDTO) *model.Sy
 		Sort:          d.Sort,          // 菜单,或按钮排序
 		Status:        d.Status,        // 状态1是正常,2是禁用
 		Description:   d.Description,   // 描述
-		IsAdminHave:   d.IsAdminHave,   // 是否超管独有,1表示是,0表示不是
 	}
 	return e
 }
@@ -64,8 +63,5 @@ func (m *sysResourcesMapper) EntityToVo(e *model.SysResourcesEntity) *vo.SysReso
 		IsAdminHave:   e.IsAdminHave,      // 是否超管独有,1表示是,0表示不是
 		CreatedAt:     e.CreatedAt.Unix(), // 创建时间
 		UpdatedAt:     e.UpdatedAt.Unix(), // 更新时间
-		CreatedBy:     e.CreatedBy,        // 创建人
-		UpdatedBy:     e.UpdatedBy,        // 更新人
-
 	}
 }

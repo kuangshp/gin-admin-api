@@ -6,6 +6,7 @@ import (
 	"gin-admin-api/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	gormplus "github.com/kuangshp/gorm-plus"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -62,5 +63,5 @@ func (b *BaseApi) BuildPageData(ctx *gin.Context, data interface{}, total int64)
 
 // DbPage 获取分页参数
 func (b *BaseApi) DbPage(pageNumber, pageSize int) (offset int, limit int) {
-	return utils.DbPage(pageNumber, pageSize)
+	return gormplus.DbPage(int64(pageNumber), int64(pageSize))
 }

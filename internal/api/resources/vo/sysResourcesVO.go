@@ -18,6 +18,12 @@ type SysResourcesVO struct {
 	IsAdminHave   int64  `json:"isAdminHave"`   // 是否超管独有,1表示是,0表示不是
 	CreatedAt     int64  `json:"createdAt"`     // 创建时间
 	UpdatedAt     int64  `json:"updatedAt"`     // 更新时间
-	CreatedBy     int64  `json:"createdBy"`     // 创建人
-	UpdatedBy     int64  `json:"updatedBy"`     // 更新人
+	HasChildren   bool   `json:"hasChildren"`   // 是否有子节点
+}
+
+type ResourcesVO struct {
+	ID       int64  `json:"id"`       // 主键id
+	Title    string `json:"title"`    // 名称:按钮标题,或菜单标题
+	ParentID int64  `json:"parentId"` // 上一级id
+	Sort     int64  `json:"sort"`     // 菜单,或按钮排序
 }

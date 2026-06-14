@@ -89,7 +89,7 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 
 // DeleteSysAccountByIdApi 删除账号
 // @Summary 删除账号
-// @Description 根据账号 ID 删除账号，并清理账号角色关系
+// @Description 根据账号 ID 删除账号，已分配角色的账号不能直接删除
 // @Tags 账号中心
 // @Accept json
 // @Produce json
@@ -109,14 +109,18 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "删除失败")
 		return
 	}
-	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
-		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
-			g.WhereIf(true, dao.SysAccountRoleEntity.AccountID.Eq(id))
-		}); err != nil {
-			return err
-		}
-		return s.SysAccountRepository.DeleteByIdTx(ctx, tx, id)
-	}); err != nil {
+	exists, err := s.SysAccountRoleRepository.Exists(ctx, gormplus.QueryOpt().
+		Where(dao.SysAccountRoleEntity.AccountID.Eq(id)).
+		Build())
+	if err != nil {
+		s.Fail(ctx, err, "账号角色校验失败")
+		return
+	}
+	if exists {
+		s.Fail(ctx, errors.New("当前账号已分配角色,不能直接删除"), "当前账号已分配角色,不能直接删除")
+		return
+	}
+	if err = s.SysAccountRepository.DeleteById(ctx, id); err != nil {
 		s.Fail(ctx, err, "删除失败")
 		return
 	}

@@ -3,16 +3,44 @@
 // 如需扩展或覆盖基础方法，请在 SysRoleResourcesRepository 中定义
 package repository
 
+import (
+	"gin-admin-api/internal/dal/dao"
+	"gin-admin-api/internal/dal/model"
+	"github.com/gin-gonic/gin"
+	"github.com/kuangshp/go-utils/k"
+)
+
 // SysRoleResourcesRepository SysRoleResources仓储层
 // 嵌入 defaultSysRoleResourcesRepository
 type customerSysRoleResourcesRepository struct {
 	*defaultSysRoleResourcesRepository
 }
 
+func (c customerSysRoleResourcesRepository) GetResourcesByAccountId(ctx *gin.Context, accountId int64) []int64 {
+	// 1.根据账号id查询账号角色->角色id
+	accountRoleEntities, err := dao.SysAccountRoleEntity.WithContext(ctx).Where(dao.SysAccountRoleEntity.AccountID.Eq(accountId)).Find()
+	if err != nil || len(accountRoleEntities) == 0 {
+		return make([]int64, 0)
+	}
+	roleIdList := k.Map(accountRoleEntities, func(item *model.SysAccountRoleEntity, index int) int64 {
+		return item.AccountID
+	})
+	// 2.根据角色id查询角色资源->资源id
+	roleResourcesEntities, err := dao.SysRoleResourcesEntity.WithContext(ctx).Where(dao.SysRoleResourcesEntity.RoleID.In(roleIdList...)).Find()
+	if err != nil || len(roleResourcesEntities) == 0 {
+		return make([]int64, 0)
+	}
+	resourceIdList := k.Map(roleResourcesEntities, func(item *model.SysRoleResourcesEntity, index int) int64 {
+		return item.ResourcesID
+	})
+	return resourceIdList
+}
+
 // SysRoleResourcesRepository ===== 用户自定义扩展方法请在 SysRoleResourcesRepository 中添加 =====
 // 如需覆盖基础方法，实现相同的方法签名即可
 type SysRoleResourcesRepository interface {
 	iDefaultSysRoleResourcesRepository
+	GetResourcesByAccountId(ctx *gin.Context, accountId int64) []int64
 }
 
 var _ SysRoleResourcesRepository = (*customerSysRoleResourcesRepository)(nil)

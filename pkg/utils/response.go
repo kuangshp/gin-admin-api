@@ -38,11 +38,8 @@ type PageVo struct {
 
 // BuildPageData 构造分页查询器
 func BuildPageData(ctx *gin.Context, data interface{}, total int64) {
-	size, number := GetQueryPage(ctx.Request)
 	Success(ctx, PageVo{
-		Data:       If(data == nil, make([]interface{}, 0), data),
-		Total:      total,
-		PageSize:   size,
-		PageNumber: number,
+		Data:  If(data == nil, make([]interface{}, 0), data),
+		Total: total,
 	})
 }

@@ -14,6 +14,8 @@ type SysAccountVO struct {
 	IsAdmin       int64  `json:"isAdmin"`       // 1是超级管理员，2是普通管理员
 	CreatedAt     int64  `json:"createdAt"`     // 创建时间
 	UpdatedAt     int64  `json:"updatedAt"`     // 更新时间
+	CreatedBy     int64  `json:"createdBy"`     // 创建人
+	UpdatedBy     int64  `json:"updatedBy"`     // 更新人
 }
 
 type SysAccountDetailVO struct {
