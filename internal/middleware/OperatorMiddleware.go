@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	gormplus "github.com/kuangshp/gorm-plus"
@@ -21,7 +20,6 @@ func OperatorMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		fmt.Println("OperatorMiddleware 拿到的 accountId:", accountId, "exists:", exists)
 		ctx := context.WithValue(c.Request.Context(), gormplus.CtxContextKey1, accountId)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()

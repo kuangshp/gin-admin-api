@@ -1,6 +1,8 @@
 package resources
 
 import (
+	"errors"
+	"fmt"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/api/resources/dto"
 	"gin-admin-api/internal/api/resources/mapper"
@@ -9,10 +11,12 @@ import (
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
+	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/kuangshp/go-utils/k"
 	"github.com/kuangshp/gorm-plus"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type IResources interface {
@@ -30,6 +34,7 @@ type Resources struct {
 	ResourcesRepository     repository.SysResourcesRepository
 	RoleResourcesRepository repository.SysRoleResourcesRepository
 	ResourcesMapper         mapper.ISysResourcesMapper
+	Enforcer                *casbin.Enforcer
 }
 
 // CreateResourcesApi 创建资源
@@ -148,6 +153,10 @@ func (r Resources) ModifyResourcesByIdApi(ctx *gin.Context) {
 		).Build(),
 	); err != nil {
 		r.Fail(ctx, err, "操作失败")
+		return
+	}
+	if err = r.syncRelatedRoleResourcesCasbin(ctx, idInt); err != nil {
+		r.Fail(ctx, err, "同步角色权限失败")
 		return
 	}
 	r.Success(ctx, "操作成功")
@@ -290,11 +299,84 @@ func (r Resources) GetDetailByIdApi(ctx *gin.Context) {
 	r.Success(ctx, r.ResourcesMapper.EntityToVo(resourcesEntity))
 	return
 }
-func NewResources(baseApi *base.BaseApi) IResources {
+
+// syncRelatedRoleResourcesCasbin 刷新受资源变更影响的角色权限。
+// 当接口资源的 url/method/status/type 被修改后，已授权该资源的角色需要重建 Casbin p 策略。
+func (r Resources) syncRelatedRoleResourcesCasbin(ctx *gin.Context, resourcesID int64) error {
+	roleResources, err := r.RoleResourcesRepository.FindList(ctx, gormplus.QueryOpt().
+		Where(dao.SysRoleResourcesEntity.ResourcesID.Eq(resourcesID)).
+		Build())
+	if err != nil {
+		return fmt.Errorf("查询资源关联角色失败: %w", err)
+	}
+	roleIDs := k.Filter(k.Distinct(k.Map(roleResources, func(item *model.SysRoleResourcesEntity, index int) int64 {
+		return item.RoleID
+	})), func(item int64, index int) bool {
+		return item > 0
+	})
+	for _, roleID := range roleIDs {
+		if err := r.syncRoleResourcesCasbin(ctx, roleID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// syncRoleResourcesCasbin 按角色当前授权资源重建 Casbin p 策略。
+// 只会同步正常状态的接口资源(resources_type=3)，目录和菜单不进入 Casbin。
+func (r Resources) syncRoleResourcesCasbin(ctx *gin.Context, roleID int64) error {
+	if r.Enforcer == nil {
+		return errors.New("casbin enforcer未初始化")
+	}
+	sub := fmt.Sprintf("role_%d", roleID)
+	if _, err := r.Enforcer.RemoveFilteredPolicy(0, sub); err != nil {
+		return err
+	}
+	roleResources, err := r.RoleResourcesRepository.FindList(ctx, gormplus.QueryOpt().
+		Where(dao.SysRoleResourcesEntity.RoleID.Eq(roleID)).
+		Build())
+	if err != nil {
+		return fmt.Errorf("查询角色资源失败: %w", err)
+	}
+	resourceIDs := k.Filter(k.Distinct(k.Map(roleResources, func(item *model.SysRoleResourcesEntity, index int) int64 {
+		return item.ResourcesID
+	})), func(item int64, index int) bool {
+		return item > 0
+	})
+	if len(resourceIDs) == 0 {
+		return nil
+	}
+	resourcesEntities, err := r.ResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(
+		dao.SysResourcesEntity.ID.In(resourceIDs...),
+		dao.SysResourcesEntity.ResourcesType.Eq(3),
+		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
+	).Build())
+	if err != nil {
+		return fmt.Errorf("查询资源详情失败: %w", err)
+	}
+	rules := make([][]string, 0, len(resourcesEntities))
+	for _, res := range resourcesEntities {
+		url := strings.TrimSpace(res.URL)
+		method := strings.ToUpper(strings.TrimSpace(res.Method))
+		if url == "" || method == "" {
+			continue
+		}
+		rules = append(rules, []string{sub, url, method})
+	}
+	if len(rules) > 0 {
+		if _, err = r.Enforcer.AddPolicies(rules); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func NewResources(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IResources {
 	return Resources{
 		BaseApi:                 baseApi,
 		ResourcesRepository:     repository.NewSysResourcesRepository(),
 		RoleResourcesRepository: repository.NewSysRoleResourcesRepository(),
 		ResourcesMapper:         mapper.NewSysResourcesMapper(),
+		Enforcer:                enforcer,
 	}
 }

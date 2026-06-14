@@ -471,7 +471,7 @@ func (s SysAccount) syncAccountRolesCasbin(accountId int64, roleIdList []int64) 
 		return item > 0
 	})
 	if len(roleIds) == 0 {
-		return s.Enforcer.SavePolicy()
+		return nil
 	}
 	rules := k.Map(roleIds, func(roleId int64, index int) []string {
 		return []string{sub, fmt.Sprintf("role_%d", roleId)}
@@ -481,7 +481,7 @@ func (s SysAccount) syncAccountRolesCasbin(accountId int64, roleIdList []int64) 
 			return err
 		}
 	}
-	return s.Enforcer.SavePolicy()
+	return nil
 }
 
 func NewSysAccount(baseApi *base.BaseApi, enforcer *casbin.Enforcer) ISysAccount {

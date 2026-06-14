@@ -43,7 +43,7 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	}
 	iSysAccount := account.NewSysAccount(baseApi, enforcer)
 	iRole := role.NewRole(baseApi, enforcer)
-	iResources := resources.NewResources(baseApi)
+	iResources := resources.NewResources(baseApi, enforcer)
 	iMenu := menu.NewMenu(baseApi)
 	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources, iMenu)
 	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client, enforcer)

@@ -15,9 +15,9 @@ func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *c
 		middleware.OperatorMiddleware(),
 		middleware.CasbinMiddleWare(enforcer),
 	)
-	registerRouter.POST("register", newAccount.CreateSysAccountApi)                              // 创建账号
+	registerRouter.POST("", newAccount.CreateSysAccountApi)                                      // 创建账号
 	registerRouter.DELETE("/:id", newAccount.DeleteSysAccountByIdApi)                            // 根据id删除
-	registerRouter.PUT("/modify/:id", newAccount.ModifySysAccountByIdApi)                        // 根据id修改
+	registerRouter.PUT("/:id", newAccount.ModifySysAccountByIdApi)                               // 根据id修改
 	registerRouter.POST("/resetPassword", newAccount.ResetPasswordByIdApi)                       // 根据id重置密码
 	registerRouter.POST("/modifyCurrentPassword", newAccount.ModifyCurrentSysAccountPasswordApi) // 修改当前账号密码
 	registerRouter.GET("/list", newAccount.GetSysAccountListApi)                                 // 获取数据列表

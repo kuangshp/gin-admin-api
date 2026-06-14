@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"gin-admin-api/internal/api/auth/dto"
 	"gin-admin-api/internal/api/auth/mapper"
 	"gin-admin-api/internal/api/auth/vo"
@@ -70,8 +69,6 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		a.Fail(ctx, errors.New("用户被禁用登录,请联系管理员"), "用户被禁用登录,请联系管理员")
 		return
 	}
-	fmt.Println(k.MapToString(accountEntity))
-	fmt.Println("1111", k.CheckPassword(accountEntity.Password, req.Password))
 	// 判断账号密码是否正确
 	if !k.CheckPassword(accountEntity.Password, req.Password) {
 		a.Fail(ctx, errors.New("用户名或密码错误"), "用户名或密码错误")

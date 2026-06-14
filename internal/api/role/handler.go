@@ -300,16 +300,20 @@ func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesI
 	}
 
 	if len(resourcesIdList) == 0 {
-		return r.Enforcer.SavePolicy()
+		return nil
 	}
 	resourceIds := k.Filter(k.Distinct(resourcesIdList), func(item int64, index int) bool {
 		return item > 0
 	})
 	if len(resourceIds) == 0 {
-		return r.Enforcer.SavePolicy()
+		return nil
 	}
 
-	resourcesEntities, err := r.ResourcesRepository.FindByIdList(ctx, resourceIds)
+	resourcesEntities, err := r.ResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(
+		dao.SysResourcesEntity.ID.In(resourceIds...),
+		dao.SysResourcesEntity.ResourcesType.Eq(3),
+		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
+	).Build())
 	if err != nil {
 		return fmt.Errorf("查询角色资源失败: %w", err)
 	}
@@ -329,7 +333,7 @@ func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesI
 			return err
 		}
 	}
-	return r.Enforcer.SavePolicy()
+	return nil
 }
 
 func NewRole(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IRole {

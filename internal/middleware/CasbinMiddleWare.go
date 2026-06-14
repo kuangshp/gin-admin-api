@@ -14,6 +14,11 @@ import (
 // 必须在 AuthMiddleWare 之后挂载，因为需要从 context 读取 accountId 和 isAdmin
 func CasbinMiddleWare(enforcer *casbin.Enforcer) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		if enforcer == nil {
+			utils.Fail(ctx, "权限服务未初始化")
+			ctx.Abort()
+			return
+		}
 
 		// ① 超级管理员直接放行，不做任何权限检查
 		if isAdmin, exists := ctx.Get("isAdmin"); exists && isAdmin == int64(1) {
@@ -35,7 +40,9 @@ func CasbinMiddleWare(enforcer *casbin.Enforcer) gin.HandlerFunc {
 		//    这与 sys_resources.url 存储的格式一致
 		//    keyMatch2 会自动处理 :id 占位符的匹配
 		path := ctx.FullPath()
-		fmt.Println("当前路径", ctx.FullPath(), "==", ctx.Request.URL.Path)
+		if path == "" {
+			path = ctx.Request.URL.Path
+		}
 		method := strings.ToUpper(ctx.Request.Method)
 
 		// ④ 构造 casbin subject：user_{账号ID}
