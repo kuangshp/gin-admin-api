@@ -1,9 +1,9 @@
 package mapper
 
 import (
-	"gin-admin-api/internal/dal/dto"
+	"gin-admin-api/internal/api/role/dto"
+	"gin-admin-api/internal/api/role/vo"
 	"gin-admin-api/internal/dal/model"
-	"gin-admin-api/internal/dal/vo"
 )
 
 // ISysRoleMapper 角色表 mapper 接口
@@ -46,8 +46,5 @@ func (m *sysRoleMapper) EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVO {
 		Sort:        e.Sort,             // 排序
 		CreatedAt:   e.CreatedAt.Unix(), // 创建时间
 		UpdatedAt:   e.UpdatedAt.Unix(), // 更新时间
-		CreatedBy:   e.CreatedBy,        // 创建人
-		UpdatedBy:   e.UpdatedBy,        // 更新人
-
 	}
 }

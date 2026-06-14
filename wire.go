@@ -8,6 +8,7 @@ import (
 	"gin-admin-api/internal/api/account"
 	"gin-admin-api/internal/api/auth"
 	"gin-admin-api/internal/api/base"
+	"gin-admin-api/internal/api/role"
 	"gin-admin-api/internal/router"
 
 	"github.com/google/wire"
@@ -24,9 +25,10 @@ func InitApp(envString string) (*initialize.App, error) {
 		initialize.NewRedis,
 		// 基础控制器
 		base.NewBaseApi,
-		// 接入层
+		//接口实现
 		auth.NewAuth,
 		account.NewSysAccount,
+		role.NewRole,
 		// 路由 & 服务
 		router.NewAdminRouter,
 		initialize.NewRouter,

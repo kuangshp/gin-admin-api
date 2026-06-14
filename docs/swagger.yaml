@@ -20,6 +20,33 @@ definitions:
     - password
     - username
     type: object
+  dto.CreateSysRoleDTO:
+    properties:
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 角色名称
+        type: string
+      resourcesIdList:
+        description: 资源id
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - name
+    - resourcesIdList
+    type: object
   dto.GetSysAccountPageDTO:
     properties:
       email:
@@ -75,6 +102,19 @@ definitions:
     - confirmPassword
     - id
     - password
+    type: object
+  dto.RolePageDTO:
+    properties:
+      name:
+        description: 角色名称
+        type: string
+      pageNumber:
+        type: integer
+      pageSize:
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
     type: object
   dto.VerifyCaptchaDTO:
     properties:
@@ -243,6 +283,36 @@ definitions:
       code:
         description: 验证码
         type: string
+    type: object
+  vo.SysRoleVO:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: integer
+      createdBy:
+        description: 创建人
+        type: integer
+      description:
+        description: 描述
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      updatedAt:
+        description: 更新时间
+        type: integer
+      updatedBy:
+        description: 更新人
+        type: integer
     type: object
 info:
   contact: {}
@@ -516,4 +586,114 @@ paths:
       summary: 用户退出登录
       tags:
       - 认证中心
+  /api/v1/admin/role:
+    post:
+      consumes:
+      - application/json
+      description: 创建后台角色，并分配角色资源关系
+      parameters:
+      - description: 创建角色参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSysRoleDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            type: string
+      summary: 创建角色
+      tags:
+      - 角色中心
+  /api/v1/admin/role/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据角色 ID 删除角色，并清理角色资源关系
+      parameters:
+      - description: 角色ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            type: string
+      summary: 删除角色
+      tags:
+      - 角色中心
+    put:
+      consumes:
+      - application/json
+      description: 根据角色 ID 修改角色基础信息和角色资源关系
+      parameters:
+      - description: 角色ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改角色参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSysRoleDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            type: string
+      summary: 修改角色
+      tags:
+      - 角色中心
+  /api/v1/admin/role/list:
+    get:
+      consumes:
+      - application/json
+      description: 获取正常状态的角色列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 角色列表
+          schema:
+            items:
+              $ref: '#/definitions/vo.SysRoleVO'
+            type: array
+      summary: 获取角色列表
+      tags:
+      - 角色中心
+  /api/v1/admin/role/page:
+    post:
+      consumes:
+      - application/json
+      description: 根据查询条件分页获取角色列表
+      parameters:
+      - description: 分页查询参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RolePageDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 角色分页列表
+          schema:
+            items:
+              $ref: '#/definitions/vo.SysRoleVO'
+            type: array
+      summary: 分页获取角色
+      tags:
+      - 角色中心
 swagger: "2.0"

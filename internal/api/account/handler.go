@@ -168,11 +168,13 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 		); err != nil {
 			return err
 		}
+		// 先全部删除,然后创建
 		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
 			g.Where(dao.SysAccountRoleEntity.AccountID.Eq(id))
-		}); err != nil {
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
 			return err
 		}
+		// 创建账号角色
 		accountRoleEntity := s.buildAccountRoleEntityList(id, req.RoleIdList)
 		if len(accountRoleEntity) == 0 {
 			return nil
