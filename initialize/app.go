@@ -27,9 +27,12 @@ func NewApp(cfg *config.ServerConfig, engine *gin.Engine, logger *zap.Logger) *A
 	return &App{cfg: cfg, engine: engine, logger: logger}
 }
 
-// InitSqlData 调用初始化管理员账号
+// InitSqlData 调用初始化默认数据
 func (a *App) InitSqlData() error {
-	return InitAccountDataWithDao()
+	if err := InitAccountDataWithDao(); err != nil {
+		return err
+	}
+	return InitResourcesDataWithDao()
 }
 
 // Run 启动服务，监听系统信号优雅退出
