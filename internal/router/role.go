@@ -8,7 +8,7 @@ import (
 )
 
 func InitRoleRouter(Router *gin.RouterGroup, redis *redis.Client, roleHandler role.IRole) {
-	authRouter := Router.Group("role", middleware.AuthMiddleWare(redis))
+	authRouter := Router.Group("role", middleware.AuthMiddleWare(redis), middleware.OperatorMiddleware())
 	authRouter.POST("", roleHandler.CreateRoleApi)                 // 创建角色
 	authRouter.DELETE("/:id", roleHandler.DeleteRoleByIdApi)       // 根据id删除角色
 	authRouter.PUT("/:id", roleHandler.ModifyRoleByIdApi)          // 根据id修改角色

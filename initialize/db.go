@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"gin-admin-api/internal/config"
 	"gin-admin-api/internal/dal/dao"
-	"gin-admin-api/internal/plugin"
-	gormplus "github.com/kuangshp/gorm-plus"
+	"github.com/kuangshp/gorm-plus"
 	"log"
 	"os"
 	"time"
@@ -51,7 +50,14 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 	// 初始化 dao 包的全局变量
 	dao.SetDefault(db)
 	// 注册插件
-	db.Use(&plugin.AutoOperatorPlugin{})
+	if err = db.Use(gormplus.NewAutoFillPlugin(gormplus.AutoFillConfig{
+		Fields: []gormplus.FieldConfig{
+			{Name: "CreatedBy", Getter: gormplus.CtxGetter[int64](gormplus.CtxContextKey1), OnCreate: true},
+			{Name: "UpdatedBy", Getter: gormplus.CtxGetter[int64](gormplus.CtxContextKey1), OnCreate: true, OnUpdate: true},
+		},
+	})); err != nil {
+		fmt.Println("注册创建人插件失败")
+	}
 	fmt.Printf("✔ 数据库连接成功 [%s:%d/%s]\n", ds.Host, ds.Port, ds.Database)
 	return db, nil
 }

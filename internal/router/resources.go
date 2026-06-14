@@ -9,7 +9,7 @@ import (
 )
 
 func InitResourcesRouter(Router *gin.RouterGroup, redis *redis.Client, resourcesHandler resources.IResources) {
-	authRouter := Router.Group("resources", middleware.AuthMiddleWare(redis))
+	authRouter := Router.Group("resources", middleware.AuthMiddleWare(redis), middleware.OperatorMiddleware())
 	authRouter.POST("", resourcesHandler.CreateResourcesApi)              // 创建资源
 	authRouter.DELETE("/:id", resourcesHandler.DeleteResourcesByIdApi)    // 根据id删除资源
 	authRouter.PUT("/:id", resourcesHandler.ModifyResourcesByIdApi)       // 根据id修改资源

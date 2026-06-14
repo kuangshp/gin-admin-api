@@ -8,7 +8,7 @@ import (
 )
 
 func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, newAccount account.ISysAccount) {
-	registerRouter := Router.Group("account", middleware.AuthMiddleWare(redis))
+	registerRouter := Router.Group("account", middleware.AuthMiddleWare(redis), middleware.OperatorMiddleware())
 	registerRouter.POST("register", newAccount.CreateSysAccountApi)                              // 创建账号
 	registerRouter.DELETE("/:id", newAccount.DeleteSysAccountByIdApi)                            // 根据id删除
 	registerRouter.PUT("/modify/:id", newAccount.ModifySysAccountByIdApi)                        // 根据id修改
