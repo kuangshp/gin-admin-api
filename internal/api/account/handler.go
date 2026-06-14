@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"fmt"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/mapper"
 	"gin-admin-api/internal/api/account/vo"
@@ -11,6 +12,7 @@ import (
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
+	"github.com/casbin/casbin/v2"
 	"github.com/kuangshp/go-utils/k"
 	"strconv"
 
@@ -35,6 +37,7 @@ type SysAccount struct {
 	SysAccountRepository     repository.SysAccountRepository
 	SysAccountRoleRepository repository.SysAccountRoleRepository
 	SysAccountMapper         mapper.ISysAccountMapper
+	Enforcer                 *casbin.Enforcer
 }
 
 // CreateSysAccountApi 创建账号
@@ -62,8 +65,9 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 		return
 	}
 
+	var accountEntity *model.SysAccountEntity
 	if err = gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
-		accountEntity := s.SysAccountMapper.DtoToEntity(&req, password, enum.StatusNormalEnum)
+		accountEntity = s.SysAccountMapper.DtoToEntity(&req, password, enum.StatusNormalEnum)
 		if err = s.SysAccountRepository.CreateTx(ctx, tx, accountEntity, gormplus.Create().WithOmit(
 			dao.SysAccountEntity.LastLoginIP,
 			dao.SysAccountEntity.LastLoginDate,
@@ -82,6 +86,10 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 		return nil
 	}); err != nil {
 		s.Fail(ctx, err, "创建失败")
+		return
+	}
+	if err = s.syncAccountRolesCasbin(accountEntity.ID, req.RoleIdList); err != nil {
+		s.Fail(ctx, err, "同步账号角色权限失败")
 		return
 	}
 	s.Success(ctx, "创建成功")
@@ -119,6 +127,10 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 		return s.SysAccountRepository.DeleteByIdTx(ctx, tx, id)
 	}); err != nil {
 		s.Fail(ctx, err, "删除失败")
+		return
+	}
+	if err := s.syncAccountRolesCasbin(id, nil); err != nil {
+		s.Fail(ctx, err, "同步账号角色权限失败")
 		return
 	}
 	s.Success(ctx, "删除成功")
@@ -184,6 +196,10 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 		return s.SysAccountRoleRepository.CreateBatchTx(ctx, tx, accountRoleEntity)
 	}); err != nil {
 		s.Fail(ctx, err, "修改失败")
+		return
+	}
+	if err := s.syncAccountRolesCasbin(id, req.RoleIdList); err != nil {
+		s.Fail(ctx, err, "同步账号角色权限失败")
 		return
 	}
 	s.Success(ctx, "修改成功")
@@ -427,8 +443,11 @@ func useQuery(db *gorm.DB) *dao.Query {
 }
 
 func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int64) []*model.SysAccountRoleEntity {
-	accountRoleEntity := make([]*model.SysAccountRoleEntity, 0, len(roleIDList))
-	for _, roleID := range roleIDList {
+	roleIDs := k.Filter(k.Distinct(roleIDList), func(item int64, index int) bool {
+		return item > 0
+	})
+	accountRoleEntity := make([]*model.SysAccountRoleEntity, 0, len(roleIDs))
+	for _, roleID := range roleIDs {
 		accountRoleEntity = append(accountRoleEntity, &model.SysAccountRoleEntity{
 			RoleID:    roleID,
 			AccountID: accountID,
@@ -437,11 +456,40 @@ func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int
 	return accountRoleEntity
 }
 
-func NewSysAccount(baseApi *base.BaseApi) ISysAccount {
+// syncAccountRolesCasbin 同步账号角色到 Casbin 的 g 分组策略。
+// 会先清空 user_{accountId} 的旧角色关系，再按 roleIdList 写入新的角色分组；
+// roleIdList 为空时表示仅清空该账号角色关系，常用于删除账号。
+func (s SysAccount) syncAccountRolesCasbin(accountId int64, roleIdList []int64) error {
+	if s.Enforcer == nil {
+		return errors.New("casbin enforcer未初始化")
+	}
+	sub := fmt.Sprintf("user_%d", accountId)
+	if _, err := s.Enforcer.RemoveFilteredGroupingPolicy(0, sub); err != nil {
+		return err
+	}
+	roleIds := k.Filter(k.Distinct(roleIdList), func(item int64, index int) bool {
+		return item > 0
+	})
+	if len(roleIds) == 0 {
+		return s.Enforcer.SavePolicy()
+	}
+	rules := k.Map(roleIds, func(roleId int64, index int) []string {
+		return []string{sub, fmt.Sprintf("role_%d", roleId)}
+	})
+	if len(rules) > 0 {
+		if _, err := s.Enforcer.AddGroupingPolicies(rules); err != nil {
+			return err
+		}
+	}
+	return s.Enforcer.SavePolicy()
+}
+
+func NewSysAccount(baseApi *base.BaseApi, enforcer *casbin.Enforcer) ISysAccount {
 	return &SysAccount{
 		BaseApi:                  baseApi,
 		SysAccountRepository:     repository.NewSysAccountRepository(),
 		SysAccountRoleRepository: repository.NewSysAccountRoleRepository(),
 		SysAccountMapper:         mapper.NewSysAccountMapper(),
+		Enforcer:                 enforcer,
 	}
 }

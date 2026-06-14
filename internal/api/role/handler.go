@@ -17,6 +17,7 @@ import (
 	"github.com/kuangshp/gorm-plus"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type IRole interface {
@@ -60,11 +61,12 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 		r.Fail(ctx, errors.New("角色名称已经存在,不能重复"), "角色名称已经存在,不能重复")
 		return
 	}
+	var roleEntity *model.SysRoleEntity
 	if err = gormplus.TransactionAsCtx(ctx, r.Db, func(db *gorm.DB) *dao.Query {
 		return dao.Use(db)
 	}, func(tx *dao.Query) error {
 		// 1.创建角色
-		roleEntity := r.RoleMapper.DtoToEntity(&req)
+		roleEntity = r.RoleMapper.DtoToEntity(&req)
 		if err = r.RoleRepository.CreateTx(ctx, tx, roleEntity); err != nil {
 			return err
 		}
@@ -84,6 +86,10 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 		return nil
 	}); err != nil {
 		r.Fail(ctx, err, "操作失败")
+		return
+	}
+	if err = r.syncRoleResourcesCasbin(ctx, roleEntity.ID, req.ResourcesIdList); err != nil {
+		r.Fail(ctx, err, "同步角色权限失败")
 		return
 	}
 	r.Success(ctx, "成功")
@@ -115,6 +121,10 @@ func (r Role) DeleteRoleByIdApi(ctx *gin.Context) {
 		return r.RoleRepository.DeleteByIdTx(ctx, tx, idInt)
 	}); err != nil {
 		r.Fail(ctx, err, "操作失败")
+		return
+	}
+	if err := r.syncRoleResourcesCasbin(ctx, idInt, nil); err != nil {
+		r.Fail(ctx, err, "同步角色权限失败")
 		return
 	}
 	r.Success(ctx, "删除成功")
@@ -184,6 +194,10 @@ func (r Role) ModifyRoleByIdApi(ctx *gin.Context) {
 		return nil
 	}); err != nil {
 		r.Fail(ctx, err, "操作失败")
+		return
+	}
+	if err = r.syncRoleResourcesCasbin(ctx, idInt, req.ResourcesIdList); err != nil {
+		r.Fail(ctx, err, "同步角色权限失败")
 		return
 	}
 	r.Success(ctx, "操作成功")
@@ -271,35 +285,53 @@ func (r Role) GetRoleDetailByIdApi(ctx *gin.Context) {
 	})
 }
 
-// 用户角色资源同步到casbin里面
+// syncRoleResourcesCasbin 同步角色资源到 Casbin 的 p 策略。
+// 会先清空 role_{roleId} 的旧资源权限，再按 resourcesIdList 写入新的接口权限；
+// resourcesIdList 为空时表示仅清空该角色权限，常用于删除角色。
 func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesIdList []int64) error {
+	if r.Enforcer == nil {
+		return errors.New("casbin enforcer未初始化")
+	}
 	sub := fmt.Sprintf("role_%d", roleId)
 
 	// 清除该角色所有旧的 p 策略
 	if _, err := r.Enforcer.RemoveFilteredPolicy(0, sub); err != nil {
 		return err
 	}
-	// 批量写入新策略
-	if len(resourcesIdList) > 0 {
-		rules := make([][]string, 0, len(resourcesIdList))
-		resourcesEntities, err := r.ResourcesRepository.FindByIdList(ctx, resourcesIdList)
-		if err == nil && len(resourcesEntities) > 0 {
-			for _, res := range resourcesEntities {
-				if res.URL == "" || res.Method == "" {
-					continue
-				}
-				rules = append(rules, []string{sub, res.URL, res.Method})
-			}
-			if len(rules) > 0 {
-				if _, err = r.Enforcer.AddPolicies(rules); err != nil {
-					return err
-				}
-			}
-		}
 
+	if len(resourcesIdList) == 0 {
+		return r.Enforcer.SavePolicy()
+	}
+	resourceIds := k.Filter(k.Distinct(resourcesIdList), func(item int64, index int) bool {
+		return item > 0
+	})
+	if len(resourceIds) == 0 {
+		return r.Enforcer.SavePolicy()
+	}
+
+	resourcesEntities, err := r.ResourcesRepository.FindByIdList(ctx, resourceIds)
+	if err != nil {
+		return fmt.Errorf("查询角色资源失败: %w", err)
+	}
+
+	rules := make([][]string, 0, len(resourcesEntities))
+	for _, res := range resourcesEntities {
+		url := strings.TrimSpace(res.URL)
+		method := strings.ToUpper(strings.TrimSpace(res.Method))
+		if url == "" || method == "" {
+			continue
+		}
+		rules = append(rules, []string{sub, url, method})
+	}
+
+	if len(rules) > 0 {
+		if _, err = r.Enforcer.AddPolicies(rules); err != nil {
+			return err
+		}
 	}
 	return r.Enforcer.SavePolicy()
 }
+
 func NewRole(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IRole {
 	return Role{
 		BaseApi:                 baseApi,

@@ -37,15 +37,15 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	}
 	baseApi := base.NewBaseApi(logger, db, serverConfig, client)
 	iAuth := auth.NewAuth(baseApi)
-	iSysAccount := account.NewSysAccount(baseApi)
-	iRole := role.NewRole(baseApi)
-	iResources := resources.NewResources(baseApi)
-	iMenu := menu.NewMenu(baseApi)
-	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources, iMenu)
 	enforcer, err := initialize.NewCasbin(db)
 	if err != nil {
 		return nil, err
 	}
+	iSysAccount := account.NewSysAccount(baseApi, enforcer)
+	iRole := role.NewRole(baseApi, enforcer)
+	iResources := resources.NewResources(baseApi)
+	iMenu := menu.NewMenu(baseApi)
+	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources, iMenu)
 	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client, enforcer)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil
