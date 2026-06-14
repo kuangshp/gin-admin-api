@@ -315,11 +315,11 @@ func (r Resources) syncRelatedRoleResourcesCasbin(ctx *gin.Context, resourcesID 
 		return item > 0
 	})
 	for _, roleID := range roleIDs {
-		if err := r.syncRoleResourcesCasbin(ctx, roleID); err != nil {
+		if err = r.syncRoleResourcesCasbin(ctx, roleID); err != nil {
 			return err
 		}
 	}
-	return r.Enforcer.SavePolicy()
+	return nil
 }
 
 // syncRoleResourcesCasbin 按角色当前授权资源重建 Casbin p 策略。
