@@ -2,6 +2,7 @@ package role
 
 import (
 	"errors"
+	"fmt"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/api/role/dto"
 	"gin-admin-api/internal/api/role/mapper"
@@ -10,6 +11,7 @@ import (
 	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
+	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/kuangshp/go-utils/k"
 	"github.com/kuangshp/gorm-plus"
@@ -30,7 +32,9 @@ type Role struct {
 	*base.BaseApi
 	RoleRepository          repository.SysRoleRepository
 	RoleResourcesRepository repository.SysRoleResourcesRepository
+	ResourcesRepository     repository.SysResourcesRepository
 	RoleMapper              mapper.ISysRoleMapper
+	Enforcer                *casbin.Enforcer
 }
 
 // CreateRoleApi 创建角色
@@ -266,11 +270,43 @@ func (r Role) GetRoleDetailByIdApi(ctx *gin.Context) {
 		ResourcesIdList: resourcesIdList,
 	})
 }
-func NewRole(baseApi *base.BaseApi) IRole {
+
+// 用户角色资源同步到casbin里面
+func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesIdList []int64) error {
+	sub := fmt.Sprintf("role_%d", roleId)
+
+	// 清除该角色所有旧的 p 策略
+	if _, err := r.Enforcer.RemoveFilteredPolicy(0, sub); err != nil {
+		return err
+	}
+	// 批量写入新策略
+	if len(resourcesIdList) > 0 {
+		rules := make([][]string, 0, len(resourcesIdList))
+		resourcesEntities, err := r.ResourcesRepository.FindByIdList(ctx, resourcesIdList)
+		if err == nil && len(resourcesEntities) > 0 {
+			for _, res := range resourcesEntities {
+				if res.URL == "" || res.Method == "" {
+					continue
+				}
+				rules = append(rules, []string{sub, res.URL, res.Method})
+			}
+			if len(rules) > 0 {
+				if _, err = r.Enforcer.AddPolicies(rules); err != nil {
+					return err
+				}
+			}
+		}
+
+	}
+	return r.Enforcer.SavePolicy()
+}
+func NewRole(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IRole {
 	return Role{
 		BaseApi:                 baseApi,
 		RoleRepository:          repository.NewSysRoleRepository(),
 		RoleResourcesRepository: repository.NewSysRoleResourcesRepository(),
+		ResourcesRepository:     repository.NewSysResourcesRepository(),
 		RoleMapper:              mapper.NewSysRoleMapper(),
+		Enforcer:                enforcer,
 	}
 }
