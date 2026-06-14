@@ -20,12 +20,6 @@ definitions:
     - password
     - username
     type: object
-  dto.CatalogDTO:
-    properties:
-      catalogType:
-        description: '类型: 1的时候只查询出模块,2的时候查询出模块和菜单3,的时候查询模块、菜单、按钮'
-        type: integer
-    type: object
   dto.CreateSysResourcesDTO:
     properties:
       description:
@@ -916,17 +910,15 @@ paths:
       tags:
       - 资源中心
   /api/v1/admin/resources/catalog:
-    post:
+    get:
       consumes:
       - application/json
       description: 根据资源类型获取当前账号可访问的目录、菜单或接口资源
       parameters:
-      - description: 资源目录查询参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CatalogDTO'
+      - description: 资源类型:1只查询模块,2查询模块和菜单,3查询模块、菜单、按钮
+        in: query
+        name: catalogType
+        type: integer
       produces:
       - application/json
       responses:

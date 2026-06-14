@@ -475,7 +475,7 @@
             }
         },
         "/api/v1/admin/resources/catalog": {
-            "post": {
+            "get": {
                 "description": "根据资源类型获取当前账号可访问的目录、菜单或接口资源",
                 "consumes": [
                     "application/json"
@@ -489,13 +489,10 @@
                 "summary": "获取资源目录",
                 "parameters": [
                     {
-                        "description": "资源目录查询参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CatalogDTO"
-                        }
+                        "type": "integer",
+                        "description": "资源类型:1只查询模块,2查询模块和菜单,3查询模块、菜单、按钮",
+                        "name": "catalogType",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -871,15 +868,6 @@
                 "username": {
                     "description": "登录帐号",
                     "type": "string"
-                }
-            }
-        },
-        "dto.CatalogDTO": {
-            "type": "object",
-            "properties": {
-                "catalogType": {
-                    "description": "类型: 1的时候只查询出模块,2的时候查询出模块和菜单3,的时候查询模块、菜单、按钮",
-                    "type": "integer"
                 }
             }
         },

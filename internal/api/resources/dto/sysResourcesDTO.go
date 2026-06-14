@@ -31,5 +31,5 @@ type PageSysResourcesDTO struct {
 }
 
 type CatalogDTO struct {
-	CatalogType int64 `form:"catalogType,optional"` //类型: 1的时候只查询出模块,2的时候查询出模块和菜单3,的时候查询模块、菜单、按钮
+	CatalogType int64 `form:"catalogType" json:"catalogType"` // 类型:1只查询模块,2查询模块和菜单,3查询模块、菜单、按钮
 }

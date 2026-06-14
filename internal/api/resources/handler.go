@@ -205,12 +205,13 @@ func (r Resources) GetResourcesTreePageApi(ctx *gin.Context) {
 // @Tags 资源中心
 // @Accept json
 // @Produce json
-// @Param data body dto.CatalogDTO true "资源目录查询参数"
+// @Param catalogType query int false "资源类型:1只查询模块,2查询模块和菜单,3查询模块、菜单、按钮"
 // @Success 200 {array} vo.ResourcesVO "资源目录列表"
-// @Router /api/v1/admin/resources/catalog [post]
+// @Router /api/v1/admin/resources/catalog [get]
 func (r Resources) GetResourcesCatalogApi(ctx *gin.Context) {
 	var req dto.CatalogDTO
-	if !r.BindAndValidateJSON(ctx, &req) {
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		r.Fail(ctx, err, "参数错误")
 		return
 	}
 	accountId := ctx.GetInt64("accountId")

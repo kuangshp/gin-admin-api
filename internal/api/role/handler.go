@@ -82,6 +82,8 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 		r.Fail(ctx, err, "操作失败")
 		return
 	}
+	r.Success(ctx, "成功")
+	return
 }
 
 // DeleteRoleByIdApi 删除角色
