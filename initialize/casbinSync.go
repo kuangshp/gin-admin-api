@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"gin-admin-api/internal/dal/model"
+	"gin-admin-api/pkg/enum"
 
 	"github.com/casbin/casbin/v2"
 	"gorm.io/gorm"
@@ -77,7 +78,7 @@ func rebuildPolicyRules(db *gorm.DB, enforcer *casbin.Enforcer) (int, error) {
 		Table("sys_role_resources AS rr").
 		Select("rr.role_id AS role_id, sr.url AS url, sr.method AS method").
 		Joins("INNER JOIN sys_resources AS sr ON rr.resources_id = sr.id").
-		Where("sr.resources_type = ? AND sr.status = ?", 3, 1).
+		Where("sr.resources_type = ? AND sr.status = ?", enum.ResourcesTypeApiEnum, enum.StatusNormalEnum).
 		Where("sr.url <> '' AND sr.method <> ''").
 		Where("rr.deleted_at IS NULL AND sr.deleted_at IS NULL").
 		Scan(&rows).Error

@@ -112,7 +112,7 @@ func (r Resources) DeleteResourcesByIdApi(ctx *gin.Context) {
 		r.Fail(ctx, err, "操作失败")
 	}
 	// 兜底清理 casbin 中残留的该资源策略
-	if resourceEntity.ResourcesType == 3 && resourceEntity.URL != "" && resourceEntity.Method != "" {
+	if resourceEntity.ResourcesType == enum.ResourcesTypeApiEnum && resourceEntity.URL != "" && resourceEntity.Method != "" {
 		_, _ = r.Enforcer.RemoveFilteredPolicy(1, resourceEntity.URL, resourceEntity.Method)
 	}
 	r.Success(ctx, "操作成功")
@@ -237,12 +237,12 @@ func (r Resources) GetResourcesCatalogApi(ctx *gin.Context) {
 	isAdmin := ctx.GetInt64("isAdmin")
 	// 1的时候只查询出模块,2的时候查询出模块和菜单3,的时候查询模块、菜单、按钮
 	tx := dao.SysResourcesEntity.WithContext(ctx)
-	if req.CatalogType == 1 {
+	if req.CatalogType == enum.ResourcesTypeCatalogEnum {
 		tx = tx.Where(dao.SysResourcesEntity.ResourcesType.Eq(req.CatalogType))
-	} else if req.CatalogType == 2 {
-		tx = tx.Where(dao.SysResourcesEntity.ResourcesType.In([]int64{1, 2}...))
-	} else if req.CatalogType == 3 {
-		tx = tx.Where(dao.SysResourcesEntity.ResourcesType.In([]int64{1, 2, 3}...))
+	} else if req.CatalogType == enum.ResourcesTypeMenuEnum {
+		tx = tx.Where(dao.SysResourcesEntity.ResourcesType.In([]int64{enum.ResourcesTypeCatalogEnum, enum.ResourcesTypeMenuEnum}...))
+	} else if req.CatalogType == enum.ResourcesTypeApiEnum {
+		tx = tx.Where(dao.SysResourcesEntity.ResourcesType.In([]int64{enum.ResourcesTypeCatalogEnum, enum.ResourcesTypeMenuEnum, enum.ResourcesTypeApiEnum}...))
 	}
 	// 判断如果当前不是超管的时候,只返回授权的资源
 	if int64(isAdmin) != 1 {
@@ -357,7 +357,7 @@ func (r Resources) syncRoleResourcesCasbin(ctx *gin.Context, roleID int64) error
 	}
 	resourcesEntities, err := r.ResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(
 		dao.SysResourcesEntity.ID.In(resourceIDs...),
-		dao.SysResourcesEntity.ResourcesType.Eq(3),
+		dao.SysResourcesEntity.ResourcesType.Eq(enum.ResourcesTypeApiEnum),
 		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
 	).Build())
 	if err != nil {

@@ -311,7 +311,7 @@ func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesI
 
 	resourcesEntities, err := r.ResourcesRepository.FindList(ctx, gormplus.QueryOpt().Where(
 		dao.SysResourcesEntity.ID.In(resourceIds...),
-		dao.SysResourcesEntity.ResourcesType.Eq(3),
+		dao.SysResourcesEntity.ResourcesType.Eq(enum.ResourcesTypeApiEnum),
 		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
 	).Build())
 	if err != nil {
