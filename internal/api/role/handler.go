@@ -160,7 +160,7 @@ func (r Role) ModifyRoleByIdApi(ctx *gin.Context) {
 		// 删除之前的角色资源
 		if err = r.RoleResourcesRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]) {
 			g.Where(dao.SysRoleResourcesEntity.RoleID.Eq(idInt))
-		}); err != nil {
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
 			return err
 		}
 		// 创建
@@ -178,8 +178,11 @@ func (r Role) ModifyRoleByIdApi(ctx *gin.Context) {
 		}
 		return nil
 	}); err != nil {
+		r.Fail(ctx, err, "操作失败")
 		return
 	}
+	r.Success(ctx, "操作成功")
+	return
 }
 
 // GetRolePageApi 分页获取角色

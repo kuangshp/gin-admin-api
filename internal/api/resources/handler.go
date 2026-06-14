@@ -161,7 +161,7 @@ func (r Resources) ModifyResourcesByIdApi(ctx *gin.Context) {
 // @Produce json
 // @Param data body dto.PageSysResourcesDTO true "分页查询参数"
 // @Success 200 {array} vo.SysResourcesVO "资源分页列表"
-// @Router /api/v1/admin/resources/page [post]
+// @Router /api/v1/admin/resources/pageTree [post]
 func (r Resources) GetResourcesTreePageApi(ctx *gin.Context) {
 	var req dto.PageSysResourcesDTO
 	if !r.BindAndValidateJSON(ctx, &req) {
