@@ -23,7 +23,7 @@ func (c customerSysRoleResourcesRepository) GetResourcesByAccountId(ctx *gin.Con
 		return make([]int64, 0)
 	}
 	roleIdList := k.Map(accountRoleEntities, func(item *model.SysAccountRoleEntity, index int) int64 {
-		return item.AccountID
+		return item.RoleID
 	})
 	// 2.根据角色id查询角色资源->资源id
 	roleResourcesEntities, err := dao.SysRoleResourcesEntity.WithContext(ctx).Where(dao.SysRoleResourcesEntity.RoleID.In(roleIdList...)).Find()
