@@ -98,21 +98,22 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 func (r Role) DeleteRoleByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
-	exists, err := r.RoleResourcesRepository.Exists(ctx, gormplus.QueryOpt().
-		Where(dao.SysRoleResourcesEntity.RoleID.Eq(idInt)).
-		Build())
-	if err != nil {
-		r.Fail(ctx, err, "角色资源校验失败")
-		return
-	}
-	if exists {
-		r.Fail(ctx, errors.New("当前角色已绑定资源,不能直接删除"), "当前角色已绑定资源,不能直接删除")
-		return
-	}
-	if err = r.RoleRepository.DeleteById(ctx, idInt); err != nil {
+	if err := gormplus.TransactionAsCtx(ctx, r.Db, func(db *gorm.DB) *dao.Query {
+		return dao.Use(db)
+	}, func(tx *dao.Query) error {
+		// 删除中间件表
+		if err := r.RoleResourcesRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]) {
+			g.Where(dao.SysRoleResourcesEntity.RoleID.Eq(idInt))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		// 删除角色
+		return r.RoleRepository.DeleteByIdTx(ctx, tx, idInt)
+	}); err != nil {
 		r.Fail(ctx, err, "操作失败")
 		return
 	}
+	r.Success(ctx, "删除成功")
 }
 
 // ModifyRoleByIdApi 修改角色

@@ -35,10 +35,8 @@ type ModifyCurrentPasswordDTO struct {
 }
 
 type GetSysAccountPageDTO struct {
-	Username   string `json:"username"` // 登录帐号
-	Email      string `json:"email"`    // 邮箱
-	Mobile     string `json:"mobile"`   // 手机号
-	Status     int64  `json:"status"`   // 状态1是正常,2是禁用
+	Keyword    string `json:"keyword"` // 用户名,邮箱,手机号码
+	Status     int64  `json:"status"`  // 状态1是正常,2是禁用
 	PageNumber int64  `json:"pageNumber"`
 	PageSize   int64  `json:"pageSize"`
 }

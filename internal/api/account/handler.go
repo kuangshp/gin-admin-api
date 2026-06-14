@@ -89,7 +89,7 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 
 // DeleteSysAccountByIdApi 删除账号
 // @Summary 删除账号
-// @Description 根据账号 ID 删除账号，已分配角色的账号不能直接删除
+// @Description 根据账号 ID 删除账号，并清理账号角色关系
 // @Tags 账号中心
 // @Accept json
 // @Produce json
@@ -109,18 +109,15 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "删除失败")
 		return
 	}
-	exists, err := s.SysAccountRoleRepository.Exists(ctx, gormplus.QueryOpt().
-		Where(dao.SysAccountRoleEntity.AccountID.Eq(id)).
-		Build())
-	if err != nil {
-		s.Fail(ctx, err, "账号角色校验失败")
-		return
-	}
-	if exists {
-		s.Fail(ctx, errors.New("当前账号已分配角色,不能直接删除"), "当前账号已分配角色,不能直接删除")
-		return
-	}
-	if err = s.SysAccountRepository.DeleteById(ctx, id); err != nil {
+	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
+		// 删除中间表
+		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
+			g.Where(dao.SysAccountRoleEntity.AccountID.Eq(id))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		return s.SysAccountRepository.DeleteByIdTx(ctx, tx, id)
+	}); err != nil {
 		s.Fail(ctx, err, "删除失败")
 		return
 	}
@@ -208,9 +205,7 @@ func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 	}
 	list, total, err := s.SysAccountRepository.FindPageByWrapper(ctx, req.PageNumber, req.PageSize, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
 		g.
-			WhereIf(req.Username != "", dao.SysAccountEntity.Username.Like("%"+req.Username+"%")).
-			WhereIf(req.Email != "", dao.SysAccountEntity.Email.Like("%"+req.Email+"%")).
-			WhereIf(req.Mobile != "", dao.SysAccountEntity.Mobile.Like("%"+req.Mobile+"%")).
+			WhereOrGroupIf(req.Keyword != "", dao.SysAccountEntity.Username.Like("%"+req.Keyword+"%"), dao.SysAccountEntity.Email.Like("%"+req.Keyword+"%"), dao.SysAccountEntity.Mobile.Like("%"+req.Keyword+"%")).
 			WhereIf(req.Status != 0, dao.SysAccountEntity.Status.Eq(req.Status))
 	})
 	if err != nil {

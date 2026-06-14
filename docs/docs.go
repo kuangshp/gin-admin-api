@@ -268,7 +268,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "根据账号 ID 删除账号，已分配角色的账号不能直接删除",
+                "description": "根据账号 ID 删除账号，并清理账号角色关系",
                 "consumes": [
                     "application/json"
                 ],
@@ -979,12 +979,8 @@ const docTemplate = `{
         "dto.GetSysAccountPageDTO": {
             "type": "object",
             "properties": {
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
-                "mobile": {
-                    "description": "手机号",
+                "keyword": {
+                    "description": "用户名,邮箱,手机号码",
                     "type": "string"
                 },
                 "pageNumber": {
@@ -996,10 +992,6 @@ const docTemplate = `{
                 "status": {
                     "description": "状态1是正常,2是禁用",
                     "type": "integer"
-                },
-                "username": {
-                    "description": "登录帐号",
-                    "type": "string"
                 }
             }
         },
