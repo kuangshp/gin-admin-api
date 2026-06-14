@@ -171,6 +171,15 @@ migrate-prod:
 	$(GO) run ./cmd/migrate.go application.prod.yml
 	@echo "$(GREEN)✔ 数据库迁移完成$(RESET)"
 
+sync-casbin:
+	@echo "$(GREEN)▶ 同步 casbin_rule（dev 环境）...$(RESET)"
+	$(GO) run ./cmd/sync_casbin.go application.dev.yml
+	@echo "$(GREEN)✔ Casbin 同步完成$(RESET)"
+
+sync-casbin-prod:
+	@echo "$(GREEN)▶ 同步 casbin_rule（prod 环境）...$(RESET)"
+	$(GO) run ./cmd/sync_casbin.go application.prod.yml
+	@echo "$(GREEN)✔ Casbin 同步完成$(RESET)"
 # ── 依赖管理 ─────────────────────────────────────────────────────
 
 tidy:

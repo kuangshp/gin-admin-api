@@ -89,6 +89,11 @@ func (r Resources) CreateResourcesApi(ctx *gin.Context) {
 func (r Resources) DeleteResourcesByIdApi(ctx *gin.Context) {
 	id := ctx.Param("id")
 	idInt := cast.ToInt64(id)
+	resourceEntity, err := r.ResourcesRepository.FindById(ctx, idInt)
+	if err != nil {
+		r.Fail(ctx, err, "传递的主键id错误")
+		return
+	}
 	exists, err := r.ResourcesRepository.Exists(ctx, gormplus.QueryOpt().Where(dao.SysResourcesEntity.ParentID.Eq(idInt)).Build())
 	if exists || err != nil {
 		r.Fail(ctx, err, "资源下存在子资源，无法删除")
@@ -105,6 +110,11 @@ func (r Resources) DeleteResourcesByIdApi(ctx *gin.Context) {
 	}
 	if err = r.ResourcesRepository.DeleteById(ctx, idInt); err != nil {
 		r.Fail(ctx, err, "操作失败")
+	}
+	// 兜底清理 casbin 中残留的该资源策略
+	if resourceEntity.ResourcesType == 3 && resourceEntity.URL != "" && resourceEntity.Method != "" {
+		_, _ = r.Enforcer.RemoveFilteredPolicy(1, resourceEntity.URL, resourceEntity.Method)
+		_ = r.Enforcer.SavePolicy()
 	}
 	r.Success(ctx, "操作成功")
 	return
