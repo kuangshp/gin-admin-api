@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"gin-admin-api/internal/api/auth/dto"
 	"gin-admin-api/internal/api/auth/mapper"
 	"gin-admin-api/internal/api/auth/vo"
@@ -14,7 +15,6 @@ import (
 	"github.com/kuangshp/go-utils/k"
 	"github.com/kuangshp/go-utils/k/captcha"
 	"github.com/kuangshp/gorm-plus"
-	"gorm.io/gen/field"
 	"gorm.io/gorm"
 	"time"
 )
@@ -52,11 +52,11 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		return
 	}
 	accountEntity, err := a.SysAccountRepository.FindOneWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
-		g.WhereGroup(field.Or(
+		g.WhereOrGroup(
 			dao.SysAccountEntity.Username.Eq(req.Username),
 			dao.SysAccountEntity.Email.Eq(req.Username),
 			dao.SysAccountEntity.Mobile.Eq(req.Username),
-		))
+		)
 	})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -70,6 +70,8 @@ func (a Auth) AccountLoginApi(ctx *gin.Context) {
 		a.Fail(ctx, errors.New("用户被禁用登录,请联系管理员"), "用户被禁用登录,请联系管理员")
 		return
 	}
+	fmt.Println(k.MapToString(accountEntity))
+	fmt.Println("1111", k.CheckPassword(accountEntity.Password, req.Password))
 	// 判断账号密码是否正确
 	if !k.CheckPassword(accountEntity.Password, req.Password) {
 		a.Fail(ctx, errors.New("用户名或密码错误"), "用户名或密码错误")

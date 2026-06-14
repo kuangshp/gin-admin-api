@@ -260,15 +260,15 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null",
+                        "description": "统一响应，code=0 时 result 为 vo.SysAccountDetailVO，code=1 时 result 为 null",
                         "schema": {
-                            "$ref": "#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO"
+                            "$ref": "#/definitions/vo.SysAccountDetailVO"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "根据账号 ID 删除账号，并清理账号角色关系",
+                "description": "根据账号 ID 删除账号，已分配角色的账号不能直接删除",
                 "consumes": [
                     "application/json"
                 ],
@@ -421,6 +421,237 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/menu": {
+            "get": {
+                "description": "获取当前登录账号可访问的菜单资源列表，超级管理员返回全部正常资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "菜单中心"
+                ],
+                "summary": "获取菜单",
+                "responses": {
+                    "200": {
+                        "description": "菜单列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.MenusVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/resources": {
+            "post": {
+                "description": "创建目录、菜单或接口资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "创建资源",
+                "parameters": [
+                    {
+                        "description": "创建资源参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateSysResourcesDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "操作成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/resources/catalog": {
+            "post": {
+                "description": "根据资源类型获取当前账号可访问的目录、菜单或接口资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "获取资源目录",
+                "parameters": [
+                    {
+                        "description": "资源目录查询参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CatalogDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "资源目录列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.ResourcesVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/resources/list": {
+            "get": {
+                "description": "获取正常状态的目录及菜单资源列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "获取资源列表",
+                "responses": {
+                    "200": {
+                        "description": "资源列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.ResourcesVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/resources/page": {
+            "post": {
+                "description": "根据查询条件分页获取资源列表，并标记是否存在子节点",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "分页获取资源树",
+                "parameters": [
+                    {
+                        "description": "分页查询参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PageSysResourcesDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "资源分页列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/vo.SysResourcesVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/resources/{id}": {
+            "put": {
+                "description": "根据资源 ID 修改目录、菜单或接口资源",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "修改资源",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "资源ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "修改资源参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateSysResourcesDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "操作成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据资源 ID 删除资源；存在子资源或已被角色绑定时不能删除",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "资源中心"
+                ],
+                "summary": "删除资源",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "资源ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "操作成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/role": {
             "post": {
                 "description": "创建后台角色，并分配角色资源关系",
@@ -450,6 +681,38 @@ const docTemplate = `{
                         "description": "创建成功",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/role/detail/{id}": {
+            "get": {
+                "description": "根据角色 ID 获取角色详情和已授权资源 ID 列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "角色中心"
+                ],
+                "summary": "获取角色详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "角色ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "角色详情",
+                        "schema": {
+                            "$ref": "#/definitions/vo.SysRoleDetailVO"
                         }
                     }
                 }
@@ -618,6 +881,76 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CatalogDTO": {
+            "type": "object",
+            "properties": {
+                "catalogType": {
+                    "description": "类型: 1的时候只查询出模块,2的时候查询出模块和菜单3,的时候查询模块、菜单、按钮",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateSysResourcesDTO": {
+            "type": "object",
+            "required": [
+                "title",
+                "uRL"
+            ],
+            "properties": {
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "菜单小图标",
+                    "type": "string"
+                },
+                "isCache": {
+                    "description": "是否缓存:1表示缓存:2不缓存",
+                    "type": "integer"
+                },
+                "isHidden": {
+                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
+                    "type": "integer"
+                },
+                "isLink": {
+                    "description": "是否为外部链接:1表示不是,2表示是",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "接口的请求方式",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上一级id，0=顶级",
+                    "type": "integer"
+                },
+                "resourcesType": {
+                    "description": "类型:1表示目录,2表示菜单,3表示接口",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                },
+                "uRL": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateSysRoleDTO": {
             "type": "object",
             "required": [
@@ -704,6 +1037,29 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 16,
                     "minLength": 6
+                }
+            }
+        },
+        "dto.PageSysResourcesDTO": {
+            "type": "object",
+            "properties": {
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "上一级id",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态0是正常,1是禁用",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
                 }
             }
         },
@@ -977,15 +1333,258 @@ const docTemplate = `{
                 }
             }
         },
-        "vo.SysRoleVO": {
+        "vo.MenusVO": {
             "type": "object",
             "properties": {
+                "icon": {
+                    "description": "菜单小图标",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isCache": {
+                    "description": "是否缓存:1表示缓存:2不缓存",
+                    "type": "integer"
+                },
+                "isHidden": {
+                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
+                    "type": "integer"
+                },
+                "isLink": {
+                    "description": "是否为外部链接:1表示不是,2表示是",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "上一级id",
+                    "type": "integer"
+                },
+                "resourcesType": {
+                    "description": "类型:1表示目录,2表示菜单,3表示接口",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.ResourcesVO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "上一级id",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.SysAccountDetailVO": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
                 "createdAt": {
                     "description": "创建时间",
                     "type": "integer"
                 },
                 "createdBy": {
                     "description": "创建人",
+                    "type": "integer"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "description": "1是超级管理员，2是普通管理员",
+                    "type": "integer"
+                },
+                "lastLoginDate": {
+                    "description": "最后一次登录时间",
+                    "type": "integer"
+                },
+                "lastLoginIP": {
+                    "description": "最后一次登录ip",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "登录密码",
+                    "type": "string"
+                },
+                "roleIdList": {
+                    "description": "授权的角色id",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "updatedBy": {
+                    "description": "更新人",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.SysResourcesVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "hasChildren": {
+                    "description": "是否有子节点",
+                    "type": "boolean"
+                },
+                "icon": {
+                    "description": "菜单小图标",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdminHave": {
+                    "description": "是否超管独有,1表示是,0表示不是",
+                    "type": "integer"
+                },
+                "isCache": {
+                    "description": "是否缓存:1表示缓存:2不缓存",
+                    "type": "integer"
+                },
+                "isHidden": {
+                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
+                    "type": "integer"
+                },
+                "isLink": {
+                    "description": "是否为外部链接:1表示不是,2表示是",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "接口的请求方式",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上一级id，0=顶级",
+                    "type": "integer"
+                },
+                "resourcesType": {
+                    "description": "类型:1表示目录,2表示菜单,3表示接口",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                },
+                "uRL": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                }
+            }
+        },
+        "vo.SysRoleDetailVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "角色名称",
+                    "type": "string"
+                },
+                "resourcesIdList": {
+                    "description": "授权的资源id",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                }
+            }
+        },
+        "vo.SysRoleVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
                     "type": "integer"
                 },
                 "description": {
@@ -1010,10 +1609,6 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "description": "更新时间",
-                    "type": "integer"
-                },
-                "updatedBy": {
-                    "description": "更新人",
                     "type": "integer"
                 }
             }

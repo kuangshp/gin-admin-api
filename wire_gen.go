@@ -11,6 +11,7 @@ import (
 	"gin-admin-api/internal/api/account"
 	"gin-admin-api/internal/api/auth"
 	"gin-admin-api/internal/api/base"
+	"gin-admin-api/internal/api/menu"
 	"gin-admin-api/internal/api/resources"
 	"gin-admin-api/internal/api/role"
 	"gin-admin-api/internal/router"
@@ -39,7 +40,8 @@ func InitApp(envString2 string) (*initialize.App, error) {
 	iSysAccount := account.NewSysAccount(baseApi)
 	iRole := role.NewRole(baseApi)
 	iResources := resources.NewResources(baseApi)
-	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources)
+	iMenu := menu.NewMenu(baseApi)
+	adminRouter := router.NewAdminRouter(iAuth, iSysAccount, iRole, iResources, iMenu)
 	engine := initialize.NewRouter(serverConfig, logger, adminRouter, client)
 	app := initialize.NewApp(serverConfig, engine, logger)
 	return app, nil
