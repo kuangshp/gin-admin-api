@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gin-admin-api/internal/api/account/dto"
 	"gin-admin-api/internal/api/account/mapper"
+	"gin-admin-api/internal/api/account/vo"
 	_ "gin-admin-api/internal/api/account/vo"
 	"gin-admin-api/internal/api/base"
 	"gin-admin-api/internal/dal/dao"
@@ -244,7 +245,7 @@ func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "账号ID"
-// @Success 200 {object} vo.SysAccountVO "统一响应，code=0 时 result 为 vo.SysAccountVO，code=1 时 result 为 null"
+// @Success 200 {object} vo.SysAccountDetailVO "统一响应，code=0 时 result 为 vo.SysAccountDetailVO，code=1 时 result 为 null"
 // @Router /api/v1/admin/account/{id} [get]
 func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 	id, ok := s.getIdParam(ctx)
@@ -260,7 +261,20 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "获取账号详情失败")
 		return
 	}
-	s.Success(ctx, s.SysAccountMapper.EntityToVo(accountEntity))
+	accountVO := s.SysAccountMapper.EntityToVo(accountEntity)
+	// 查询账号角色
+	list, err := s.SysAccountRoleRepository.FindList(ctx, gormplus.QueryOpt().Where(dao.SysAccountRoleEntity.AccountID.Eq(id)).Build())
+	var roleIdList = make([]int64, 0)
+	if err == nil && len(list) > 0 {
+		roleIdList = k.Map(list, func(item *model.SysAccountRoleEntity, index int) int64 {
+			return item.RoleID
+		})
+	}
+	s.Success(ctx, vo.SysAccountDetailVO{
+		SysAccountVO: *accountVO,
+		RoleIdList:   roleIdList,
+	})
+	return
 }
 
 // ResetPasswordByIdApi 重置账号密码

@@ -15,6 +15,6 @@ func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, newAccount 
 	registerRouter.POST("/resetPassword", newAccount.ResetPasswordByIdApi)                       // 根据id重置密码
 	registerRouter.POST("/modifyCurrentPassword", newAccount.ModifyCurrentSysAccountPasswordApi) // 修改当前账号密码
 	registerRouter.GET("/list", newAccount.GetSysAccountListApi)                                 // 获取数据列表
-	registerRouter.GET("/:id", newAccount.GetSysAccountDetailApi)                                // 根据id获取数据
+	registerRouter.GET("/detail/:id", newAccount.GetSysAccountDetailApi)                         // 根据id获取数据
 	registerRouter.POST("page", newAccount.GetSysAccountPageApi)                                 // 分页获取数据
 }
