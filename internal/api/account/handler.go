@@ -464,14 +464,14 @@ func (s SysAccount) syncAccountRolesCasbin(accountId int64, roleIdList []int64) 
 		return errors.New("casbin enforcer未初始化")
 	}
 	sub := fmt.Sprintf("user_%d", accountId)
-	if _, err := s.Enforcer.RemoveFilteredGroupingPolicy(0, sub); err != nil {
+	if _, err := s.Enforcer.DeleteRolesForUser(sub); err != nil {
 		return err
 	}
 	roleIds := k.Filter(k.Distinct(roleIdList), func(item int64, index int) bool {
 		return item > 0
 	})
 	if len(roleIds) == 0 {
-		return nil
+		return s.Enforcer.SavePolicy()
 	}
 	rules := k.Map(roleIds, func(roleId int64, index int) []string {
 		return []string{sub, fmt.Sprintf("role_%d", roleId)}
@@ -481,7 +481,7 @@ func (s SysAccount) syncAccountRolesCasbin(accountId int64, roleIdList []int64) 
 			return err
 		}
 	}
-	return nil
+	return s.Enforcer.SavePolicy()
 }
 
 func NewSysAccount(baseApi *base.BaseApi, enforcer *casbin.Enforcer) ISysAccount {

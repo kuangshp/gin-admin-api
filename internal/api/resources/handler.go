@@ -319,7 +319,7 @@ func (r Resources) syncRelatedRoleResourcesCasbin(ctx *gin.Context, resourcesID 
 			return err
 		}
 	}
-	return nil
+	return r.Enforcer.SavePolicy()
 }
 
 // syncRoleResourcesCasbin 按角色当前授权资源重建 Casbin p 策略。
@@ -368,7 +368,7 @@ func (r Resources) syncRoleResourcesCasbin(ctx *gin.Context, roleID int64) error
 			return err
 		}
 	}
-	return nil
+	return r.Enforcer.SavePolicy()
 }
 
 func NewResources(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IResources {
