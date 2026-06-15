@@ -15,6 +15,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/kuangshp/go-utils/k"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kuangshp/gorm-plus"
@@ -28,6 +29,7 @@ type ISysAccount interface {
 	GetSysAccountPageApi(ctx *gin.Context)               // 分页获取账号
 	GetSysAccountListApi(ctx *gin.Context)               // 获取账号列表
 	GetSysAccountDetailApi(ctx *gin.Context)             // 根据id获取账号详情
+	GetCurrentSysAccountInfoApi(ctx *gin.Context)        // 获取当前登录账号信息
 	ResetPasswordByIdApi(ctx *gin.Context)               // 根据id重置账号密码
 	ModifyCurrentSysAccountPasswordApi(ctx *gin.Context) // 修改当前登录账号密码
 }
@@ -36,6 +38,8 @@ type SysAccount struct {
 	*base.BaseApi
 	SysAccountRepository     repository.SysAccountRepository
 	SysAccountRoleRepository repository.SysAccountRoleRepository
+	RoleResourcesRepository  repository.SysRoleResourcesRepository
+	ResourcesRepository      repository.SysResourcesRepository
 	SysAccountMapper         mapper.ISysAccountMapper
 	Enforcer                 *casbin.Enforcer
 }
@@ -292,6 +296,65 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 	return
 }
 
+// GetCurrentSysAccountInfoApi 获取当前登录账号信息
+// @Summary 获取当前登录账号信息
+// @Description 获取当前登录账号基础信息、授权角色和授权接口权限
+// @Tags 账号中心
+// @Accept json
+// @Produce json
+// @Success 200 {object} vo.SysAccountCurrentInfoVO "统一响应，code=0 时 result 为 vo.SysAccountCurrentInfoVO，code=1 时 result 为 null"
+// @Router /api/v1/admin/account/info [get]
+func (s SysAccount) GetCurrentSysAccountInfoApi(ctx *gin.Context) {
+	accountID, ok := s.getCurrentAccountID(ctx)
+	if !ok {
+		return
+	}
+	accountEntity, err := s.SysAccountRepository.FindById(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			s.Fail(ctx, err, "账号不存在")
+			return
+		}
+		s.Fail(ctx, err, "获取当前账号信息失败")
+		return
+	}
+	// 获取资源id
+	resourcesIdList := s.RoleResourcesRepository.GetResourcesByAccountId(ctx, accountID)
+	var apiPermissionList = make([]vo.SysAccountApiPermissionVO, 0)
+	if len(resourcesIdList) > 0 {
+		resourcesEntity, err := s.ResourcesRepository.FindByIdList(ctx, resourcesIdList, gormplus.QueryOpt().Where(
+			dao.SysResourcesEntity.ResourcesType.Eq(enum.ResourcesTypeApiEnum),
+		).Build())
+		if err == nil && len(resourcesEntity) > 0 {
+			apiPermissionList = k.Map(resourcesEntity, func(item *model.SysResourcesEntity, index int) vo.SysAccountApiPermissionVO {
+				return vo.SysAccountApiPermissionVO{
+					ID:       item.ID,       // 资源id
+					Title:    item.Title,    // 接口名称
+					URL:      item.URL,      // 接口地址
+					Method:   item.Method,   // 请求方式
+					ParentID: item.ParentID, // 上一级id
+					Sort:     item.Sort,     // 排序
+				}
+			})
+		}
+	}
+
+	s.Success(ctx, vo.SysAccountCurrentInfoVO{
+		ID:                accountEntity.ID,
+		Username:          accountEntity.Username,
+		Email:             accountEntity.Email,
+		Mobile:            accountEntity.Mobile,
+		LastLoginDate:     accountEntity.LastLoginDate.Unix(),
+		LastLoginIP:       accountEntity.LastLoginIP,
+		Status:            accountEntity.Status,
+		Avatar:            accountEntity.Avatar,
+		IsAdmin:           accountEntity.IsAdmin,
+		CreatedAt:         accountEntity.CreatedAt.Unix(),
+		UpdatedAt:         accountEntity.UpdatedAt.Unix(),
+		ApiPermissionList: apiPermissionList,
+	})
+}
+
 // ResetPasswordByIdApi 重置账号密码
 // @Summary 重置账号密码
 // @Description 根据账号 ID 重置账号密码
@@ -456,6 +519,57 @@ func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int
 	return accountRoleEntity
 }
 
+func (s SysAccount) getAccountApiPermissionList(ctx *gin.Context, roleIdList []int64, isAdmin int64) ([]vo.SysAccountApiPermissionVO, error) {
+	result := make([]vo.SysAccountApiPermissionVO, 0)
+	queryBuilder := gormplus.QueryOpt().Where(
+		dao.SysResourcesEntity.ResourcesType.Eq(enum.ResourcesTypeApiEnum),
+		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
+	)
+	if isAdmin != enum.AdminAccount {
+		if len(roleIdList) == 0 {
+			return result, nil
+		}
+		roleResourcesList, err := s.RoleResourcesRepository.FindList(ctx, gormplus.QueryOpt().
+			Where(dao.SysRoleResourcesEntity.RoleID.In(roleIdList...)).
+			Build())
+		if err != nil {
+			return nil, err
+		}
+		resourcesIdList := k.Map(roleResourcesList, func(item *model.SysRoleResourcesEntity, index int) int64 {
+			return item.ResourcesID
+		})
+		resourcesIdList = k.Filter(k.Distinct(resourcesIdList), func(item int64, index int) bool {
+			return item > 0
+		})
+		if len(resourcesIdList) == 0 {
+			return result, nil
+		}
+		queryBuilder.Where(dao.SysResourcesEntity.ID.In(resourcesIdList...))
+	}
+	resourcesList, err := s.ResourcesRepository.FindList(ctx, queryBuilder.
+		Order(dao.SysResourcesEntity.Sort.Asc(), dao.SysResourcesEntity.ID.Asc()).
+		Build())
+	if err != nil {
+		return nil, err
+	}
+	for _, item := range resourcesList {
+		url := strings.TrimSpace(item.URL)
+		method := strings.ToUpper(strings.TrimSpace(item.Method))
+		if url == "" || method == "" {
+			continue
+		}
+		result = append(result, vo.SysAccountApiPermissionVO{
+			ID:       item.ID,
+			Title:    item.Title,
+			URL:      url,
+			Method:   method,
+			ParentID: item.ParentID,
+			Sort:     item.Sort,
+		})
+	}
+	return result, nil
+}
+
 // syncAccountRolesCasbin 同步账号角色到 Casbin 的 g 分组策略。
 // 会先清空 user_{accountId} 的旧角色关系，再按 roleIdList 写入新的角色分组；
 // roleIdList 为空时表示仅清空该账号角色关系，常用于删除账号。
@@ -489,6 +603,8 @@ func NewSysAccount(baseApi *base.BaseApi, enforcer *casbin.Enforcer) ISysAccount
 		BaseApi:                  baseApi,
 		SysAccountRepository:     repository.NewSysAccountRepository(),
 		SysAccountRoleRepository: repository.NewSysAccountRoleRepository(),
+		RoleResourcesRepository:  repository.NewSysRoleResourcesRepository(),
+		ResourcesRepository:      repository.NewSysResourcesRepository(),
 		SysAccountMapper:         mapper.NewSysAccountMapper(),
 		Enforcer:                 enforcer,
 	}
