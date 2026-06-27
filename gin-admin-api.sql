@@ -13,6 +13,7 @@ CREATE TABLE `sys_account` (
    `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '状态1是正常,2是禁用',
    `avatar` varchar(200) default null comment '头像',
    `is_admin` tinyint(4) NOT NULL DEFAULT 2 COMMENT '1是超级管理员，2是普通管理员',
+   `dept_id` int(11) NOT NULL COMMENT '所属部门id，用于数据权限计算',
    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
    `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
@@ -21,7 +22,8 @@ CREATE TABLE `sys_account` (
    UNIQUE KEY `uk_username` (`username`) USING BTREE,
    UNIQUE KEY `uk_email` (`email`) USING BTREE,
    UNIQUE KEY `uk_mobile` (`mobile`) USING BTREE,
-   KEY `idx_status` (`status`) USING BTREE
+   KEY `idx_status` (`status`) USING BTREE,
+   KEY `idx_dept_id` (`dept_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='后台账号表';
 
 
@@ -35,13 +37,15 @@ CREATE TABLE `sys_role` (
     `description` varchar(255) DEFAULT NULL COMMENT '描述',
     `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,2是禁用',
     `sort` int(11) DEFAULT 1 COMMENT '排序',
+    `data_scope` tinyint(4) NOT NULL DEFAULT 4 COMMENT '数据范围：1=全部 2=本部门 3=本部门及下级 4=仅本人 5=自定义部门',
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
     `created_by` int(11) DEFAULT NULL COMMENT '创建人',
     `updated_by` int(11) DEFAULT NULL COMMENT '更新人',
     UNIQUE KEY `uk_name` (`name`) USING BTREE,
-    KEY `idx_status` (`status`) USING BTREE
+    KEY `idx_status` (`status`) USING BTREE,
+    KEY `idx_data_scope` (`data_scope`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表';
 
 -- ----------------------------
@@ -114,24 +118,24 @@ CREATE TABLE `sys_role_resources` (
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_dept`;
 CREATE TABLE `sys_dept` (
-    `id` int(11) NOT NULL AUTO_INCREMENT primary key COMMENT '主键id',
+    `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `name` varchar(50) NOT NULL COMMENT '部门名称',
-    `parent_id` int(11) NOT NULL DEFAULT 0 COMMENT '上级部门id，0=顶级',
-    `full_id` varchar(255) NOT NULL DEFAULT '' COMMENT '全层级ID 例：1,5,12',
-    `full_name` varchar(255) NOT NULL DEFAULT '' COMMENT '全层级名称 例：总公司,技术部,后端组',
+    `parent_id` int(11) NOT NULL DEFAULT 0 COMMENT '上级部门id',
+    `full_id` varchar(255) NOT NULL DEFAULT '' COMMENT '全层级ID，例：1,5,12',
+    `full_name` varchar(255) NOT NULL DEFAULT '' COMMENT '全层级名称',
     `sort` int(11) DEFAULT 1 COMMENT '排序',
-    `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,2是禁用',
-    `leader` varchar(50) DEFAULT NULL COMMENT '部门负责人',
-    `phone` varchar(20) DEFAULT NULL COMMENT '部门联系电话',
-    `email` varchar(60) DEFAULT NULL COMMENT '部门邮箱',
+    `status` tinyint(4) DEFAULT 1 COMMENT '状态1正常 2禁用',
+    `leader` varchar(50) DEFAULT NULL COMMENT '负责人',
+    `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+    `email` varchar(60) DEFAULT NULL COMMENT '邮箱',
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
     `created_by` int(11) DEFAULT NULL COMMENT '创建人',
     `updated_by` int(11) DEFAULT NULL COMMENT '更新人',
-    KEY `idx_parent_id` (`parent_id`) USING BTREE,
-    KEY `idx_full_id` (`full_id`) USING BTREE,
-    KEY `idx_status` (`status`) USING BTREE
+    KEY `idx_parent_id` (`parent_id`),
+    KEY `idx_full_id` (`full_id`),
+    KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
 
 -- ----------------------------
@@ -139,21 +143,21 @@ CREATE TABLE `sys_dept` (
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_post`;
 CREATE TABLE `sys_post` (
-    `id` int(11) NOT NULL AUTO_INCREMENT primary key COMMENT '主键id',
+    `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `name` varchar(50) NOT NULL COMMENT '岗位名称',
     `code` varchar(60) NOT NULL COMMENT '岗位编码',
     `dept_id` int(11) NOT NULL COMMENT '所属部门id',
     `sort` int(11) DEFAULT 1 COMMENT '排序',
-    `status` tinyint(4) DEFAULT 1 COMMENT '状态1是正常,2是禁用',
+    `status` tinyint(4) DEFAULT 1 COMMENT '状态1正常 2禁用',
     `remark` varchar(255) DEFAULT NULL COMMENT '备注',
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
     `created_by` int(11) DEFAULT NULL COMMENT '创建人',
     `updated_by` int(11) DEFAULT NULL COMMENT '更新人',
-    UNIQUE KEY `uk_code` (`code`) USING BTREE,
-    KEY `idx_dept_id` (`dept_id`) USING BTREE,
-    KEY `idx_status` (`status`) USING BTREE
+    UNIQUE KEY `uk_code` (`code`),
+    KEY `idx_dept_id` (`dept_id`),
+    KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='岗位表';
 
 -- ----------------------------
@@ -161,7 +165,7 @@ CREATE TABLE `sys_post` (
 -- ----------------------------
 DROP TABLE IF EXISTS `sys_account_post`;
 CREATE TABLE `sys_account_post` (
-    `id` int(11) NOT NULL AUTO_INCREMENT primary key COMMENT '主键id',
+    `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `account_id` int(11) NOT NULL COMMENT '账号id',
     `post_id` int(11) NOT NULL COMMENT '岗位id',
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -169,39 +173,24 @@ CREATE TABLE `sys_account_post` (
     `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
     `created_by` int(11) DEFAULT NULL COMMENT '创建人',
     `updated_by` int(11) DEFAULT NULL COMMENT '更新人',
-    UNIQUE KEY `uk_account_post` (`account_id`, `post_id`) USING BTREE,
-    KEY `idx_account_id` (`account_id`) USING BTREE,
-    KEY `idx_post_id` (`post_id`) USING BTREE
+    UNIQUE KEY `uk_account_post` (`account_id`, `post_id`),
+    KEY `idx_account_id` (`account_id`),
+    KEY `idx_post_id` (`post_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='账号岗位关联表';
-
--- ----------------------------
--- 角色数据权限表
--- ----------------------------
-DROP TABLE IF EXISTS `sys_data_scope`;
-CREATE TABLE `sys_data_scope` (
-  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
-  `role_id` int(11) NOT NULL COMMENT '角色ID',
-  `data_type` tinyint(4) NOT NULL DEFAULT 4 COMMENT '数据范围：1全部 2本部门 3本部门及下级 4仅本人 5自定义部门',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
-  UNIQUE KEY `uk_role_id` (`role_id`) USING BTREE,
-  KEY `idx_data_type` (`data_type`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色数据权限表';
 
 -- ----------------------------
 -- 数据权限-自定义部门表
 -- ----------------------------
-DROP TABLE IF EXISTS `sys_data_scope_dept`;
-CREATE TABLE `sys_data_scope_dept` (
-   `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
-   `scope_id` int(11) NOT NULL COMMENT '数据权限id',
-   `dept_id` int(11) NOT NULL COMMENT '可查看部门id',
-   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-   `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
-   UNIQUE KEY `uk_scope_dept` (`scope_id`,`dept_id`) USING BTREE,
-   KEY `idx_scope_id` (`scope_id`) USING BTREE,
-   KEY `idx_dept_id` (`dept_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色数据权限-自定义部门关联';
+DROP TABLE IF EXISTS `sys_role_custom_dept`;
+CREATE TABLE `sys_role_custom_dept` (
+    `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
+    `role_id` int(11) NOT NULL COMMENT '角色id',
+    `dept_id` int(11) NOT NULL COMMENT '可查看部门id',
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `deleted_at` datetime NULL DEFAULT NULL COMMENT '软删除时间',
+    UNIQUE KEY `uk_role_dept` (`role_id`, `dept_id`),
+    KEY `idx_role_id` (`role_id`),
+    KEY `idx_dept_id` (`dept_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色自定义数据权限部门表';
 
