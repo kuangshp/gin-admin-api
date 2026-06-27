@@ -33,6 +33,7 @@ func newSysRoleEntity(db *gorm.DB, opts ...gen.DOOption) sysRoleEntity {
 	_sysRoleEntity.Description = field.NewString(tableName, "description")
 	_sysRoleEntity.Status = field.NewInt64(tableName, "status")
 	_sysRoleEntity.Sort = field.NewInt64(tableName, "sort")
+	_sysRoleEntity.DataScope = field.NewInt64(tableName, "data_scope")
 	_sysRoleEntity.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysRoleEntity.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysRoleEntity.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -54,6 +55,7 @@ type sysRoleEntity struct {
 	Description field.String // 描述
 	Status      field.Int64  // 状态1是正常,2是禁用
 	Sort        field.Int64  // 排序
+	DataScope   field.Int64  // 数据范围：1=全部 2=本部门 3=本部门及下级 4=仅本人 5=自定义部门
 	CreatedAt   field.Time   // 创建时间
 	UpdatedAt   field.Time   // 更新时间
 	DeletedAt   field.Field  // 软删除时间
@@ -80,6 +82,7 @@ func (s *sysRoleEntity) updateTableName(table string) *sysRoleEntity {
 	s.Description = field.NewString(table, "description")
 	s.Status = field.NewInt64(table, "status")
 	s.Sort = field.NewInt64(table, "sort")
+	s.DataScope = field.NewInt64(table, "data_scope")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewField(table, "deleted_at")
@@ -101,12 +104,13 @@ func (s *sysRoleEntity) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (s *sysRoleEntity) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 10)
+	s.fieldMap = make(map[string]field.Expr, 11)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["description"] = s.Description
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["sort"] = s.Sort
+	s.fieldMap["data_scope"] = s.DataScope
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt

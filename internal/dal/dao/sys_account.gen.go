@@ -38,6 +38,7 @@ func newSysAccountEntity(db *gorm.DB, opts ...gen.DOOption) sysAccountEntity {
 	_sysAccountEntity.Status = field.NewInt64(tableName, "status")
 	_sysAccountEntity.Avatar = field.NewString(tableName, "avatar")
 	_sysAccountEntity.IsAdmin = field.NewInt64(tableName, "is_admin")
+	_sysAccountEntity.DeptID = field.NewInt64(tableName, "dept_id")
 	_sysAccountEntity.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysAccountEntity.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysAccountEntity.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -64,6 +65,7 @@ type sysAccountEntity struct {
 	Status        field.Int64  // 状态1是正常,2是禁用
 	Avatar        field.String // 头像
 	IsAdmin       field.Int64  // 1是超级管理员，2是普通管理员
+	DeptID        field.Int64  // 所属部门id，用于数据权限计算
 	CreatedAt     field.Time   // 创建时间
 	UpdatedAt     field.Time   // 更新时间
 	DeletedAt     field.Field  // 软删除时间
@@ -95,6 +97,7 @@ func (s *sysAccountEntity) updateTableName(table string) *sysAccountEntity {
 	s.Status = field.NewInt64(table, "status")
 	s.Avatar = field.NewString(table, "avatar")
 	s.IsAdmin = field.NewInt64(table, "is_admin")
+	s.DeptID = field.NewInt64(table, "dept_id")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewField(table, "deleted_at")
@@ -116,7 +119,7 @@ func (s *sysAccountEntity) GetFieldByName(fieldName string) (field.OrderExpr, bo
 }
 
 func (s *sysAccountEntity) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 15)
+	s.fieldMap = make(map[string]field.Expr, 16)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["username"] = s.Username
 	s.fieldMap["email"] = s.Email
@@ -127,6 +130,7 @@ func (s *sysAccountEntity) fillFieldMap() {
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["avatar"] = s.Avatar
 	s.fieldMap["is_admin"] = s.IsAdmin
+	s.fieldMap["dept_id"] = s.DeptID
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt

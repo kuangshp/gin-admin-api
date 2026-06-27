@@ -16,42 +16,58 @@ import (
 )
 
 var (
-	Q                      = new(Query)
-	SysAccountEntity       *sysAccountEntity
-	SysAccountRoleEntity   *sysAccountRoleEntity
-	SysResourcesEntity     *sysResourcesEntity
-	SysRoleEntity          *sysRoleEntity
-	SysRoleResourcesEntity *sysRoleResourcesEntity
+	Q                       = new(Query)
+	SysAccountEntity        *sysAccountEntity
+	SysAccountPostEntity    *sysAccountPostEntity
+	SysAccountRoleEntity    *sysAccountRoleEntity
+	SysDeptEntity           *sysDeptEntity
+	SysPostEntity           *sysPostEntity
+	SysResourcesEntity      *sysResourcesEntity
+	SysRoleCustomDeptEntity *sysRoleCustomDeptEntity
+	SysRoleEntity           *sysRoleEntity
+	SysRoleResourcesEntity  *sysRoleResourcesEntity
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	SysAccountEntity = &Q.SysAccountEntity
+	SysAccountPostEntity = &Q.SysAccountPostEntity
 	SysAccountRoleEntity = &Q.SysAccountRoleEntity
+	SysDeptEntity = &Q.SysDeptEntity
+	SysPostEntity = &Q.SysPostEntity
 	SysResourcesEntity = &Q.SysResourcesEntity
+	SysRoleCustomDeptEntity = &Q.SysRoleCustomDeptEntity
 	SysRoleEntity = &Q.SysRoleEntity
 	SysRoleResourcesEntity = &Q.SysRoleResourcesEntity
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:                     db,
-		SysAccountEntity:       newSysAccountEntity(db, opts...),
-		SysAccountRoleEntity:   newSysAccountRoleEntity(db, opts...),
-		SysResourcesEntity:     newSysResourcesEntity(db, opts...),
-		SysRoleEntity:          newSysRoleEntity(db, opts...),
-		SysRoleResourcesEntity: newSysRoleResourcesEntity(db, opts...),
+		db:                      db,
+		SysAccountEntity:        newSysAccountEntity(db, opts...),
+		SysAccountPostEntity:    newSysAccountPostEntity(db, opts...),
+		SysAccountRoleEntity:    newSysAccountRoleEntity(db, opts...),
+		SysDeptEntity:           newSysDeptEntity(db, opts...),
+		SysPostEntity:           newSysPostEntity(db, opts...),
+		SysResourcesEntity:      newSysResourcesEntity(db, opts...),
+		SysRoleCustomDeptEntity: newSysRoleCustomDeptEntity(db, opts...),
+		SysRoleEntity:           newSysRoleEntity(db, opts...),
+		SysRoleResourcesEntity:  newSysRoleResourcesEntity(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	SysAccountEntity       sysAccountEntity
-	SysAccountRoleEntity   sysAccountRoleEntity
-	SysResourcesEntity     sysResourcesEntity
-	SysRoleEntity          sysRoleEntity
-	SysRoleResourcesEntity sysRoleResourcesEntity
+	SysAccountEntity        sysAccountEntity
+	SysAccountPostEntity    sysAccountPostEntity
+	SysAccountRoleEntity    sysAccountRoleEntity
+	SysDeptEntity           sysDeptEntity
+	SysPostEntity           sysPostEntity
+	SysResourcesEntity      sysResourcesEntity
+	SysRoleCustomDeptEntity sysRoleCustomDeptEntity
+	SysRoleEntity           sysRoleEntity
+	SysRoleResourcesEntity  sysRoleResourcesEntity
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -60,12 +76,16 @@ func (q *Query) UnderlyingDB() *gorm.DB { return q.db }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:                     db,
-		SysAccountEntity:       q.SysAccountEntity.clone(db),
-		SysAccountRoleEntity:   q.SysAccountRoleEntity.clone(db),
-		SysResourcesEntity:     q.SysResourcesEntity.clone(db),
-		SysRoleEntity:          q.SysRoleEntity.clone(db),
-		SysRoleResourcesEntity: q.SysRoleResourcesEntity.clone(db),
+		db:                      db,
+		SysAccountEntity:        q.SysAccountEntity.clone(db),
+		SysAccountPostEntity:    q.SysAccountPostEntity.clone(db),
+		SysAccountRoleEntity:    q.SysAccountRoleEntity.clone(db),
+		SysDeptEntity:           q.SysDeptEntity.clone(db),
+		SysPostEntity:           q.SysPostEntity.clone(db),
+		SysResourcesEntity:      q.SysResourcesEntity.clone(db),
+		SysRoleCustomDeptEntity: q.SysRoleCustomDeptEntity.clone(db),
+		SysRoleEntity:           q.SysRoleEntity.clone(db),
+		SysRoleResourcesEntity:  q.SysRoleResourcesEntity.clone(db),
 	}
 }
 
@@ -79,30 +99,42 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:                     db,
-		SysAccountEntity:       q.SysAccountEntity.replaceDB(db),
-		SysAccountRoleEntity:   q.SysAccountRoleEntity.replaceDB(db),
-		SysResourcesEntity:     q.SysResourcesEntity.replaceDB(db),
-		SysRoleEntity:          q.SysRoleEntity.replaceDB(db),
-		SysRoleResourcesEntity: q.SysRoleResourcesEntity.replaceDB(db),
+		db:                      db,
+		SysAccountEntity:        q.SysAccountEntity.replaceDB(db),
+		SysAccountPostEntity:    q.SysAccountPostEntity.replaceDB(db),
+		SysAccountRoleEntity:    q.SysAccountRoleEntity.replaceDB(db),
+		SysDeptEntity:           q.SysDeptEntity.replaceDB(db),
+		SysPostEntity:           q.SysPostEntity.replaceDB(db),
+		SysResourcesEntity:      q.SysResourcesEntity.replaceDB(db),
+		SysRoleCustomDeptEntity: q.SysRoleCustomDeptEntity.replaceDB(db),
+		SysRoleEntity:           q.SysRoleEntity.replaceDB(db),
+		SysRoleResourcesEntity:  q.SysRoleResourcesEntity.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	SysAccountEntity       ISysAccountEntityDo
-	SysAccountRoleEntity   ISysAccountRoleEntityDo
-	SysResourcesEntity     ISysResourcesEntityDo
-	SysRoleEntity          ISysRoleEntityDo
-	SysRoleResourcesEntity ISysRoleResourcesEntityDo
+	SysAccountEntity        ISysAccountEntityDo
+	SysAccountPostEntity    ISysAccountPostEntityDo
+	SysAccountRoleEntity    ISysAccountRoleEntityDo
+	SysDeptEntity           ISysDeptEntityDo
+	SysPostEntity           ISysPostEntityDo
+	SysResourcesEntity      ISysResourcesEntityDo
+	SysRoleCustomDeptEntity ISysRoleCustomDeptEntityDo
+	SysRoleEntity           ISysRoleEntityDo
+	SysRoleResourcesEntity  ISysRoleResourcesEntityDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		SysAccountEntity:       q.SysAccountEntity.WithContext(ctx),
-		SysAccountRoleEntity:   q.SysAccountRoleEntity.WithContext(ctx),
-		SysResourcesEntity:     q.SysResourcesEntity.WithContext(ctx),
-		SysRoleEntity:          q.SysRoleEntity.WithContext(ctx),
-		SysRoleResourcesEntity: q.SysRoleResourcesEntity.WithContext(ctx),
+		SysAccountEntity:        q.SysAccountEntity.WithContext(ctx),
+		SysAccountPostEntity:    q.SysAccountPostEntity.WithContext(ctx),
+		SysAccountRoleEntity:    q.SysAccountRoleEntity.WithContext(ctx),
+		SysDeptEntity:           q.SysDeptEntity.WithContext(ctx),
+		SysPostEntity:           q.SysPostEntity.WithContext(ctx),
+		SysResourcesEntity:      q.SysResourcesEntity.WithContext(ctx),
+		SysRoleCustomDeptEntity: q.SysRoleCustomDeptEntity.WithContext(ctx),
+		SysRoleEntity:           q.SysRoleEntity.WithContext(ctx),
+		SysRoleResourcesEntity:  q.SysRoleResourcesEntity.WithContext(ctx),
 	}
 }
 

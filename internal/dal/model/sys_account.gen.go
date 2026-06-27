@@ -24,6 +24,7 @@ type SysAccountEntity struct {
 	Status        int64          `gorm:"column:status;type:tinyint;not null;default:1;comment:状态1是正常,2是禁用" json:"status"`        // 状态1是正常,2是禁用
 	Avatar        string         `gorm:"column:avatar;type:varchar(200);comment:头像" json:"avatar"`                               // 头像
 	IsAdmin       int64          `gorm:"column:is_admin;type:tinyint;not null;default:2;comment:1是超级管理员，2是普通管理员" json:"isAdmin"` // 1是超级管理员，2是普通管理员
+	DeptID        int64          `gorm:"column:dept_id;type:int;not null;comment:所属部门id，用于数据权限计算" json:"deptId"`                 // 所属部门id，用于数据权限计算
 	CreatedAt     time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                        // 创建时间
 	UpdatedAt     time.Time      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`                                        // 更新时间
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;type:datetime;comment:软删除时间" json:"-"`                                 // 软删除时间
