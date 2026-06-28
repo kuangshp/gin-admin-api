@@ -43,29 +43,29 @@ type iDefaultSysDeptRepository interface {
 	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), opts ...gormplus.UpdateOption) error
 	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
-	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error)
+	FindList(ctx context.Context, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error)
 	// FindListByWrapper 根据wrapper条件获取列表
-	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error)
+	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error)
 	// FindPage 根据原生条件分页查询
-	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysDeptEntity, total int64, err error)
+	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, sysDeptTotal int64, err error)
 	// FindPageByWrapper 根据wrapper条件分页查询
-	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (list []*model.SysDeptEntity, total int64, err error)
+	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, sysDeptTotal int64, err error)
 	// FindById 根据ID获取详情（支持 query.WithCache / query.WithSingleFlight）
-	FindById(ctx context.Context, sysDeptId int64, query ...gormplus.QueryOption) (*model.SysDeptEntity, error)
+	FindById(ctx context.Context, sysDeptId int64, query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error)
 	// FindByIdList 根据ID列表获取（支持 query.WithCache / query.WithSingleFlight）
-	FindByIdList(ctx context.Context, sysDeptIds []int64, query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error)
+	FindByIdList(ctx context.Context, sysDeptIds []int64, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error)
 	// FindOne 根据原生条件获取单条
-	FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysDeptEntity, error)
+	FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error)
 	// FindOneWrapper 根据wrapper条件获取单条
-	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (*model.SysDeptEntity, error)
+	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error)
 	// Exists 根据原生条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error)
+	Exists(ctx context.Context, query ...gormplus.QueryOption) (sysDeptExists bool, err error)
 	// ExistsByWrapper 根据wrapper条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (bool, error)
+	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptExists bool, err error)
 	// Count 根据原生条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error)
+	Count(ctx context.Context, query ...gormplus.QueryOption) (sysDeptCount int64, err error)
 	// CountByWrapper 根据wrapper条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (int64, error)
+	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptCount int64, err error)
 }
 
 // ==================== 缓存失效辅助方法 ====================
@@ -178,8 +178,92 @@ func (r *defaultSysDeptRepository) buildWrapperTx(ctx context.Context, fn func(g
         if q.Limit != nil {
             entityDo = entityDo.Limit(*q.Limit)
         }
-    }
+	}
 	return entityDo
+}
+
+// SysDeptJoinQueryBuilder 构建SysDept连表查询基础语句。
+type SysDeptJoinQueryBuilder func(ctx context.Context) dao.ISysDeptEntityDo
+
+// newDefaultSysDeptJoinQuery 创建SysDept默认连表查询基础语句。
+func newDefaultSysDeptJoinQuery(ctx context.Context) dao.ISysDeptEntityDo {
+	return dao.SysDeptEntity.WithContext(ctx)
+}
+
+// buildSysDeptJoinTx 构建SysDept连表查询语句。
+func buildSysDeptJoinTx(ctx context.Context, build SysDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query []gormplus.QueryOption) dao.ISysDeptEntityDo {
+	q := gormplus.MergeQueryOptions(query...)
+	if build == nil {
+		build = newDefaultSysDeptJoinQuery
+	}
+	baseTx := build(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
+	if fn != nil {
+		fn(tx)
+	}
+	entityDo := tx.Apply()
+	if len(q.Cond) > 0 {
+		entityDo = entityDo.Where(q.Cond...)
+	}
+	if len(q.Select) > 0 {
+		entityDo = entityDo.Select(q.Select...)
+	}
+	if len(q.OmitFields) > 0 {
+		entityDo = entityDo.Omit(q.OmitFields...)
+	}
+	if len(q.Order) > 0 {
+		entityDo = entityDo.Order(q.Order...)
+	}
+	if q.Limit != nil {
+		entityDo = entityDo.Limit(*q.Limit)
+	}
+	return entityDo
+}
+
+// FindSysDeptJoinList 查询SysDept连表列表，T 可以是调用方自定义的行结构体。
+func FindSysDeptJoinList[T any](ctx context.Context, build SysDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (rows []T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_dept.FindJoinList", nil,
+		func() (rows []T, err error) {
+			rows = make([]T, 0)
+			err = buildSysDeptJoinTx(ctx, build, fn, query).Scan(&rows)
+			return rows, err
+		},
+	)
+}
+
+// FindSysDeptJoinPage 分页查询SysDept连表列表，T 可以是调用方自定义的行结构体。
+func FindSysDeptJoinPage[T any](ctx context.Context, pageNumber int64, pageSize int64, build SysDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (rows []T, total int64, err error) {
+	offset, limit := gormplus.DbPage(pageNumber, pageSize)
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecutePage(opt, "sys_dept.FindJoinPage",
+		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
+		func() (rows []T, total int64, err error) {
+			rows = make([]T, 0)
+			total, err = buildSysDeptJoinTx(ctx, build, fn, query).ScanByPage(&rows, offset, limit)
+			return rows, total, err
+		},
+	)
+}
+
+// FindSysDeptJoinOne 查询SysDept连表单条数据，T 可以是调用方自定义的行结构体。
+func FindSysDeptJoinOne[T any](ctx context.Context, build SysDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (row T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_dept.FindJoinOne", nil,
+		func() (row T, err error) {
+			err = buildSysDeptJoinTx(ctx, build, fn, query).Limit(1).Scan(&row)
+			return row, err
+		},
+	)
 }
 
 // ==================== 实现 ====================
@@ -538,53 +622,53 @@ func (r *defaultSysDeptRepository) UpdateByWrapperTx(ctx context.Context, daoTx 
 	return err
 }
 
-func (r *defaultSysDeptRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindList", nil,
-		func() ([]*model.SysDeptEntity, error) {
+		func() (sysDeptList []*model.SysDeptEntity, err error) {
 			return r.buildTx(ctx, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindListByWrapper", nil,
-		func() ([]*model.SysDeptEntity, error) {
+		func() (sysDeptList []*model.SysDeptEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysDeptEntity, total int64, err error) {
+func (r *defaultSysDeptRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, sysDeptTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_dept.FindPage",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysDeptEntity, int64, error) {
+		func() (sysDeptList []*model.SysDeptEntity, total int64, err error) {
 			return r.buildTx(ctx, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (list []*model.SysDeptEntity, total int64, err error) {
+func (r *defaultSysDeptRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, sysDeptTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_dept.FindPageByWrapper",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysDeptEntity, int64, error) {
+		func() (sysDeptList []*model.SysDeptEntity, total int64, err error) {
 			return r.buildWrapperTx(ctx, fn, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) FindById(ctx context.Context, sysDeptId int64, query ...gormplus.QueryOption) (*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindById(ctx context.Context, sysDeptId int64, query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindById",
 		gormplus.BuildArgs("id", sysDeptId),
-		func() (*model.SysDeptEntity, error) {
+		func() (sysDept *model.SysDeptEntity, err error) {
 			tx := dao.SysDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -598,14 +682,14 @@ func (r *defaultSysDeptRepository) FindById(ctx context.Context, sysDeptId int64
 		},
 	)
 }
-func (r *defaultSysDeptRepository) FindByIdList(ctx context.Context, sysDeptIds []int64, query ...gormplus.QueryOption) ([]*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindByIdList(ctx context.Context, sysDeptIds []int64, query ...gormplus.QueryOption) (sysDeptList []*model.SysDeptEntity, err error) {
 	if len(sysDeptIds) == 0 {
 		return []*model.SysDeptEntity{}, nil
 	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindByIdList",
 		gormplus.BuildArgs("ids", sysDeptIds),
-		func() ([]*model.SysDeptEntity, error) {
+		func() (sysDeptList []*model.SysDeptEntity, err error) {
 			tx := dao.SysDeptEntity.WithContext(ctx).Where(dao.SysDeptEntity.ID.In(sysDeptIds...))
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -633,28 +717,28 @@ func (r *defaultSysDeptRepository) FindByIdList(ctx context.Context, sysDeptIds 
 	)
 }
 
-func (r *defaultSysDeptRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindOne", nil,
-		func() (*model.SysDeptEntity, error) {
+		func() (sysDept *model.SysDeptEntity, err error) {
 			return r.buildTx(ctx, query).First()
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (*model.SysDeptEntity, error) {
+func (r *defaultSysDeptRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDept *model.SysDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.FindOneWrapper", nil,
-		func() (*model.SysDeptEntity, error) {
+		func() (sysDept *model.SysDeptEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).First()
 		},
 	)
 }
 
-func (r *defaultSysDeptRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysDeptRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (sysDeptExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.Exists", nil,
-		func() (bool, error) {
+		func() (sysDeptExists bool, err error) {
 			tx := dao.SysDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -674,10 +758,10 @@ func (r *defaultSysDeptRepository) Exists(ctx context.Context, query ...gormplus
 	)
 }
 
-func (r *defaultSysDeptRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysDeptRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.ExistsByWrapper", nil,
-		func() (bool, error) {
+		func() (sysDeptExists bool, err error) {
 			baseTx := dao.SysDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
@@ -701,10 +785,10 @@ func (r *defaultSysDeptRepository) ExistsByWrapper(ctx context.Context, fn func(
 	)
 }
 
-func (r *defaultSysDeptRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysDeptRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (sysDeptCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.Count", nil,
-		func() (int64, error) {
+		func() (sysDeptCount int64, err error) {
 			tx := dao.SysDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -720,10 +804,10 @@ func (r *defaultSysDeptRepository) Count(ctx context.Context, query ...gormplus.
 	)
 }
 
-func (r *defaultSysDeptRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysDeptRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysDeptEntityDo]), query ...gormplus.QueryOption) (sysDeptCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_dept.CountByWrapper", nil,
-		func() (int64, error) {
+		func() (sysDeptCount int64, err error) {
 			baseTx := dao.SysDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()

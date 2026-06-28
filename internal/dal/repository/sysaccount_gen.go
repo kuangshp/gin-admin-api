@@ -43,29 +43,29 @@ type iDefaultSysAccountRepository interface {
 	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), opts ...gormplus.UpdateOption) error
 	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
-	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error)
+	FindList(ctx context.Context, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error)
 	// FindListByWrapper 根据wrapper条件获取列表
-	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error)
+	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error)
 	// FindPage 根据原生条件分页查询
-	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysAccountEntity, total int64, err error)
+	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, sysAccountTotal int64, err error)
 	// FindPageByWrapper 根据wrapper条件分页查询
-	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (list []*model.SysAccountEntity, total int64, err error)
+	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, sysAccountTotal int64, err error)
 	// FindById 根据ID获取详情（支持 query.WithCache / query.WithSingleFlight）
-	FindById(ctx context.Context, sysAccountId int64, query ...gormplus.QueryOption) (*model.SysAccountEntity, error)
+	FindById(ctx context.Context, sysAccountId int64, query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error)
 	// FindByIdList 根据ID列表获取（支持 query.WithCache / query.WithSingleFlight）
-	FindByIdList(ctx context.Context, sysAccountIds []int64, query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error)
+	FindByIdList(ctx context.Context, sysAccountIds []int64, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error)
 	// FindOne 根据原生条件获取单条
-	FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysAccountEntity, error)
+	FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error)
 	// FindOneWrapper 根据wrapper条件获取单条
-	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (*model.SysAccountEntity, error)
+	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error)
 	// Exists 根据原生条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error)
+	Exists(ctx context.Context, query ...gormplus.QueryOption) (sysAccountExists bool, err error)
 	// ExistsByWrapper 根据wrapper条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (bool, error)
+	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountExists bool, err error)
 	// Count 根据原生条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error)
+	Count(ctx context.Context, query ...gormplus.QueryOption) (sysAccountCount int64, err error)
 	// CountByWrapper 根据wrapper条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (int64, error)
+	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountCount int64, err error)
 }
 
 // ==================== 缓存失效辅助方法 ====================
@@ -178,8 +178,92 @@ func (r *defaultSysAccountRepository) buildWrapperTx(ctx context.Context, fn fun
         if q.Limit != nil {
             entityDo = entityDo.Limit(*q.Limit)
         }
-    }
+	}
 	return entityDo
+}
+
+// SysAccountJoinQueryBuilder 构建SysAccount连表查询基础语句。
+type SysAccountJoinQueryBuilder func(ctx context.Context) dao.ISysAccountEntityDo
+
+// newDefaultSysAccountJoinQuery 创建SysAccount默认连表查询基础语句。
+func newDefaultSysAccountJoinQuery(ctx context.Context) dao.ISysAccountEntityDo {
+	return dao.SysAccountEntity.WithContext(ctx)
+}
+
+// buildSysAccountJoinTx 构建SysAccount连表查询语句。
+func buildSysAccountJoinTx(ctx context.Context, build SysAccountJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query []gormplus.QueryOption) dao.ISysAccountEntityDo {
+	q := gormplus.MergeQueryOptions(query...)
+	if build == nil {
+		build = newDefaultSysAccountJoinQuery
+	}
+	baseTx := build(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
+	if fn != nil {
+		fn(tx)
+	}
+	entityDo := tx.Apply()
+	if len(q.Cond) > 0 {
+		entityDo = entityDo.Where(q.Cond...)
+	}
+	if len(q.Select) > 0 {
+		entityDo = entityDo.Select(q.Select...)
+	}
+	if len(q.OmitFields) > 0 {
+		entityDo = entityDo.Omit(q.OmitFields...)
+	}
+	if len(q.Order) > 0 {
+		entityDo = entityDo.Order(q.Order...)
+	}
+	if q.Limit != nil {
+		entityDo = entityDo.Limit(*q.Limit)
+	}
+	return entityDo
+}
+
+// FindSysAccountJoinList 查询SysAccount连表列表，T 可以是调用方自定义的行结构体。
+func FindSysAccountJoinList[T any](ctx context.Context, build SysAccountJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (rows []T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_account.FindJoinList", nil,
+		func() (rows []T, err error) {
+			rows = make([]T, 0)
+			err = buildSysAccountJoinTx(ctx, build, fn, query).Scan(&rows)
+			return rows, err
+		},
+	)
+}
+
+// FindSysAccountJoinPage 分页查询SysAccount连表列表，T 可以是调用方自定义的行结构体。
+func FindSysAccountJoinPage[T any](ctx context.Context, pageNumber int64, pageSize int64, build SysAccountJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (rows []T, total int64, err error) {
+	offset, limit := gormplus.DbPage(pageNumber, pageSize)
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecutePage(opt, "sys_account.FindJoinPage",
+		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
+		func() (rows []T, total int64, err error) {
+			rows = make([]T, 0)
+			total, err = buildSysAccountJoinTx(ctx, build, fn, query).ScanByPage(&rows, offset, limit)
+			return rows, total, err
+		},
+	)
+}
+
+// FindSysAccountJoinOne 查询SysAccount连表单条数据，T 可以是调用方自定义的行结构体。
+func FindSysAccountJoinOne[T any](ctx context.Context, build SysAccountJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (row T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_account.FindJoinOne", nil,
+		func() (row T, err error) {
+			err = buildSysAccountJoinTx(ctx, build, fn, query).Limit(1).Scan(&row)
+			return row, err
+		},
+	)
 }
 
 // ==================== 实现 ====================
@@ -538,53 +622,53 @@ func (r *defaultSysAccountRepository) UpdateByWrapperTx(ctx context.Context, dao
 	return err
 }
 
-func (r *defaultSysAccountRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindList", nil,
-		func() ([]*model.SysAccountEntity, error) {
+		func() (sysAccountList []*model.SysAccountEntity, err error) {
 			return r.buildTx(ctx, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindListByWrapper", nil,
-		func() ([]*model.SysAccountEntity, error) {
+		func() (sysAccountList []*model.SysAccountEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysAccountEntity, total int64, err error) {
+func (r *defaultSysAccountRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, sysAccountTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_account.FindPage",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysAccountEntity, int64, error) {
+		func() (sysAccountList []*model.SysAccountEntity, total int64, err error) {
 			return r.buildTx(ctx, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (list []*model.SysAccountEntity, total int64, err error) {
+func (r *defaultSysAccountRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, sysAccountTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_account.FindPageByWrapper",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysAccountEntity, int64, error) {
+		func() (sysAccountList []*model.SysAccountEntity, total int64, err error) {
 			return r.buildWrapperTx(ctx, fn, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) FindById(ctx context.Context, sysAccountId int64, query ...gormplus.QueryOption) (*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindById(ctx context.Context, sysAccountId int64, query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindById",
 		gormplus.BuildArgs("id", sysAccountId),
-		func() (*model.SysAccountEntity, error) {
+		func() (sysAccount *model.SysAccountEntity, err error) {
 			tx := dao.SysAccountEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -598,14 +682,14 @@ func (r *defaultSysAccountRepository) FindById(ctx context.Context, sysAccountId
 		},
 	)
 }
-func (r *defaultSysAccountRepository) FindByIdList(ctx context.Context, sysAccountIds []int64, query ...gormplus.QueryOption) ([]*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindByIdList(ctx context.Context, sysAccountIds []int64, query ...gormplus.QueryOption) (sysAccountList []*model.SysAccountEntity, err error) {
 	if len(sysAccountIds) == 0 {
 		return []*model.SysAccountEntity{}, nil
 	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindByIdList",
 		gormplus.BuildArgs("ids", sysAccountIds),
-		func() ([]*model.SysAccountEntity, error) {
+		func() (sysAccountList []*model.SysAccountEntity, err error) {
 			tx := dao.SysAccountEntity.WithContext(ctx).Where(dao.SysAccountEntity.ID.In(sysAccountIds...))
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -633,28 +717,28 @@ func (r *defaultSysAccountRepository) FindByIdList(ctx context.Context, sysAccou
 	)
 }
 
-func (r *defaultSysAccountRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindOne", nil,
-		func() (*model.SysAccountEntity, error) {
+		func() (sysAccount *model.SysAccountEntity, err error) {
 			return r.buildTx(ctx, query).First()
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (*model.SysAccountEntity, error) {
+func (r *defaultSysAccountRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccount *model.SysAccountEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.FindOneWrapper", nil,
-		func() (*model.SysAccountEntity, error) {
+		func() (sysAccount *model.SysAccountEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).First()
 		},
 	)
 }
 
-func (r *defaultSysAccountRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysAccountRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (sysAccountExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.Exists", nil,
-		func() (bool, error) {
+		func() (sysAccountExists bool, err error) {
 			tx := dao.SysAccountEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -674,10 +758,10 @@ func (r *defaultSysAccountRepository) Exists(ctx context.Context, query ...gormp
 	)
 }
 
-func (r *defaultSysAccountRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysAccountRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.ExistsByWrapper", nil,
-		func() (bool, error) {
+		func() (sysAccountExists bool, err error) {
 			baseTx := dao.SysAccountEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
@@ -701,10 +785,10 @@ func (r *defaultSysAccountRepository) ExistsByWrapper(ctx context.Context, fn fu
 	)
 }
 
-func (r *defaultSysAccountRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysAccountRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (sysAccountCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.Count", nil,
-		func() (int64, error) {
+		func() (sysAccountCount int64, err error) {
 			tx := dao.SysAccountEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -720,10 +804,10 @@ func (r *defaultSysAccountRepository) Count(ctx context.Context, query ...gormpl
 	)
 }
 
-func (r *defaultSysAccountRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysAccountRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysAccountEntityDo]), query ...gormplus.QueryOption) (sysAccountCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_account.CountByWrapper", nil,
-		func() (int64, error) {
+		func() (sysAccountCount int64, err error) {
 			baseTx := dao.SysAccountEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()

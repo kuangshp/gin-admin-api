@@ -355,6 +355,7 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "获取账号详情失败")
 		return
 	}
+
 	// 获取部门名称
 	deptEntity, err := s.SysDeptRepository.FindById(ctx, accountEntity.DeptID)
 	var deptName = ""

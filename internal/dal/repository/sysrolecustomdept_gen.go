@@ -43,29 +43,29 @@ type iDefaultSysRoleCustomDeptRepository interface {
 	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), opts ...gormplus.UpdateOption) error
 	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
-	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error)
+	FindList(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error)
 	// FindListByWrapper 根据wrapper条件获取列表
-	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error)
+	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error)
 	// FindPage 根据原生条件分页查询
-	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysRoleCustomDeptEntity, total int64, err error)
+	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, sysRoleCustomDeptTotal int64, err error)
 	// FindPageByWrapper 根据wrapper条件分页查询
-	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (list []*model.SysRoleCustomDeptEntity, total int64, err error)
+	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, sysRoleCustomDeptTotal int64, err error)
 	// FindById 根据ID获取详情（支持 query.WithCache / query.WithSingleFlight）
-	FindById(ctx context.Context, sysRoleCustomDeptId int64, query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error)
+	FindById(ctx context.Context, sysRoleCustomDeptId int64, query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error)
 	// FindByIdList 根据ID列表获取（支持 query.WithCache / query.WithSingleFlight）
-	FindByIdList(ctx context.Context, sysRoleCustomDeptIds []int64, query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error)
+	FindByIdList(ctx context.Context, sysRoleCustomDeptIds []int64, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error)
 	// FindOne 根据原生条件获取单条
-	FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error)
+	FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error)
 	// FindOneWrapper 根据wrapper条件获取单条
-	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error)
+	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error)
 	// Exists 根据原生条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error)
+	Exists(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptExists bool, err error)
 	// ExistsByWrapper 根据wrapper条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (bool, error)
+	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptExists bool, err error)
 	// Count 根据原生条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error)
+	Count(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptCount int64, err error)
 	// CountByWrapper 根据wrapper条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (int64, error)
+	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptCount int64, err error)
 }
 
 // ==================== 缓存失效辅助方法 ====================
@@ -178,8 +178,92 @@ func (r *defaultSysRoleCustomDeptRepository) buildWrapperTx(ctx context.Context,
         if q.Limit != nil {
             entityDo = entityDo.Limit(*q.Limit)
         }
-    }
+	}
 	return entityDo
+}
+
+// SysRoleCustomDeptJoinQueryBuilder 构建SysRoleCustomDept连表查询基础语句。
+type SysRoleCustomDeptJoinQueryBuilder func(ctx context.Context) dao.ISysRoleCustomDeptEntityDo
+
+// newDefaultSysRoleCustomDeptJoinQuery 创建SysRoleCustomDept默认连表查询基础语句。
+func newDefaultSysRoleCustomDeptJoinQuery(ctx context.Context) dao.ISysRoleCustomDeptEntityDo {
+	return dao.SysRoleCustomDeptEntity.WithContext(ctx)
+}
+
+// buildSysRoleCustomDeptJoinTx 构建SysRoleCustomDept连表查询语句。
+func buildSysRoleCustomDeptJoinTx(ctx context.Context, build SysRoleCustomDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query []gormplus.QueryOption) dao.ISysRoleCustomDeptEntityDo {
+	q := gormplus.MergeQueryOptions(query...)
+	if build == nil {
+		build = newDefaultSysRoleCustomDeptJoinQuery
+	}
+	baseTx := build(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
+	if fn != nil {
+		fn(tx)
+	}
+	entityDo := tx.Apply()
+	if len(q.Cond) > 0 {
+		entityDo = entityDo.Where(q.Cond...)
+	}
+	if len(q.Select) > 0 {
+		entityDo = entityDo.Select(q.Select...)
+	}
+	if len(q.OmitFields) > 0 {
+		entityDo = entityDo.Omit(q.OmitFields...)
+	}
+	if len(q.Order) > 0 {
+		entityDo = entityDo.Order(q.Order...)
+	}
+	if q.Limit != nil {
+		entityDo = entityDo.Limit(*q.Limit)
+	}
+	return entityDo
+}
+
+// FindSysRoleCustomDeptJoinList 查询SysRoleCustomDept连表列表，T 可以是调用方自定义的行结构体。
+func FindSysRoleCustomDeptJoinList[T any](ctx context.Context, build SysRoleCustomDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (rows []T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindJoinList", nil,
+		func() (rows []T, err error) {
+			rows = make([]T, 0)
+			err = buildSysRoleCustomDeptJoinTx(ctx, build, fn, query).Scan(&rows)
+			return rows, err
+		},
+	)
+}
+
+// FindSysRoleCustomDeptJoinPage 分页查询SysRoleCustomDept连表列表，T 可以是调用方自定义的行结构体。
+func FindSysRoleCustomDeptJoinPage[T any](ctx context.Context, pageNumber int64, pageSize int64, build SysRoleCustomDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (rows []T, total int64, err error) {
+	offset, limit := gormplus.DbPage(pageNumber, pageSize)
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecutePage(opt, "sys_role_custom_dept.FindJoinPage",
+		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
+		func() (rows []T, total int64, err error) {
+			rows = make([]T, 0)
+			total, err = buildSysRoleCustomDeptJoinTx(ctx, build, fn, query).ScanByPage(&rows, offset, limit)
+			return rows, total, err
+		},
+	)
+}
+
+// FindSysRoleCustomDeptJoinOne 查询SysRoleCustomDept连表单条数据，T 可以是调用方自定义的行结构体。
+func FindSysRoleCustomDeptJoinOne[T any](ctx context.Context, build SysRoleCustomDeptJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (row T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindJoinOne", nil,
+		func() (row T, err error) {
+			err = buildSysRoleCustomDeptJoinTx(ctx, build, fn, query).Limit(1).Scan(&row)
+			return row, err
+		},
+	)
 }
 
 // ==================== 实现 ====================
@@ -538,53 +622,53 @@ func (r *defaultSysRoleCustomDeptRepository) UpdateByWrapperTx(ctx context.Conte
 	return err
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindList", nil,
-		func() ([]*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 			return r.buildTx(ctx, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindListByWrapper", nil,
-		func() ([]*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysRoleCustomDeptEntity, total int64, err error) {
+func (r *defaultSysRoleCustomDeptRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, sysRoleCustomDeptTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_role_custom_dept.FindPage",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysRoleCustomDeptEntity, int64, error) {
+		func() (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, total int64, err error) {
 			return r.buildTx(ctx, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (list []*model.SysRoleCustomDeptEntity, total int64, err error) {
+func (r *defaultSysRoleCustomDeptRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, sysRoleCustomDeptTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_role_custom_dept.FindPageByWrapper",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysRoleCustomDeptEntity, int64, error) {
+		func() (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, total int64, err error) {
 			return r.buildWrapperTx(ctx, fn, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindById(ctx context.Context, sysRoleCustomDeptId int64, query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindById(ctx context.Context, sysRoleCustomDeptId int64, query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindById",
 		gormplus.BuildArgs("id", sysRoleCustomDeptId),
-		func() (*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 			tx := dao.SysRoleCustomDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -598,14 +682,14 @@ func (r *defaultSysRoleCustomDeptRepository) FindById(ctx context.Context, sysRo
 		},
 	)
 }
-func (r *defaultSysRoleCustomDeptRepository) FindByIdList(ctx context.Context, sysRoleCustomDeptIds []int64, query ...gormplus.QueryOption) ([]*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindByIdList(ctx context.Context, sysRoleCustomDeptIds []int64, query ...gormplus.QueryOption) (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 	if len(sysRoleCustomDeptIds) == 0 {
 		return []*model.SysRoleCustomDeptEntity{}, nil
 	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindByIdList",
 		gormplus.BuildArgs("ids", sysRoleCustomDeptIds),
-		func() ([]*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDeptList []*model.SysRoleCustomDeptEntity, err error) {
 			tx := dao.SysRoleCustomDeptEntity.WithContext(ctx).Where(dao.SysRoleCustomDeptEntity.ID.In(sysRoleCustomDeptIds...))
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -633,28 +717,28 @@ func (r *defaultSysRoleCustomDeptRepository) FindByIdList(ctx context.Context, s
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindOne", nil,
-		func() (*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 			return r.buildTx(ctx, query).First()
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (*model.SysRoleCustomDeptEntity, error) {
+func (r *defaultSysRoleCustomDeptRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.FindOneWrapper", nil,
-		func() (*model.SysRoleCustomDeptEntity, error) {
+		func() (sysRoleCustomDept *model.SysRoleCustomDeptEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).First()
 		},
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysRoleCustomDeptRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.Exists", nil,
-		func() (bool, error) {
+		func() (sysRoleCustomDeptExists bool, err error) {
 			tx := dao.SysRoleCustomDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -674,10 +758,10 @@ func (r *defaultSysRoleCustomDeptRepository) Exists(ctx context.Context, query .
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysRoleCustomDeptRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.ExistsByWrapper", nil,
-		func() (bool, error) {
+		func() (sysRoleCustomDeptExists bool, err error) {
 			baseTx := dao.SysRoleCustomDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
@@ -701,10 +785,10 @@ func (r *defaultSysRoleCustomDeptRepository) ExistsByWrapper(ctx context.Context
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysRoleCustomDeptRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (sysRoleCustomDeptCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.Count", nil,
-		func() (int64, error) {
+		func() (sysRoleCustomDeptCount int64, err error) {
 			tx := dao.SysRoleCustomDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -720,10 +804,10 @@ func (r *defaultSysRoleCustomDeptRepository) Count(ctx context.Context, query ..
 	)
 }
 
-func (r *defaultSysRoleCustomDeptRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysRoleCustomDeptRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]), query ...gormplus.QueryOption) (sysRoleCustomDeptCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_custom_dept.CountByWrapper", nil,
-		func() (int64, error) {
+		func() (sysRoleCustomDeptCount int64, err error) {
 			baseTx := dao.SysRoleCustomDeptEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()

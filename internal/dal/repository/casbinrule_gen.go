@@ -43,29 +43,29 @@ type iDefaultCasbinRuleRepository interface {
 	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), opts ...gormplus.UpdateOption) error
 	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
-	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error)
+	FindList(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error)
 	// FindListByWrapper 根据wrapper条件获取列表
-	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error)
+	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error)
 	// FindPage 根据原生条件分页查询
-	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.CasbinRuleEntity, total int64, err error)
+	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, casbinRuleTotal int64, err error)
 	// FindPageByWrapper 根据wrapper条件分页查询
-	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (list []*model.CasbinRuleEntity, total int64, err error)
+	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, casbinRuleTotal int64, err error)
 	// FindById 根据ID获取详情（支持 query.WithCache / query.WithSingleFlight）
-	FindById(ctx context.Context, casbinRuleId int64, query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error)
+	FindById(ctx context.Context, casbinRuleId int64, query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error)
 	// FindByIdList 根据ID列表获取（支持 query.WithCache / query.WithSingleFlight）
-	FindByIdList(ctx context.Context, casbinRuleIds []int64, query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error)
+	FindByIdList(ctx context.Context, casbinRuleIds []int64, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error)
 	// FindOne 根据原生条件获取单条
-	FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error)
+	FindOne(ctx context.Context, query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error)
 	// FindOneWrapper 根据wrapper条件获取单条
-	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error)
+	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error)
 	// Exists 根据原生条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error)
+	Exists(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleExists bool, err error)
 	// ExistsByWrapper 根据wrapper条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (bool, error)
+	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleExists bool, err error)
 	// Count 根据原生条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error)
+	Count(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleCount int64, err error)
 	// CountByWrapper 根据wrapper条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (int64, error)
+	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleCount int64, err error)
 }
 
 // ==================== 缓存失效辅助方法 ====================
@@ -178,8 +178,92 @@ func (r *defaultCasbinRuleRepository) buildWrapperTx(ctx context.Context, fn fun
         if q.Limit != nil {
             entityDo = entityDo.Limit(*q.Limit)
         }
-    }
+	}
 	return entityDo
+}
+
+// CasbinRuleJoinQueryBuilder 构建CasbinRule连表查询基础语句。
+type CasbinRuleJoinQueryBuilder func(ctx context.Context) dao.ICasbinRuleEntityDo
+
+// newDefaultCasbinRuleJoinQuery 创建CasbinRule默认连表查询基础语句。
+func newDefaultCasbinRuleJoinQuery(ctx context.Context) dao.ICasbinRuleEntityDo {
+	return dao.CasbinRuleEntity.WithContext(ctx)
+}
+
+// buildCasbinRuleJoinTx 构建CasbinRule连表查询语句。
+func buildCasbinRuleJoinTx(ctx context.Context, build CasbinRuleJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query []gormplus.QueryOption) dao.ICasbinRuleEntityDo {
+	q := gormplus.MergeQueryOptions(query...)
+	if build == nil {
+		build = newDefaultCasbinRuleJoinQuery
+	}
+	baseTx := build(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
+	if fn != nil {
+		fn(tx)
+	}
+	entityDo := tx.Apply()
+	if len(q.Cond) > 0 {
+		entityDo = entityDo.Where(q.Cond...)
+	}
+	if len(q.Select) > 0 {
+		entityDo = entityDo.Select(q.Select...)
+	}
+	if len(q.OmitFields) > 0 {
+		entityDo = entityDo.Omit(q.OmitFields...)
+	}
+	if len(q.Order) > 0 {
+		entityDo = entityDo.Order(q.Order...)
+	}
+	if q.Limit != nil {
+		entityDo = entityDo.Limit(*q.Limit)
+	}
+	return entityDo
+}
+
+// FindCasbinRuleJoinList 查询CasbinRule连表列表，T 可以是调用方自定义的行结构体。
+func FindCasbinRuleJoinList[T any](ctx context.Context, build CasbinRuleJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (rows []T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "casbin_rule.FindJoinList", nil,
+		func() (rows []T, err error) {
+			rows = make([]T, 0)
+			err = buildCasbinRuleJoinTx(ctx, build, fn, query).Scan(&rows)
+			return rows, err
+		},
+	)
+}
+
+// FindCasbinRuleJoinPage 分页查询CasbinRule连表列表，T 可以是调用方自定义的行结构体。
+func FindCasbinRuleJoinPage[T any](ctx context.Context, pageNumber int64, pageSize int64, build CasbinRuleJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (rows []T, total int64, err error) {
+	offset, limit := gormplus.DbPage(pageNumber, pageSize)
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecutePage(opt, "casbin_rule.FindJoinPage",
+		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
+		func() (rows []T, total int64, err error) {
+			rows = make([]T, 0)
+			total, err = buildCasbinRuleJoinTx(ctx, build, fn, query).ScanByPage(&rows, offset, limit)
+			return rows, total, err
+		},
+	)
+}
+
+// FindCasbinRuleJoinOne 查询CasbinRule连表单条数据，T 可以是调用方自定义的行结构体。
+func FindCasbinRuleJoinOne[T any](ctx context.Context, build CasbinRuleJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (row T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "casbin_rule.FindJoinOne", nil,
+		func() (row T, err error) {
+			err = buildCasbinRuleJoinTx(ctx, build, fn, query).Limit(1).Scan(&row)
+			return row, err
+		},
+	)
 }
 
 // ==================== 实现 ====================
@@ -538,53 +622,53 @@ func (r *defaultCasbinRuleRepository) UpdateByWrapperTx(ctx context.Context, dao
 	return err
 }
 
-func (r *defaultCasbinRuleRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindList", nil,
-		func() ([]*model.CasbinRuleEntity, error) {
+		func() (casbinRuleList []*model.CasbinRuleEntity, err error) {
 			return r.buildTx(ctx, query).Find()
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindListByWrapper", nil,
-		func() ([]*model.CasbinRuleEntity, error) {
+		func() (casbinRuleList []*model.CasbinRuleEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).Find()
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.CasbinRuleEntity, total int64, err error) {
+func (r *defaultCasbinRuleRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, casbinRuleTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "casbin_rule.FindPage",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.CasbinRuleEntity, int64, error) {
+		func() (casbinRuleList []*model.CasbinRuleEntity, total int64, err error) {
 			return r.buildTx(ctx, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (list []*model.CasbinRuleEntity, total int64, err error) {
+func (r *defaultCasbinRuleRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, casbinRuleTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "casbin_rule.FindPageByWrapper",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.CasbinRuleEntity, int64, error) {
+		func() (casbinRuleList []*model.CasbinRuleEntity, total int64, err error) {
 			return r.buildWrapperTx(ctx, fn, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindById(ctx context.Context, casbinRuleId int64, query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindById(ctx context.Context, casbinRuleId int64, query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindById",
 		gormplus.BuildArgs("id", casbinRuleId),
-		func() (*model.CasbinRuleEntity, error) {
+		func() (casbinRule *model.CasbinRuleEntity, err error) {
 			tx := dao.CasbinRuleEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -598,14 +682,14 @@ func (r *defaultCasbinRuleRepository) FindById(ctx context.Context, casbinRuleId
 		},
 	)
 }
-func (r *defaultCasbinRuleRepository) FindByIdList(ctx context.Context, casbinRuleIds []int64, query ...gormplus.QueryOption) ([]*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindByIdList(ctx context.Context, casbinRuleIds []int64, query ...gormplus.QueryOption) (casbinRuleList []*model.CasbinRuleEntity, err error) {
 	if len(casbinRuleIds) == 0 {
 		return []*model.CasbinRuleEntity{}, nil
 	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindByIdList",
 		gormplus.BuildArgs("ids", casbinRuleIds),
-		func() ([]*model.CasbinRuleEntity, error) {
+		func() (casbinRuleList []*model.CasbinRuleEntity, err error) {
 			tx := dao.CasbinRuleEntity.WithContext(ctx).Where(dao.CasbinRuleEntity.ID.In(casbinRuleIds...))
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -633,28 +717,28 @@ func (r *defaultCasbinRuleRepository) FindByIdList(ctx context.Context, casbinRu
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindOne", nil,
-		func() (*model.CasbinRuleEntity, error) {
+		func() (casbinRule *model.CasbinRuleEntity, err error) {
 			return r.buildTx(ctx, query).First()
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (*model.CasbinRuleEntity, error) {
+func (r *defaultCasbinRuleRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRule *model.CasbinRuleEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.FindOneWrapper", nil,
-		func() (*model.CasbinRuleEntity, error) {
+		func() (casbinRule *model.CasbinRuleEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).First()
 		},
 	)
 }
 
-func (r *defaultCasbinRuleRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultCasbinRuleRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.Exists", nil,
-		func() (bool, error) {
+		func() (casbinRuleExists bool, err error) {
 			tx := dao.CasbinRuleEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -674,10 +758,10 @@ func (r *defaultCasbinRuleRepository) Exists(ctx context.Context, query ...gormp
 	)
 }
 
-func (r *defaultCasbinRuleRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultCasbinRuleRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.ExistsByWrapper", nil,
-		func() (bool, error) {
+		func() (casbinRuleExists bool, err error) {
 			baseTx := dao.CasbinRuleEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
@@ -701,10 +785,10 @@ func (r *defaultCasbinRuleRepository) ExistsByWrapper(ctx context.Context, fn fu
 	)
 }
 
-func (r *defaultCasbinRuleRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultCasbinRuleRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (casbinRuleCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.Count", nil,
-		func() (int64, error) {
+		func() (casbinRuleCount int64, err error) {
 			tx := dao.CasbinRuleEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -720,10 +804,10 @@ func (r *defaultCasbinRuleRepository) Count(ctx context.Context, query ...gormpl
 	)
 }
 
-func (r *defaultCasbinRuleRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultCasbinRuleRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ICasbinRuleEntityDo]), query ...gormplus.QueryOption) (casbinRuleCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "casbin_rule.CountByWrapper", nil,
-		func() (int64, error) {
+		func() (casbinRuleCount int64, err error) {
 			baseTx := dao.CasbinRuleEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()

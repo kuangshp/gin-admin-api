@@ -43,29 +43,29 @@ type iDefaultSysRoleResourcesRepository interface {
 	UpdateByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), opts ...gormplus.UpdateOption) error
 	UpdateByWrapperTx(ctx context.Context, tx *dao.Query, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), opts ...gormplus.UpdateOption) error
 	// FindList 根据原生条件获取列表
-	FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error)
+	FindList(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error)
 	// FindListByWrapper 根据wrapper条件获取列表
-	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error)
+	FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error)
 	// FindPage 根据原生条件分页查询
-	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysRoleResourcesEntity, total int64, err error)
+	FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, sysRoleResourcesTotal int64, err error)
 	// FindPageByWrapper 根据wrapper条件分页查询
-	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (list []*model.SysRoleResourcesEntity, total int64, err error)
+	FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, sysRoleResourcesTotal int64, err error)
 	// FindById 根据ID获取详情（支持 query.WithCache / query.WithSingleFlight）
-	FindById(ctx context.Context, sysRoleResourcesId int64, query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error)
+	FindById(ctx context.Context, sysRoleResourcesId int64, query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error)
 	// FindByIdList 根据ID列表获取（支持 query.WithCache / query.WithSingleFlight）
-	FindByIdList(ctx context.Context, sysRoleResourcesIds []int64, query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error)
+	FindByIdList(ctx context.Context, sysRoleResourcesIds []int64, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error)
 	// FindOne 根据原生条件获取单条
-	FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error)
+	FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error)
 	// FindOneWrapper 根据wrapper条件获取单条
-	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error)
+	FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error)
 	// Exists 根据原生条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error)
+	Exists(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesExists bool, err error)
 	// ExistsByWrapper 根据wrapper条件判断是否存在（支持 query.WithCache / query.WithSingleFlight）
-	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (bool, error)
+	ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesExists bool, err error)
 	// Count 根据原生条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error)
+	Count(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesCount int64, err error)
 	// CountByWrapper 根据wrapper条件统计数量（支持 query.WithCache / query.WithSingleFlight）
-	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (int64, error)
+	CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesCount int64, err error)
 }
 
 // ==================== 缓存失效辅助方法 ====================
@@ -178,8 +178,92 @@ func (r *defaultSysRoleResourcesRepository) buildWrapperTx(ctx context.Context, 
         if q.Limit != nil {
             entityDo = entityDo.Limit(*q.Limit)
         }
-    }
+	}
 	return entityDo
+}
+
+// SysRoleResourcesJoinQueryBuilder 构建SysRoleResources连表查询基础语句。
+type SysRoleResourcesJoinQueryBuilder func(ctx context.Context) dao.ISysRoleResourcesEntityDo
+
+// newDefaultSysRoleResourcesJoinQuery 创建SysRoleResources默认连表查询基础语句。
+func newDefaultSysRoleResourcesJoinQuery(ctx context.Context) dao.ISysRoleResourcesEntityDo {
+	return dao.SysRoleResourcesEntity.WithContext(ctx)
+}
+
+// buildSysRoleResourcesJoinTx 构建SysRoleResources连表查询语句。
+func buildSysRoleResourcesJoinTx(ctx context.Context, build SysRoleResourcesJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query []gormplus.QueryOption) dao.ISysRoleResourcesEntityDo {
+	q := gormplus.MergeQueryOptions(query...)
+	if build == nil {
+		build = newDefaultSysRoleResourcesJoinQuery
+	}
+	baseTx := build(ctx)
+	if q.Unscoped {
+		baseTx = baseTx.Unscoped()
+	}
+	if len(q.Clauses) > 0 {
+		baseTx = baseTx.Clauses(q.Clauses...)
+	}
+	tx := gormplus.GenWrap(baseTx)
+	if q.Unscoped {
+		tx.WithDeleted()
+	}
+	if fn != nil {
+		fn(tx)
+	}
+	entityDo := tx.Apply()
+	if len(q.Cond) > 0 {
+		entityDo = entityDo.Where(q.Cond...)
+	}
+	if len(q.Select) > 0 {
+		entityDo = entityDo.Select(q.Select...)
+	}
+	if len(q.OmitFields) > 0 {
+		entityDo = entityDo.Omit(q.OmitFields...)
+	}
+	if len(q.Order) > 0 {
+		entityDo = entityDo.Order(q.Order...)
+	}
+	if q.Limit != nil {
+		entityDo = entityDo.Limit(*q.Limit)
+	}
+	return entityDo
+}
+
+// FindSysRoleResourcesJoinList 查询SysRoleResources连表列表，T 可以是调用方自定义的行结构体。
+func FindSysRoleResourcesJoinList[T any](ctx context.Context, build SysRoleResourcesJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (rows []T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindJoinList", nil,
+		func() (rows []T, err error) {
+			rows = make([]T, 0)
+			err = buildSysRoleResourcesJoinTx(ctx, build, fn, query).Scan(&rows)
+			return rows, err
+		},
+	)
+}
+
+// FindSysRoleResourcesJoinPage 分页查询SysRoleResources连表列表，T 可以是调用方自定义的行结构体。
+func FindSysRoleResourcesJoinPage[T any](ctx context.Context, pageNumber int64, pageSize int64, build SysRoleResourcesJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (rows []T, total int64, err error) {
+	offset, limit := gormplus.DbPage(pageNumber, pageSize)
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecutePage(opt, "sys_role_resources.FindJoinPage",
+		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
+		func() (rows []T, total int64, err error) {
+			rows = make([]T, 0)
+			total, err = buildSysRoleResourcesJoinTx(ctx, build, fn, query).ScanByPage(&rows, offset, limit)
+			return rows, total, err
+		},
+	)
+}
+
+// FindSysRoleResourcesJoinOne 查询SysRoleResources连表单条数据，T 可以是调用方自定义的行结构体。
+func FindSysRoleResourcesJoinOne[T any](ctx context.Context, build SysRoleResourcesJoinQueryBuilder, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (row T, err error) {
+	opt := gormplus.MergeQueryOptions(query...)
+	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindJoinOne", nil,
+		func() (row T, err error) {
+			err = buildSysRoleResourcesJoinTx(ctx, build, fn, query).Limit(1).Scan(&row)
+			return row, err
+		},
+	)
 }
 
 // ==================== 实现 ====================
@@ -538,53 +622,53 @@ func (r *defaultSysRoleResourcesRepository) UpdateByWrapperTx(ctx context.Contex
 	return err
 }
 
-func (r *defaultSysRoleResourcesRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindList(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindList", nil,
-		func() ([]*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 			return r.buildTx(ctx, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindListByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindListByWrapper", nil,
-		func() ([]*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).Find()
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (list []*model.SysRoleResourcesEntity, total int64, err error) {
+func (r *defaultSysRoleResourcesRepository) FindPage(ctx context.Context, pageNumber int64, pageSize int64, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, sysRoleResourcesTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_role_resources.FindPage",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysRoleResourcesEntity, int64, error) {
+		func() (sysRoleResourcesList []*model.SysRoleResourcesEntity, total int64, err error) {
 			return r.buildTx(ctx, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (list []*model.SysRoleResourcesEntity, total int64, err error) {
+func (r *defaultSysRoleResourcesRepository) FindPageByWrapper(ctx context.Context, pageNumber int64, pageSize int64, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, sysRoleResourcesTotal int64, err error) {
 	offset := int((pageNumber - 1) * pageSize)
 	limit := int(pageSize)
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecutePage(opt, "sys_role_resources.FindPageByWrapper",
 		gormplus.BuildArgs("page", pageNumber, "size", pageSize),
-		func() ([]*model.SysRoleResourcesEntity, int64, error) {
+		func() (sysRoleResourcesList []*model.SysRoleResourcesEntity, total int64, err error) {
 			return r.buildWrapperTx(ctx, fn, query).FindByPage(offset, limit)
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindById(ctx context.Context, sysRoleResourcesId int64, query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindById(ctx context.Context, sysRoleResourcesId int64, query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindById",
 		gormplus.BuildArgs("id", sysRoleResourcesId),
-		func() (*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 			tx := dao.SysRoleResourcesEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -598,14 +682,14 @@ func (r *defaultSysRoleResourcesRepository) FindById(ctx context.Context, sysRol
 		},
 	)
 }
-func (r *defaultSysRoleResourcesRepository) FindByIdList(ctx context.Context, sysRoleResourcesIds []int64, query ...gormplus.QueryOption) ([]*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindByIdList(ctx context.Context, sysRoleResourcesIds []int64, query ...gormplus.QueryOption) (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 	if len(sysRoleResourcesIds) == 0 {
 		return []*model.SysRoleResourcesEntity{}, nil
 	}
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindByIdList",
 		gormplus.BuildArgs("ids", sysRoleResourcesIds),
-		func() ([]*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResourcesList []*model.SysRoleResourcesEntity, err error) {
 			tx := dao.SysRoleResourcesEntity.WithContext(ctx).Where(dao.SysRoleResourcesEntity.ID.In(sysRoleResourcesIds...))
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -633,28 +717,28 @@ func (r *defaultSysRoleResourcesRepository) FindByIdList(ctx context.Context, sy
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindOne(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindOne", nil,
-		func() (*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 			return r.buildTx(ctx, query).First()
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (*model.SysRoleResourcesEntity, error) {
+func (r *defaultSysRoleResourcesRepository) FindOneWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.FindOneWrapper", nil,
-		func() (*model.SysRoleResourcesEntity, error) {
+		func() (sysRoleResources *model.SysRoleResourcesEntity, err error) {
 			return r.buildWrapperTx(ctx, fn, query).First()
 		},
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysRoleResourcesRepository) Exists(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.Exists", nil,
-		func() (bool, error) {
+		func() (sysRoleResourcesExists bool, err error) {
 			tx := dao.SysRoleResourcesEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -674,10 +758,10 @@ func (r *defaultSysRoleResourcesRepository) Exists(ctx context.Context, query ..
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (bool, error) {
+func (r *defaultSysRoleResourcesRepository) ExistsByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesExists bool, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.ExistsByWrapper", nil,
-		func() (bool, error) {
+		func() (sysRoleResourcesExists bool, err error) {
 			baseTx := dao.SysRoleResourcesEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
@@ -701,10 +785,10 @@ func (r *defaultSysRoleResourcesRepository) ExistsByWrapper(ctx context.Context,
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysRoleResourcesRepository) Count(ctx context.Context, query ...gormplus.QueryOption) (sysRoleResourcesCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.Count", nil,
-		func() (int64, error) {
+		func() (sysRoleResourcesCount int64, err error) {
 			tx := dao.SysRoleResourcesEntity.WithContext(ctx)
 			if opt.Unscoped {
 				tx = tx.Unscoped()
@@ -720,10 +804,10 @@ func (r *defaultSysRoleResourcesRepository) Count(ctx context.Context, query ...
 	)
 }
 
-func (r *defaultSysRoleResourcesRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (int64, error) {
+func (r *defaultSysRoleResourcesRepository) CountByWrapper(ctx context.Context, fn func(gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]), query ...gormplus.QueryOption) (sysRoleResourcesCount int64, err error) {
 	opt := gormplus.MergeQueryOptions(query...)
 	return gormplus.ExecuteQuery(opt, "sys_role_resources.CountByWrapper", nil,
-		func() (int64, error) {
+		func() (sysRoleResourcesCount int64, err error) {
 			baseTx := dao.SysRoleResourcesEntity.WithContext(ctx)
 			if opt.Unscoped {
 				baseTx = baseTx.Unscoped()
