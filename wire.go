@@ -8,7 +8,9 @@ import (
 	"gin-admin-api/internal/api/account"
 	"gin-admin-api/internal/api/auth"
 	"gin-admin-api/internal/api/base"
+	"gin-admin-api/internal/api/dept"
 	"gin-admin-api/internal/api/menu"
+	"gin-admin-api/internal/api/post"
 	"gin-admin-api/internal/api/resources"
 	"gin-admin-api/internal/api/role"
 	"gin-admin-api/internal/router"
@@ -35,6 +37,8 @@ func InitApp(envString string) (*initialize.App, error) {
 		role.NewRole,
 		resources.NewResources,
 		menu.NewMenu,
+		dept.NewDept,
+		post.NewPost,
 		// 路由 & 服务
 		router.NewAdminRouter,
 		initialize.NewRouter,

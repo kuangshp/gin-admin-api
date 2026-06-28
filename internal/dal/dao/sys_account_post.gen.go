@@ -31,6 +31,7 @@ func newSysAccountPostEntity(db *gorm.DB, opts ...gen.DOOption) sysAccountPostEn
 	_sysAccountPostEntity.ID = field.NewInt64(tableName, "id")
 	_sysAccountPostEntity.AccountID = field.NewInt64(tableName, "account_id")
 	_sysAccountPostEntity.PostID = field.NewInt64(tableName, "post_id")
+	_sysAccountPostEntity.IsPrimary = field.NewInt64(tableName, "is_primary")
 	_sysAccountPostEntity.CreatedAt = field.NewTime(tableName, "created_at")
 	_sysAccountPostEntity.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_sysAccountPostEntity.DeletedAt = field.NewField(tableName, "deleted_at")
@@ -50,6 +51,7 @@ type sysAccountPostEntity struct {
 	ID        field.Int64 // 主键id
 	AccountID field.Int64 // 账号id
 	PostID    field.Int64 // 岗位id
+	IsPrimary field.Int64 // 是否主岗,1=普通岗位,2=主岗位
 	CreatedAt field.Time  // 创建时间
 	UpdatedAt field.Time  // 更新时间
 	DeletedAt field.Field // 软删除时间
@@ -74,6 +76,7 @@ func (s *sysAccountPostEntity) updateTableName(table string) *sysAccountPostEnti
 	s.ID = field.NewInt64(table, "id")
 	s.AccountID = field.NewInt64(table, "account_id")
 	s.PostID = field.NewInt64(table, "post_id")
+	s.IsPrimary = field.NewInt64(table, "is_primary")
 	s.CreatedAt = field.NewTime(table, "created_at")
 	s.UpdatedAt = field.NewTime(table, "updated_at")
 	s.DeletedAt = field.NewField(table, "deleted_at")
@@ -95,10 +98,11 @@ func (s *sysAccountPostEntity) GetFieldByName(fieldName string) (field.OrderExpr
 }
 
 func (s *sysAccountPostEntity) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 8)
+	s.fieldMap = make(map[string]field.Expr, 9)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["account_id"] = s.AccountID
 	s.fieldMap["post_id"] = s.PostID
+	s.fieldMap["is_primary"] = s.IsPrimary
 	s.fieldMap["created_at"] = s.CreatedAt
 	s.fieldMap["updated_at"] = s.UpdatedAt
 	s.fieldMap["deleted_at"] = s.DeletedAt

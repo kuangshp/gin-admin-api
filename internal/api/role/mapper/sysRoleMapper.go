@@ -29,6 +29,7 @@ func (m *sysRoleMapper) DtoToEntity(d *dto.CreateSysRoleDTO) *model.SysRoleEntit
 		Description: d.Description, // 描述
 		Status:      d.Status,      // 状态1是正常,2是禁用
 		Sort:        d.Sort,        // 排序
+		DataScope:   d.DataScope,   // 数据范围
 	}
 	return e
 }
@@ -44,6 +45,7 @@ func (m *sysRoleMapper) EntityToVo(e *model.SysRoleEntity) *vo.SysRoleVO {
 		Description: e.Description,      // 描述
 		Status:      e.Status,           // 状态1是正常,2是禁用
 		Sort:        e.Sort,             // 排序
+		DataScope:   e.DataScope,        // 数据范围
 		CreatedAt:   e.CreatedAt.Unix(), // 创建时间
 		UpdatedAt:   e.UpdatedAt.Unix(), // 更新时间
 	}

@@ -14,14 +14,15 @@ const TableNameSysAccountPostEntity = "sys_account_post"
 
 // SysAccountPostEntity 账号岗位关联表
 type SysAccountPostEntity struct {
-	ID        int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id"` // 主键id
-	AccountID int64          `gorm:"column:account_id;type:int;not null;comment:账号id" json:"accountId"`       // 账号id
-	PostID    int64          `gorm:"column:post_id;type:int;not null;comment:岗位id" json:"postId"`             // 岗位id
-	CreatedAt time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                         // 创建时间
-	UpdatedAt time.Time      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`                         // 更新时间
-	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:datetime;comment:软删除时间" json:"-"`                  // 软删除时间
-	CreatedBy int64          `gorm:"column:created_by;type:int;comment:创建人" json:"createdBy"`                 // 创建人
-	UpdatedBy int64          `gorm:"column:updated_by;type:int;comment:更新人" json:"updatedBy"`                 // 更新人
+	ID        int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id"`                // 主键id
+	AccountID int64          `gorm:"column:account_id;type:int;not null;comment:账号id" json:"accountId"`                      // 账号id
+	PostID    int64          `gorm:"column:post_id;type:int;not null;comment:岗位id" json:"postId"`                            // 岗位id
+	IsPrimary int64          `gorm:"column:is_primary;type:tinyint(1);default:1;comment:是否主岗,1=普通岗位,2=主岗位" json:"isPrimary"` // 是否主岗,1=普通岗位,2=主岗位
+	CreatedAt time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                        // 创建时间
+	UpdatedAt time.Time      `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`                                        // 更新时间
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:datetime;comment:软删除时间" json:"-"`                                 // 软删除时间
+	CreatedBy int64          `gorm:"column:created_by;type:int;comment:创建人" json:"createdBy"`                                // 创建人
+	UpdatedBy int64          `gorm:"column:updated_by;type:int;comment:更新人" json:"updatedBy"`                                // 更新人
 }
 
 // TableName SysAccountPostEntity's table name

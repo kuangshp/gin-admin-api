@@ -7,13 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
-func InitResourcesRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, resourcesHandler resources.IResources) {
+func InitResourcesRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, db *gorm.DB, resourcesHandler resources.IResources) {
 	authRouter := Router.Group(
 		"resources",
 		middleware.AuthMiddleWare(redis),
 		middleware.OperatorMiddleware(),
+		middleware.DataPermissionMiddleware(db),
 		middleware.CasbinMiddleWare(enforcer),
 	)
 	authRouter.POST("", resourcesHandler.CreateResourcesApi)              // 创建资源

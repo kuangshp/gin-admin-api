@@ -31,7 +31,6 @@ func newSysPostEntity(db *gorm.DB, opts ...gen.DOOption) sysPostEntity {
 	_sysPostEntity.ID = field.NewInt64(tableName, "id")
 	_sysPostEntity.Name = field.NewString(tableName, "name")
 	_sysPostEntity.Code = field.NewString(tableName, "code")
-	_sysPostEntity.DeptID = field.NewInt64(tableName, "dept_id")
 	_sysPostEntity.Sort = field.NewInt64(tableName, "sort")
 	_sysPostEntity.Status = field.NewInt64(tableName, "status")
 	_sysPostEntity.Remark = field.NewString(tableName, "remark")
@@ -54,7 +53,6 @@ type sysPostEntity struct {
 	ID        field.Int64  // 主键id
 	Name      field.String // 岗位名称
 	Code      field.String // 岗位编码
-	DeptID    field.Int64  // 所属部门id
 	Sort      field.Int64  // 排序
 	Status    field.Int64  // 状态1正常 2禁用
 	Remark    field.String // 备注
@@ -82,7 +80,6 @@ func (s *sysPostEntity) updateTableName(table string) *sysPostEntity {
 	s.ID = field.NewInt64(table, "id")
 	s.Name = field.NewString(table, "name")
 	s.Code = field.NewString(table, "code")
-	s.DeptID = field.NewInt64(table, "dept_id")
 	s.Sort = field.NewInt64(table, "sort")
 	s.Status = field.NewInt64(table, "status")
 	s.Remark = field.NewString(table, "remark")
@@ -107,11 +104,10 @@ func (s *sysPostEntity) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 }
 
 func (s *sysPostEntity) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 12)
+	s.fieldMap = make(map[string]field.Expr, 11)
 	s.fieldMap["id"] = s.ID
 	s.fieldMap["name"] = s.Name
 	s.fieldMap["code"] = s.Code
-	s.fieldMap["dept_id"] = s.DeptID
 	s.fieldMap["sort"] = s.Sort
 	s.fieldMap["status"] = s.Status
 	s.fieldMap["remark"] = s.Remark

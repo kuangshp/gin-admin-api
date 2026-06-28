@@ -20,86 +20,20 @@ definitions:
     - password
     - username
     type: object
-  dto.CreateSysResourcesDTO:
-    properties:
-      description:
-        description: 描述
-        type: string
-      icon:
-        description: 菜单小图标
-        type: string
-      isCache:
-        description: 是否缓存:1表示缓存:2不缓存
-        type: integer
-      isHidden:
-        description: 是否隐藏:1表示不隐藏,2表示隐藏
-        type: integer
-      isLink:
-        description: 是否为外部链接:1表示不是,2表示是
-        type: integer
-      method:
-        description: 接口的请求方式
-        type: string
-      parentId:
-        description: 上一级id，0=顶级
-        type: integer
-      resourcesType:
-        description: 类型:1表示目录,2表示菜单,3表示接口
-        type: integer
-      sort:
-        description: 菜单,或按钮排序
-        type: integer
-      status:
-        description: 状态1是正常,2是禁用
-        enum:
-        - 1
-        - 2
-        type: integer
-      title:
-        description: 名称:按钮标题,或菜单标题
-        type: string
-      uRL:
-        description: 按钮请求url,或菜单路由
-        type: string
-    required:
-    - title
-    - uRL
-    type: object
-  dto.CreateSysRoleDTO:
-    properties:
-      description:
-        description: 描述
-        type: string
-      name:
-        description: 角色名称
-        type: string
-      resourcesIdList:
-        description: 资源id
-        items:
-          type: integer
-        minItems: 1
-        type: array
-      sort:
-        description: 排序
-        type: integer
-      status:
-        description: 状态1是正常,2是禁用
-        enum:
-        - 1
-        - 2
-        type: integer
-    required:
-    - name
-    - resourcesIdList
-    type: object
   dto.GetSysAccountPageDTO:
     properties:
+      deptId:
+        description: 所属部门id，0表示全部
+        type: integer
       keyword:
         description: 用户名,邮箱,手机号码
         type: string
       pageNumber:
         type: integer
       pageSize:
+        type: integer
+      postId:
+        description: 岗位id，0表示全部
         type: integer
       status:
         description: 状态1是正常,2是禁用
@@ -123,6 +57,59 @@ definitions:
     - confirmPassword
     - newPassword
     - password
+    type: object
+  dto.ModifySysDeptDTO:
+    properties:
+      createdBy:
+        description: 创建人
+        type: integer
+      email:
+        description: 邮箱
+        maxLength: 60
+        type: string
+      fullId:
+        description: 全层级ID，例：1,5,12
+        maxLength: 255
+        type: string
+      fullName:
+        description: 全层级名称
+        maxLength: 255
+        type: string
+      id:
+        description: 主键id
+        minimum: 1
+        type: integer
+      leaderId:
+        description: 负责人账号id，关联sys_account.id
+        minimum: 1
+        type: integer
+      name:
+        description: 部门名称
+        maxLength: 50
+        type: string
+      parentId:
+        description: 上级部门id
+        minimum: 1
+        type: integer
+      phone:
+        description: 联系电话
+        maxLength: 20
+        type: string
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态1正常 2禁用
+        type: integer
+      updatedBy:
+        description: 更新人
+        type: integer
+    required:
+    - fullId
+    - fullName
+    - id
+    - name
+    - parentId
     type: object
   dto.PageSysResourcesDTO:
     properties:
@@ -171,6 +158,42 @@ definitions:
         description: 状态1是正常,2是禁用
         type: integer
     type: object
+  dto.SysDeptPageDTO:
+    properties:
+      name:
+        description: 部门名称，模糊查询
+        type: string
+      pageNumber:
+        description: 页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        type: integer
+      parentId:
+        description: 上级部门id，默认0查询根部门
+        type: integer
+      status:
+        description: 状态：1正常，2禁用；0表示全部
+        type: integer
+    type: object
+  dto.SysPostPageDTO:
+    properties:
+      code:
+        description: 岗位编码，模糊查询
+        type: string
+      name:
+        description: 岗位名称，模糊查询
+        type: string
+      pageNumber:
+        description: 页码
+        type: integer
+      pageSize:
+        description: 每页条数
+        type: integer
+      status:
+        description: 状态：1正常，2禁用；0表示全部
+        type: integer
+    type: object
   dto.VerifyCaptchaDTO:
     properties:
       captchaId:
@@ -193,6 +216,10 @@ definitions:
         maxLength: 16
         minLength: 6
         type: string
+      deptId:
+        description: 所属部门id，用于数据权限计算
+        minimum: 1
+        type: integer
       email:
         description: 邮箱
         type: string
@@ -204,6 +231,12 @@ definitions:
         maxLength: 16
         minLength: 6
         type: string
+      postIdList:
+        description: 授权的岗位id，第一个为主岗
+        items:
+          type: integer
+        minItems: 1
+        type: array
       roleIdList:
         description: 授权的角色id
         items:
@@ -215,7 +248,9 @@ definitions:
         type: string
     required:
     - confirmPassword
+    - deptId
     - password
+    - postIdList
     - roleIdList
     - username
     type: object
@@ -224,16 +259,22 @@ definitions:
       avatar:
         description: 头像
         type: string
+      deptId:
+        description: 所属部门id，用于数据权限计算
+        minimum: 1
+        type: integer
       email:
         description: 邮箱
         type: string
-      id:
-        description: 主键id
-        minimum: 1
-        type: integer
       mobile:
         description: 手机号
         type: string
+      postIdList:
+        description: 授权的岗位id，第一个为主岗
+        items:
+          type: integer
+        minItems: 1
+        type: array
       roleIdList:
         description: 授权的角色id
         items:
@@ -250,7 +291,8 @@ definitions:
         description: 登录帐号
         type: string
     required:
-    - id
+    - deptId
+    - postIdList
     - roleIdList
     - status
     - username
@@ -265,6 +307,9 @@ definitions:
         type: integer
       createdBy:
         description: 创建人
+        type: integer
+      deptId:
+        description: 所属部门id
         type: integer
       email:
         description: 邮箱
@@ -287,6 +332,11 @@ definitions:
       password:
         description: 登录密码
         type: string
+      postIdList:
+        description: 授权的岗位id，第一个为主岗
+        items:
+          type: integer
+        type: array
       status:
         description: 状态1是正常,2是禁用
         type: integer
@@ -299,6 +349,338 @@ definitions:
       username:
         description: 登录帐号
         type: string
+    type: object
+  gin-admin-api_internal_api_dept_dto.CreateSysDeptDTO:
+    properties:
+      email:
+        description: 邮箱
+        maxLength: 60
+        type: string
+      leaderId:
+        description: 负责人账号id，关联sys_account.id
+        minimum: 1
+        type: integer
+      name:
+        description: 部门名称
+        maxLength: 50
+        type: string
+      parentId:
+        description: 上级部门id，0表示根部门
+        minimum: 0
+        type: integer
+      phone:
+        description: 联系电话
+        maxLength: 20
+        type: string
+      sort:
+        description: 排序，值越小越靠前
+        type: integer
+      status:
+        description: 状态：1正常，2禁用；不传默认1
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - name
+    type: object
+  gin-admin-api_internal_api_dept_vo.SysDeptVO:
+    properties:
+      createdAt:
+        description: 创建时间，Unix秒
+        type: integer
+      createdBy:
+        description: 创建人账号id
+        type: integer
+      email:
+        description: 邮箱
+        type: string
+      fullId:
+        description: 全层级部门ID，例：1,5,12
+        type: string
+      fullName:
+        description: 全层级部门名称
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      leaderId:
+        description: 负责人账号id，关联sys_account.id
+        type: integer
+      name:
+        description: 部门名称
+        type: string
+      parentId:
+        description: 上级部门id，0表示根部门
+        type: integer
+      phone:
+        description: 联系电话
+        type: string
+      sort:
+        description: 排序，值越小越靠前
+        type: integer
+      status:
+        description: 状态：1正常，2禁用
+        type: integer
+      updatedAt:
+        description: 更新时间，Unix秒
+        type: integer
+      updatedBy:
+        description: 更新人账号id
+        type: integer
+    type: object
+  gin-admin-api_internal_api_post_dto.CreateSysPostDTO:
+    properties:
+      code:
+        description: 岗位编码，全局唯一
+        maxLength: 60
+        type: string
+      name:
+        description: 岗位名称
+        maxLength: 50
+        type: string
+      remark:
+        description: 备注
+        maxLength: 255
+        type: string
+      sort:
+        description: 排序，值越小越靠前
+        type: integer
+      status:
+        description: 状态：1正常，2禁用；不传默认1
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - code
+    - name
+    type: object
+  gin-admin-api_internal_api_post_dto.ModifySysPostDTO:
+    properties:
+      code:
+        description: 岗位编码，全局唯一
+        maxLength: 60
+        type: string
+      name:
+        description: 岗位名称
+        maxLength: 50
+        type: string
+      remark:
+        description: 备注
+        maxLength: 255
+        type: string
+      sort:
+        description: 排序，值越小越靠前
+        type: integer
+      status:
+        description: 状态：1正常，2禁用；不传默认1
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - code
+    - name
+    type: object
+  gin-admin-api_internal_api_post_vo.SysPostVO:
+    properties:
+      code:
+        description: 岗位编码，全局唯一
+        type: string
+      createdAt:
+        description: 创建时间，Unix秒
+        type: integer
+      createdBy:
+        description: 创建人账号id
+        type: integer
+      id:
+        description: 主键id
+        type: integer
+      name:
+        description: 岗位名称
+        type: string
+      remark:
+        description: 备注
+        type: string
+      sort:
+        description: 排序，值越小越靠前
+        type: integer
+      status:
+        description: 状态：1正常，2禁用
+        type: integer
+      updatedAt:
+        description: 更新时间，Unix秒
+        type: integer
+      updatedBy:
+        description: 更新人账号id
+        type: integer
+    type: object
+  gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO:
+    properties:
+      description:
+        description: 描述
+        type: string
+      icon:
+        description: 菜单小图标
+        type: string
+      isCache:
+        description: 是否缓存:1表示缓存:2不缓存
+        type: integer
+      isHidden:
+        description: 是否隐藏:1表示不隐藏,2表示隐藏
+        type: integer
+      isLink:
+        description: 是否为外部链接:1表示不是,2表示是
+        type: integer
+      method:
+        description: 接口的请求方式
+        type: string
+      parentId:
+        description: 上一级id，0=顶级
+        type: integer
+      resourcesType:
+        description: 类型:1表示目录,2表示菜单,3表示接口
+        type: integer
+      sort:
+        description: 菜单,或按钮排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        enum:
+        - 1
+        - 2
+        type: integer
+      title:
+        description: 名称:按钮标题,或菜单标题
+        type: string
+      uRL:
+        description: 按钮请求url,或菜单路由
+        type: string
+    required:
+    - title
+    - uRL
+    type: object
+  gin-admin-api_internal_api_resources_vo.SysResourcesVO:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: integer
+      description:
+        description: 描述
+        type: string
+      hasChildren:
+        description: 是否有子节点
+        type: boolean
+      icon:
+        description: 菜单小图标
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      isAdminHave:
+        description: 是否超管独有,1表示是,0表示不是
+        type: integer
+      isCache:
+        description: 是否缓存:1表示缓存:2不缓存
+        type: integer
+      isHidden:
+        description: 是否隐藏:1表示不隐藏,2表示隐藏
+        type: integer
+      isLink:
+        description: 是否为外部链接:1表示不是,2表示是
+        type: integer
+      method:
+        description: 接口的请求方式
+        type: string
+      parentId:
+        description: 上一级id，0=顶级
+        type: integer
+      resourcesType:
+        description: 类型:1表示目录,2表示菜单,3表示接口
+        type: integer
+      sort:
+        description: 菜单,或按钮排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      title:
+        description: 名称:按钮标题,或菜单标题
+        type: string
+      updatedAt:
+        description: 更新时间
+        type: integer
+      url:
+        description: 按钮请求url,或菜单路由
+        type: string
+    type: object
+  gin-admin-api_internal_api_role_dto.CreateSysRoleDTO:
+    properties:
+      dataScope:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        type: integer
+      deptIdList:
+        items:
+          type: integer
+        type: array
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 角色名称
+        type: string
+      resourcesIdList:
+        description: 资源id
+        items:
+          type: integer
+        minItems: 1
+        type: array
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        enum:
+        - 1
+        - 2
+        type: integer
+    required:
+    - dataScope
+    - name
+    - resourcesIdList
+    type: object
+  gin-admin-api_internal_api_role_vo.SysRoleVO:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: integer
+      dataScope:
+        description: 数据范围
+        type: integer
+      description:
+        description: 描述
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      updatedAt:
+        description: 更新时间
+        type: integer
     type: object
   vo.AccountLoginVO:
     properties:
@@ -387,6 +769,71 @@ definitions:
         description: 名称:按钮标题,或菜单标题
         type: string
     type: object
+  vo.SysAccountApiPermissionVO:
+    properties:
+      id:
+        description: 资源id
+        type: integer
+      method:
+        description: 请求方式
+        type: string
+      parentId:
+        description: 上一级id
+        type: integer
+      sort:
+        description: 排序
+        type: integer
+      title:
+        description: 接口名称
+        type: string
+      url:
+        description: 接口地址
+        type: string
+    type: object
+  vo.SysAccountCurrentInfoVO:
+    properties:
+      apiPermissionList:
+        description: 授权的接口权限
+        items:
+          $ref: '#/definitions/vo.SysAccountApiPermissionVO'
+        type: array
+      avatar:
+        description: 头像
+        type: string
+      createdAt:
+        description: 创建时间
+        type: integer
+      deptId:
+        description: 所属部门id
+        type: integer
+      email:
+        description: 邮箱
+        type: string
+      id:
+        description: 主键id
+        type: integer
+      isAdmin:
+        description: 1是超级管理员，2是普通管理员
+        type: integer
+      lastLoginDate:
+        description: 最后一次登录时间
+        type: integer
+      lastLoginIP:
+        description: 最后一次登录ip
+        type: string
+      mobile:
+        description: 手机号
+        type: string
+      status:
+        description: 状态1是正常,2是禁用
+        type: integer
+      updatedAt:
+        description: 更新时间
+        type: integer
+      username:
+        description: 登录帐号
+        type: string
+    type: object
   vo.SysAccountDetailVO:
     properties:
       avatar:
@@ -397,6 +844,9 @@ definitions:
         type: integer
       createdBy:
         description: 创建人
+        type: integer
+      deptId:
+        description: 所属部门id
         type: integer
       email:
         description: 邮箱
@@ -419,6 +869,11 @@ definitions:
       password:
         description: 登录密码
         type: string
+      postIdList:
+        description: 授权的岗位id，第一个为主岗
+        items:
+          type: integer
+        type: array
       roleIdList:
         description: 授权的角色id
         items:
@@ -437,65 +892,19 @@ definitions:
         description: 登录帐号
         type: string
     type: object
-  vo.SysResourcesVO:
-    properties:
-      createdAt:
-        description: 创建时间
-        type: integer
-      description:
-        description: 描述
-        type: string
-      hasChildren:
-        description: 是否有子节点
-        type: boolean
-      icon:
-        description: 菜单小图标
-        type: string
-      id:
-        description: 主键id
-        type: integer
-      isAdminHave:
-        description: 是否超管独有,1表示是,0表示不是
-        type: integer
-      isCache:
-        description: 是否缓存:1表示缓存:2不缓存
-        type: integer
-      isHidden:
-        description: 是否隐藏:1表示不隐藏,2表示隐藏
-        type: integer
-      isLink:
-        description: 是否为外部链接:1表示不是,2表示是
-        type: integer
-      method:
-        description: 接口的请求方式
-        type: string
-      parentId:
-        description: 上一级id，0=顶级
-        type: integer
-      resourcesType:
-        description: 类型:1表示目录,2表示菜单,3表示接口
-        type: integer
-      sort:
-        description: 菜单,或按钮排序
-        type: integer
-      status:
-        description: 状态1是正常,2是禁用
-        type: integer
-      title:
-        description: 名称:按钮标题,或菜单标题
-        type: string
-      updatedAt:
-        description: 更新时间
-        type: integer
-      url:
-        description: 按钮请求url,或菜单路由
-        type: string
-    type: object
   vo.SysRoleDetailVO:
     properties:
       createdAt:
         description: 创建时间
         type: integer
+      dataScope:
+        description: 数据范围
+        type: integer
+      deptIdList:
+        description: 自定义数据权限部门id
+        items:
+          type: integer
+        type: array
       description:
         description: 描述
         type: string
@@ -520,41 +929,39 @@ definitions:
         description: 更新时间
         type: integer
     type: object
-  vo.SysRoleVO:
-    properties:
-      createdAt:
-        description: 创建时间
-        type: integer
-      description:
-        description: 描述
-        type: string
-      id:
-        description: 主键id
-        type: integer
-      name:
-        description: 角色名称
-        type: string
-      sort:
-        description: 排序
-        type: integer
-      status:
-        description: 状态1是正常,2是禁用
-        type: integer
-      updatedAt:
-        description: 更新时间
-        type: integer
-    type: object
 info:
   contact: {}
   description: gin-admin-api 后台管理接口文档
   title: gin-admin-api
   version: "1.0"
 paths:
+  /api/v1/admin/account:
+    post:
+      consumes:
+      - application/json
+      description: 创建后台账号，并分配角色、岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗
+      parameters:
+      - description: 创建账号参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            type: string
+      summary: 创建账号
+      tags:
+      - 账号中心
   /api/v1/admin/account/{id}:
     delete:
       consumes:
       - application/json
-      description: 根据账号 ID 删除账号，并清理账号角色关系
+      description: 根据账号 ID 删除账号，并清理账号角色、岗位关系
       parameters:
       - description: 账号ID
         in: path
@@ -571,6 +978,33 @@ paths:
       summary: 删除账号
       tags:
       - 账号中心
+    put:
+      consumes:
+      - application/json
+      description: 根据账号 ID 修改账号基础信息、角色关系和岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗
+      parameters:
+      - description: 账号ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改账号参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            type: string
+      summary: 修改账号
+      tags:
+      - 账号中心
+  /api/v1/admin/account/detail/{id}:
     get:
       consumes:
       - application/json
@@ -592,6 +1026,22 @@ paths:
       summary: 获取账号详情
       tags:
       - 账号中心
+  /api/v1/admin/account/info:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录账号基础信息、授权角色和授权接口权限
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 统一响应，code=0 时 result 为 vo.SysAccountCurrentInfoVO，code=1 时
+            result 为 null
+          schema:
+            $ref: '#/definitions/vo.SysAccountCurrentInfoVO'
+      summary: 获取当前登录账号信息
+      tags:
+      - 账号中心
   /api/v1/admin/account/list:
     get:
       consumes:
@@ -602,6 +1052,14 @@ paths:
         in: query
         name: username
         type: string
+      - description: 所属部门ID
+        in: query
+        name: deptId
+        type: integer
+      - description: 岗位ID
+        in: query
+        name: postId
+        type: integer
       produces:
       - application/json
       responses:
@@ -612,33 +1070,6 @@ paths:
               $ref: '#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO'
             type: array
       summary: 获取账号列表
-      tags:
-      - 账号中心
-  /api/v1/admin/account/modify/{id}:
-    put:
-      consumes:
-      - application/json
-      description: 根据账号 ID 修改账号基础信息和角色关系
-      parameters:
-      - description: 账号ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 修改账号参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 修改成功
-          schema:
-            type: string
-      summary: 修改账号
       tags:
       - 账号中心
   /api/v1/admin/account/modifyCurrentPassword:
@@ -687,39 +1118,12 @@ paths:
       summary: 分页获取账号
       tags:
       - 账号中心
-  /api/v1/admin/account/register:
-    post:
-      consumes:
-      - application/json
-      description: 创建后台账号，并分配角色关系
-      parameters:
-      - description: 创建账号参数
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 创建成功
-          schema:
-            type: string
-      summary: 创建账号
-      tags:
-      - 账号中心
-  /api/v1/admin/account/resetPassword/{id}:
+  /api/v1/admin/account/resetPassword:
     post:
       consumes:
       - application/json
       description: 根据账号 ID 重置账号密码
       parameters:
-      - description: 账号ID
-        in: path
-        name: id
-        required: true
-        type: integer
       - description: 重置密码参数
         in: body
         name: data
@@ -817,6 +1221,146 @@ paths:
       summary: 用户退出登录
       tags:
       - 认证中心
+  /api/v1/admin/dept:
+    post:
+      consumes:
+      - application/json
+      description: 创建部门；部门层级 fullId/fullName 由后端根据 parentId 自动维护
+      parameters:
+      - description: 创建部门参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/gin-admin-api_internal_api_dept_dto.CreateSysDeptDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            type: string
+      summary: 创建部门
+      tags:
+      - 部门中心
+  /api/v1/admin/dept/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据部门 ID 删除部门；存在子部门或账号时不能删除
+      parameters:
+      - description: 部门ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            type: string
+      summary: 删除部门
+      tags:
+      - 部门中心
+    put:
+      consumes:
+      - application/json
+      description: 根据部门 ID 修改部门基础信息和父级关系
+      parameters:
+      - description: 部门ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改部门参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ModifySysDeptDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            type: string
+      summary: 修改部门
+      tags:
+      - 部门中心
+  /api/v1/admin/dept/detail/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据部门 ID 获取部门详情，自动应用数据权限
+      parameters:
+      - description: 部门ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 部门详情
+          schema:
+            $ref: '#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO'
+      summary: 获取部门详情
+      tags:
+      - 部门中心
+  /api/v1/admin/dept/list:
+    get:
+      consumes:
+      - application/json
+      description: 根据部门名称和状态获取部门列表，自动应用数据权限
+      parameters:
+      - description: 部门名称
+        in: query
+        name: name
+        type: string
+      - description: 状态：1正常，2禁用，0全部
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 部门列表
+          schema:
+            items:
+              $ref: '#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO'
+            type: array
+      summary: 获取部门列表
+      tags:
+      - 部门中心
+  /api/v1/admin/dept/page:
+    post:
+      consumes:
+      - application/json
+      description: 根据部门名称、状态、上级部门分页查询部门列表，自动应用数据权限
+      parameters:
+      - description: 部门分页查询参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SysDeptPageDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 部门分页列表
+          schema:
+            items:
+              $ref: '#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO'
+            type: array
+      summary: 分页获取部门
+      tags:
+      - 部门中心
   /api/v1/admin/menu:
     get:
       consumes:
@@ -834,6 +1378,150 @@ paths:
       summary: 获取菜单
       tags:
       - 菜单中心
+  /api/v1/admin/post:
+    post:
+      consumes:
+      - application/json
+      description: 创建岗位，岗位编码全局唯一
+      parameters:
+      - description: 创建岗位参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/gin-admin-api_internal_api_post_dto.CreateSysPostDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            type: string
+      summary: 创建岗位
+      tags:
+      - 岗位中心
+  /api/v1/admin/post/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根据岗位 ID 删除岗位；已绑定账号时不能删除
+      parameters:
+      - description: 岗位ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            type: string
+      summary: 删除岗位
+      tags:
+      - 岗位中心
+    put:
+      consumes:
+      - application/json
+      description: 根据岗位 ID 修改岗位基础信息
+      parameters:
+      - description: 岗位ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 修改岗位参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/gin-admin-api_internal_api_post_dto.ModifySysPostDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            type: string
+      summary: 修改岗位
+      tags:
+      - 岗位中心
+  /api/v1/admin/post/detail/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据岗位 ID 获取岗位详情，自动应用数据权限
+      parameters:
+      - description: 岗位ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 岗位详情
+          schema:
+            $ref: '#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO'
+      summary: 获取岗位详情
+      tags:
+      - 岗位中心
+  /api/v1/admin/post/list:
+    get:
+      consumes:
+      - application/json
+      description: 根据名称、编码和状态获取岗位列表
+      parameters:
+      - description: 岗位名称
+        in: query
+        name: name
+        type: string
+      - description: 岗位编码
+        in: query
+        name: code
+        type: string
+      - description: 状态：1正常，2禁用，0全部
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 岗位列表
+          schema:
+            items:
+              $ref: '#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO'
+            type: array
+      summary: 获取岗位列表
+      tags:
+      - 岗位中心
+  /api/v1/admin/post/page:
+    post:
+      consumes:
+      - application/json
+      description: 根据岗位名称、编码、状态分页查询岗位列表
+      parameters:
+      - description: 岗位分页查询参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SysPostPageDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 岗位分页列表
+          schema:
+            items:
+              $ref: '#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO'
+            type: array
+      summary: 分页获取岗位
+      tags:
+      - 岗位中心
   /api/v1/admin/resources:
     post:
       consumes:
@@ -845,7 +1533,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateSysResourcesDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO'
       produces:
       - application/json
       responses:
@@ -892,7 +1580,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateSysResourcesDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO'
       produces:
       - application/json
       responses:
@@ -961,7 +1649,7 @@ paths:
           description: 资源分页列表
           schema:
             items:
-              $ref: '#/definitions/vo.SysResourcesVO'
+              $ref: '#/definitions/gin-admin-api_internal_api_resources_vo.SysResourcesVO'
             type: array
       summary: 分页获取资源树
       tags:
@@ -977,7 +1665,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateSysRoleDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_role_dto.CreateSysRoleDTO'
       produces:
       - application/json
       responses:
@@ -1024,7 +1712,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateSysRoleDTO'
+          $ref: '#/definitions/gin-admin-api_internal_api_role_dto.CreateSysRoleDTO'
       produces:
       - application/json
       responses:
@@ -1068,7 +1756,7 @@ paths:
           description: 角色列表
           schema:
             items:
-              $ref: '#/definitions/vo.SysRoleVO'
+              $ref: '#/definitions/gin-admin-api_internal_api_role_vo.SysRoleVO'
             type: array
       summary: 获取角色列表
       tags:
@@ -1092,7 +1780,7 @@ paths:
           description: 角色分页列表
           schema:
             items:
-              $ref: '#/definitions/vo.SysRoleVO'
+              $ref: '#/definitions/gin-admin-api_internal_api_role_vo.SysRoleVO'
             type: array
       summary: 分页获取角色
       tags:

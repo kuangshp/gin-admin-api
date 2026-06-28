@@ -15,6 +15,95 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/admin/account": {
+            "post": {
+                "description": "创建后台账号，并分配角色、岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账号中心"
+                ],
+                "summary": "创建账号",
+                "parameters": [
+                    {
+                        "description": "创建账号参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/account/detail/{id}": {
+            "get": {
+                "description": "根据账号 ID 获取账号详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账号中心"
+                ],
+                "summary": "获取账号详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "账号ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应，code=0 时 result 为 vo.SysAccountDetailVO，code=1 时 result 为 null",
+                        "schema": {
+                            "$ref": "#/definitions/vo.SysAccountDetailVO"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/account/info": {
+            "get": {
+                "description": "获取当前登录账号基础信息、授权角色和授权接口权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "账号中心"
+                ],
+                "summary": "获取当前登录账号信息",
+                "responses": {
+                    "200": {
+                        "description": "统一响应，code=0 时 result 为 vo.SysAccountCurrentInfoVO，code=1 时 result 为 null",
+                        "schema": {
+                            "$ref": "#/definitions/vo.SysAccountCurrentInfoVO"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/account/list": {
             "get": {
                 "description": "根据查询条件获取账号列表",
@@ -34,6 +123,18 @@ const docTemplate = `{
                         "description": "登录账号",
                         "name": "username",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "所属部门ID",
+                        "name": "deptId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "岗位ID",
+                        "name": "postId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -44,47 +145,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/gin-admin-api_internal_api_account_vo.SysAccountVO"
                             }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/account/modify/{id}": {
-            "put": {
-                "description": "根据账号 ID 修改账号基础信息和角色关系",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "账号中心"
-                ],
-                "summary": "修改账号",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "账号ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "修改账号参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
@@ -161,41 +221,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/admin/account/register": {
-            "post": {
-                "description": "创建后台账号，并分配角色关系",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "账号中心"
-                ],
-                "summary": "创建账号",
-                "parameters": [
-                    {
-                        "description": "创建账号参数",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.CreateSysAccountDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "创建成功",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/admin/account/resetPassword/{id}": {
+        "/api/v1/admin/account/resetPassword": {
             "post": {
                 "description": "根据账号 ID 重置账号密码",
                 "consumes": [
@@ -209,13 +235,6 @@ const docTemplate = `{
                 ],
                 "summary": "重置账号密码",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "账号ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "重置密码参数",
                         "name": "data",
@@ -237,8 +256,8 @@ const docTemplate = `{
             }
         },
         "/api/v1/admin/account/{id}": {
-            "get": {
-                "description": "根据账号 ID 获取账号详情",
+            "put": {
+                "description": "根据账号 ID 修改账号基础信息、角色关系和岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,7 +267,7 @@ const docTemplate = `{
                 "tags": [
                     "账号中心"
                 ],
-                "summary": "获取账号详情",
+                "summary": "修改账号",
                 "parameters": [
                     {
                         "type": "integer",
@@ -256,19 +275,28 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "修改账号参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_account_dto.ModifySysAccountDTO"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "统一响应，code=0 时 result 为 vo.SysAccountDetailVO，code=1 时 result 为 null",
+                        "description": "修改成功",
                         "schema": {
-                            "$ref": "#/definitions/vo.SysAccountDetailVO"
+                            "type": "string"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "根据账号 ID 删除账号，并清理账号角色关系",
+                "description": "根据账号 ID 删除账号，并清理账号角色、岗位关系",
                 "consumes": [
                     "application/json"
                 ],
@@ -421,6 +449,220 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/dept": {
+            "post": {
+                "description": "创建部门；部门层级 fullId/fullName 由后端根据 parentId 自动维护",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "创建部门",
+                "parameters": [
+                    {
+                        "description": "创建部门参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_dept_dto.CreateSysDeptDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/dept/detail/{id}": {
+            "get": {
+                "description": "根据部门 ID 获取部门详情，自动应用数据权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "获取部门详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "部门ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "部门详情",
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/dept/list": {
+            "get": {
+                "description": "根据部门名称和状态获取部门列表，自动应用数据权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "获取部门列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "部门名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态：1正常，2禁用，0全部",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "部门列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/dept/page": {
+            "post": {
+                "description": "根据部门名称、状态、上级部门分页查询部门列表，自动应用数据权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "分页获取部门",
+                "parameters": [
+                    {
+                        "description": "部门分页查询参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SysDeptPageDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "部门分页列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gin-admin-api_internal_api_dept_vo.SysDeptVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/dept/{id}": {
+            "put": {
+                "description": "根据部门 ID 修改部门基础信息和父级关系",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "修改部门",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "部门ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "修改部门参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ModifySysDeptDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据部门 ID 删除部门；存在子部门或账号时不能删除",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "部门中心"
+                ],
+                "summary": "删除部门",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "部门ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/menu": {
             "get": {
                 "description": "获取当前登录账号可访问的菜单资源列表，超级管理员返回全部正常资源",
@@ -447,6 +689,226 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/post": {
+            "post": {
+                "description": "创建岗位，岗位编码全局唯一",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "创建岗位",
+                "parameters": [
+                    {
+                        "description": "创建岗位参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_post_dto.CreateSysPostDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/post/detail/{id}": {
+            "get": {
+                "description": "根据岗位 ID 获取岗位详情，自动应用数据权限",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "获取岗位详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "岗位ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "岗位详情",
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/post/list": {
+            "get": {
+                "description": "根据名称、编码和状态获取岗位列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "获取岗位列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "岗位名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "岗位编码",
+                        "name": "code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "状态：1正常，2禁用，0全部",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "岗位列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/post/page": {
+            "post": {
+                "description": "根据岗位名称、编码、状态分页查询岗位列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "分页获取岗位",
+                "parameters": [
+                    {
+                        "description": "岗位分页查询参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SysPostPageDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "岗位分页列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gin-admin-api_internal_api_post_vo.SysPostVO"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/post/{id}": {
+            "put": {
+                "description": "根据岗位 ID 修改岗位基础信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "修改岗位",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "岗位ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "修改岗位参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/gin-admin-api_internal_api_post_dto.ModifySysPostDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据岗位 ID 删除岗位；已绑定账号时不能删除",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "岗位中心"
+                ],
+                "summary": "删除岗位",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "岗位ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/resources": {
             "post": {
                 "description": "创建目录、菜单或接口资源",
@@ -467,7 +929,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateSysResourcesDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO"
                         }
                     }
                 ],
@@ -571,7 +1033,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/vo.SysResourcesVO"
+                                "$ref": "#/definitions/gin-admin-api_internal_api_resources_vo.SysResourcesVO"
                             }
                         }
                     }
@@ -605,7 +1067,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateSysResourcesDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO"
                         }
                     }
                 ],
@@ -669,7 +1131,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateSysRoleDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_role_dto.CreateSysRoleDTO"
                         }
                     }
                 ],
@@ -734,7 +1196,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/vo.SysRoleVO"
+                                "$ref": "#/definitions/gin-admin-api_internal_api_role_vo.SysRoleVO"
                             }
                         }
                     }
@@ -771,7 +1233,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/vo.SysRoleVO"
+                                "$ref": "#/definitions/gin-admin-api_internal_api_role_vo.SysRoleVO"
                             }
                         }
                     }
@@ -805,7 +1267,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateSysRoleDTO"
+                            "$ref": "#/definitions/gin-admin-api_internal_api_role_dto.CreateSysRoleDTO"
                         }
                     }
                 ],
@@ -878,107 +1340,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateSysResourcesDTO": {
-            "type": "object",
-            "required": [
-                "title",
-                "uRL"
-            ],
-            "properties": {
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "icon": {
-                    "description": "菜单小图标",
-                    "type": "string"
-                },
-                "isCache": {
-                    "description": "是否缓存:1表示缓存:2不缓存",
-                    "type": "integer"
-                },
-                "isHidden": {
-                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
-                    "type": "integer"
-                },
-                "isLink": {
-                    "description": "是否为外部链接:1表示不是,2表示是",
-                    "type": "integer"
-                },
-                "method": {
-                    "description": "接口的请求方式",
-                    "type": "string"
-                },
-                "parentId": {
-                    "description": "上一级id，0=顶级",
-                    "type": "integer"
-                },
-                "resourcesType": {
-                    "description": "类型:1表示目录,2表示菜单,3表示接口",
-                    "type": "integer"
-                },
-                "sort": {
-                    "description": "菜单,或按钮排序",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "状态1是正常,2是禁用",
-                    "type": "integer",
-                    "enum": [
-                        1,
-                        2
-                    ]
-                },
-                "title": {
-                    "description": "名称:按钮标题,或菜单标题",
-                    "type": "string"
-                },
-                "uRL": {
-                    "description": "按钮请求url,或菜单路由",
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CreateSysRoleDTO": {
-            "type": "object",
-            "required": [
-                "name",
-                "resourcesIdList"
-            ],
-            "properties": {
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "角色名称",
-                    "type": "string"
-                },
-                "resourcesIdList": {
-                    "description": "资源id",
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "sort": {
-                    "description": "排序",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "状态1是正常,2是禁用",
-                    "type": "integer",
-                    "enum": [
-                        1,
-                        2
-                    ]
-                }
-            }
-        },
         "dto.GetSysAccountPageDTO": {
             "type": "object",
             "properties": {
+                "deptId": {
+                    "description": "所属部门id，0表示全部",
+                    "type": "integer"
+                },
                 "keyword": {
                     "description": "用户名,邮箱,手机号码",
                     "type": "string"
@@ -987,6 +1355,10 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "pageSize": {
+                    "type": "integer"
+                },
+                "postId": {
+                    "description": "岗位id，0表示全部",
                     "type": "integer"
                 },
                 "status": {
@@ -1017,6 +1389,74 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 16,
                     "minLength": 6
+                }
+            }
+        },
+        "dto.ModifySysDeptDTO": {
+            "type": "object",
+            "required": [
+                "fullId",
+                "fullName",
+                "id",
+                "name",
+                "parentId"
+            ],
+            "properties": {
+                "createdBy": {
+                    "description": "创建人",
+                    "type": "integer"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "fullId": {
+                    "description": "全层级ID，例：1,5,12",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "fullName": {
+                    "description": "全层级名称",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "leaderId": {
+                    "description": "负责人账号id，关联sys_account.id",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "部门名称",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "parentId": {
+                    "description": "上级部门id",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "phone": {
+                    "description": "联系电话",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1正常 2禁用",
+                    "type": "integer"
+                },
+                "updatedBy": {
+                    "description": "更新人",
+                    "type": "integer"
                 }
             }
         },
@@ -1086,6 +1526,56 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SysDeptPageDTO": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "部门名称，模糊查询",
+                    "type": "string"
+                },
+                "pageNumber": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "上级部门id，默认0查询根部门",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用；0表示全部",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SysPostPageDTO": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "岗位编码，模糊查询",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "岗位名称，模糊查询",
+                    "type": "string"
+                },
+                "pageNumber": {
+                    "description": "页码",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "每页条数",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用；0表示全部",
+                    "type": "integer"
+                }
+            }
+        },
         "dto.VerifyCaptchaDTO": {
             "type": "object",
             "required": [
@@ -1107,7 +1597,9 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "confirmPassword",
+                "deptId",
                 "password",
+                "postIdList",
                 "roleIdList",
                 "username"
             ],
@@ -1122,6 +1614,11 @@ const docTemplate = `{
                     "maxLength": 16,
                     "minLength": 6
                 },
+                "deptId": {
+                    "description": "所属部门id，用于数据权限计算",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "email": {
                     "description": "邮箱",
                     "type": "string"
@@ -1135,6 +1632,14 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 16,
                     "minLength": 6
+                },
+                "postIdList": {
+                    "description": "授权的岗位id，第一个为主岗",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "roleIdList": {
                     "description": "授权的角色id",
@@ -1153,7 +1658,8 @@ const docTemplate = `{
         "gin-admin-api_internal_api_account_dto.ModifySysAccountDTO": {
             "type": "object",
             "required": [
-                "id",
+                "deptId",
+                "postIdList",
                 "roleIdList",
                 "status",
                 "username"
@@ -1163,18 +1669,26 @@ const docTemplate = `{
                     "description": "头像",
                     "type": "string"
                 },
+                "deptId": {
+                    "description": "所属部门id，用于数据权限计算",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "email": {
                     "description": "邮箱",
                     "type": "string"
                 },
-                "id": {
-                    "description": "主键id",
-                    "type": "integer",
-                    "minimum": 1
-                },
                 "mobile": {
                     "description": "手机号",
                     "type": "string"
+                },
+                "postIdList": {
+                    "description": "授权的岗位id，第一个为主岗",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "roleIdList": {
                     "description": "授权的角色id",
@@ -1213,6 +1727,10 @@ const docTemplate = `{
                     "description": "创建人",
                     "type": "integer"
                 },
+                "deptId": {
+                    "description": "所属部门id",
+                    "type": "integer"
+                },
                 "email": {
                     "description": "邮箱",
                     "type": "string"
@@ -1241,6 +1759,13 @@ const docTemplate = `{
                     "description": "登录密码",
                     "type": "string"
                 },
+                "postIdList": {
+                    "description": "授权的岗位id，第一个为主岗",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "status": {
                     "description": "状态1是正常,2是禁用",
                     "type": "integer"
@@ -1256,6 +1781,454 @@ const docTemplate = `{
                 "username": {
                     "description": "登录帐号",
                     "type": "string"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_dept_dto.CreateSysDeptDTO": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "leaderId": {
+                    "description": "负责人账号id，关联sys_account.id",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "description": "部门名称",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "parentId": {
+                    "description": "上级部门id，0表示根部门",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "phone": {
+                    "description": "联系电话",
+                    "type": "string",
+                    "maxLength": 20
+                },
+                "sort": {
+                    "description": "排序，值越小越靠前",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用；不传默认1",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "gin-admin-api_internal_api_dept_vo.SysDeptVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间，Unix秒",
+                    "type": "integer"
+                },
+                "createdBy": {
+                    "description": "创建人账号id",
+                    "type": "integer"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "fullId": {
+                    "description": "全层级部门ID，例：1,5,12",
+                    "type": "string"
+                },
+                "fullName": {
+                    "description": "全层级部门名称",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "leaderId": {
+                    "description": "负责人账号id，关联sys_account.id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "部门名称",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上级部门id，0表示根部门",
+                    "type": "integer"
+                },
+                "phone": {
+                    "description": "联系电话",
+                    "type": "string"
+                },
+                "sort": {
+                    "description": "排序，值越小越靠前",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间，Unix秒",
+                    "type": "integer"
+                },
+                "updatedBy": {
+                    "description": "更新人账号id",
+                    "type": "integer"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_post_dto.CreateSysPostDTO": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "description": "岗位编码，全局唯一",
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "name": {
+                    "description": "岗位名称",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "sort": {
+                    "description": "排序，值越小越靠前",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用；不传默认1",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "gin-admin-api_internal_api_post_dto.ModifySysPostDTO": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "description": "岗位编码，全局唯一",
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "name": {
+                    "description": "岗位名称",
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "sort": {
+                    "description": "排序，值越小越靠前",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用；不传默认1",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "gin-admin-api_internal_api_post_vo.SysPostVO": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "岗位编码，全局唯一",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "创建时间，Unix秒",
+                    "type": "integer"
+                },
+                "createdBy": {
+                    "description": "创建人账号id",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "岗位名称",
+                    "type": "string"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "sort": {
+                    "description": "排序，值越小越靠前",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态：1正常，2禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间，Unix秒",
+                    "type": "integer"
+                },
+                "updatedBy": {
+                    "description": "更新人账号id",
+                    "type": "integer"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_resources_dto.CreateSysResourcesDTO": {
+            "type": "object",
+            "required": [
+                "title",
+                "uRL"
+            ],
+            "properties": {
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "菜单小图标",
+                    "type": "string"
+                },
+                "isCache": {
+                    "description": "是否缓存:1表示缓存:2不缓存",
+                    "type": "integer"
+                },
+                "isHidden": {
+                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
+                    "type": "integer"
+                },
+                "isLink": {
+                    "description": "是否为外部链接:1表示不是,2表示是",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "接口的请求方式",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上一级id，0=顶级",
+                    "type": "integer"
+                },
+                "resourcesType": {
+                    "description": "类型:1表示目录,2表示菜单,3表示接口",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                },
+                "uRL": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_resources_vo.SysResourcesVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "hasChildren": {
+                    "description": "是否有子节点",
+                    "type": "boolean"
+                },
+                "icon": {
+                    "description": "菜单小图标",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdminHave": {
+                    "description": "是否超管独有,1表示是,0表示不是",
+                    "type": "integer"
+                },
+                "isCache": {
+                    "description": "是否缓存:1表示缓存:2不缓存",
+                    "type": "integer"
+                },
+                "isHidden": {
+                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
+                    "type": "integer"
+                },
+                "isLink": {
+                    "description": "是否为外部链接:1表示不是,2表示是",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "接口的请求方式",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上一级id，0=顶级",
+                    "type": "integer"
+                },
+                "resourcesType": {
+                    "description": "类型:1表示目录,2表示菜单,3表示接口",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "菜单,或按钮排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "名称:按钮标题,或菜单标题",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "url": {
+                    "description": "按钮请求url,或菜单路由",
+                    "type": "string"
+                }
+            }
+        },
+        "gin-admin-api_internal_api_role_dto.CreateSysRoleDTO": {
+            "type": "object",
+            "required": [
+                "dataScope",
+                "name",
+                "resourcesIdList"
+            ],
+            "properties": {
+                "dataScope": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                },
+                "deptIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "角色名称",
+                    "type": "string"
+                },
+                "resourcesIdList": {
+                    "description": "资源id",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2
+                    ]
+                }
+            }
+        },
+        "gin-admin-api_internal_api_role_vo.SysRoleVO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "dataScope": {
+                    "description": "数据范围",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "角色名称",
+                    "type": "string"
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
                 }
             }
         },
@@ -1379,6 +2352,95 @@ const docTemplate = `{
                 }
             }
         },
+        "vo.SysAccountApiPermissionVO": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "资源id",
+                    "type": "integer"
+                },
+                "method": {
+                    "description": "请求方式",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "上一级id",
+                    "type": "integer"
+                },
+                "sort": {
+                    "description": "排序",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "接口名称",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "接口地址",
+                    "type": "string"
+                }
+            }
+        },
+        "vo.SysAccountCurrentInfoVO": {
+            "type": "object",
+            "properties": {
+                "apiPermissionList": {
+                    "description": "授权的接口权限",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/vo.SysAccountApiPermissionVO"
+                    }
+                },
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "deptId": {
+                    "description": "所属部门id",
+                    "type": "integer"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键id",
+                    "type": "integer"
+                },
+                "isAdmin": {
+                    "description": "1是超级管理员，2是普通管理员",
+                    "type": "integer"
+                },
+                "lastLoginDate": {
+                    "description": "最后一次登录时间",
+                    "type": "integer"
+                },
+                "lastLoginIP": {
+                    "description": "最后一次登录ip",
+                    "type": "string"
+                },
+                "mobile": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态1是正常,2是禁用",
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "description": "更新时间",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "登录帐号",
+                    "type": "string"
+                }
+            }
+        },
         "vo.SysAccountDetailVO": {
             "type": "object",
             "properties": {
@@ -1392,6 +2454,10 @@ const docTemplate = `{
                 },
                 "createdBy": {
                     "description": "创建人",
+                    "type": "integer"
+                },
+                "deptId": {
+                    "description": "所属部门id",
                     "type": "integer"
                 },
                 "email": {
@@ -1422,6 +2488,13 @@ const docTemplate = `{
                     "description": "登录密码",
                     "type": "string"
                 },
+                "postIdList": {
+                    "description": "授权的岗位id，第一个为主岗",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "roleIdList": {
                     "description": "授权的角色id",
                     "type": "array",
@@ -1447,85 +2520,23 @@ const docTemplate = `{
                 }
             }
         },
-        "vo.SysResourcesVO": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "description": "创建时间",
-                    "type": "integer"
-                },
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "hasChildren": {
-                    "description": "是否有子节点",
-                    "type": "boolean"
-                },
-                "icon": {
-                    "description": "菜单小图标",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "主键id",
-                    "type": "integer"
-                },
-                "isAdminHave": {
-                    "description": "是否超管独有,1表示是,0表示不是",
-                    "type": "integer"
-                },
-                "isCache": {
-                    "description": "是否缓存:1表示缓存:2不缓存",
-                    "type": "integer"
-                },
-                "isHidden": {
-                    "description": "是否隐藏:1表示不隐藏,2表示隐藏",
-                    "type": "integer"
-                },
-                "isLink": {
-                    "description": "是否为外部链接:1表示不是,2表示是",
-                    "type": "integer"
-                },
-                "method": {
-                    "description": "接口的请求方式",
-                    "type": "string"
-                },
-                "parentId": {
-                    "description": "上一级id，0=顶级",
-                    "type": "integer"
-                },
-                "resourcesType": {
-                    "description": "类型:1表示目录,2表示菜单,3表示接口",
-                    "type": "integer"
-                },
-                "sort": {
-                    "description": "菜单,或按钮排序",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "状态1是正常,2是禁用",
-                    "type": "integer"
-                },
-                "title": {
-                    "description": "名称:按钮标题,或菜单标题",
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "description": "更新时间",
-                    "type": "integer"
-                },
-                "url": {
-                    "description": "按钮请求url,或菜单路由",
-                    "type": "string"
-                }
-            }
-        },
         "vo.SysRoleDetailVO": {
             "type": "object",
             "properties": {
                 "createdAt": {
                     "description": "创建时间",
                     "type": "integer"
+                },
+                "dataScope": {
+                    "description": "数据范围",
+                    "type": "integer"
+                },
+                "deptIdList": {
+                    "description": "自定义数据权限部门id",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "description": {
                     "description": "描述",
@@ -1545,39 +2556,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                },
-                "sort": {
-                    "description": "排序",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "状态1是正常,2是禁用",
-                    "type": "integer"
-                },
-                "updatedAt": {
-                    "description": "更新时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "vo.SysRoleVO": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "description": "创建时间",
-                    "type": "integer"
-                },
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "主键id",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "角色名称",
-                    "type": "string"
                 },
                 "sort": {
                     "description": "排序",

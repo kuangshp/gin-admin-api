@@ -1,9 +1,8 @@
 package mapper
 
 import (
-	"time"
-	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/dto"
+	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
 )
 
@@ -27,7 +26,8 @@ func NewSysAccountPostMapper() ISysAccountPostMapper {
 func (m *sysAccountPostMapper) DtoToEntity(d *dto.CreateSysAccountPostDTO) *model.SysAccountPostEntity {
 	e := &model.SysAccountPostEntity{
 		AccountID: d.AccountID, // 账号id
-		PostID: d.PostID, // 岗位id
+		PostID:    d.PostID,    // 岗位id
+		IsPrimary: d.IsPrimary, // 是否主岗,1表示不是,2表示是
 	}
 	return e
 }
@@ -38,13 +38,14 @@ func (m *sysAccountPostMapper) EntityToVO(e *model.SysAccountPostEntity) *vo.Sys
 		return nil
 	}
 	return &vo.SysAccountPostVO{
-		ID: e.ID, // 主键id
-		AccountID: e.AccountID, // 账号id
-		PostID: e.PostID, // 岗位id
-        CreatedAt: e.CreatedAt.Unix(), // 创建时间
-        UpdatedAt: e.UpdatedAt.Unix(), // 更新时间
-		CreatedBy: e.CreatedBy, // 创建人
-		UpdatedBy: e.UpdatedBy, // 更新人
+		ID:        e.ID,               // 主键id
+		AccountID: e.AccountID,        // 账号id
+		PostID:    e.PostID,           // 岗位id
+		IsPrimary: e.IsPrimary,        // 是否主岗,1表示不是,2表示是
+		CreatedAt: e.CreatedAt.Unix(), // 创建时间
+		UpdatedAt: e.UpdatedAt.Unix(), // 更新时间
+		CreatedBy: e.CreatedBy,        // 创建人
+		UpdatedBy: e.UpdatedBy,        // 更新人
 
 	}
 }

@@ -6,13 +6,15 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
-func InitRoleRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, roleHandler role.IRole) {
+func InitRoleRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, db *gorm.DB, roleHandler role.IRole) {
 	authRouter := Router.Group(
 		"role",
 		middleware.AuthMiddleWare(redis),
 		middleware.OperatorMiddleware(),
+		middleware.DataPermissionMiddleware(db),
 		middleware.CasbinMiddleWare(enforcer),
 	)
 	authRouter.POST("", roleHandler.CreateRoleApi)                 // 创建角色

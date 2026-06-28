@@ -12,6 +12,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // NewRouter Wire Provider：注册所有路由，返回 *gin.Engine
@@ -21,6 +22,7 @@ func NewRouter(
 	adminRouter *router.AdminRouter,
 	redis *redis.Client,
 	enforcer *casbin.Enforcer,
+	db *gorm.DB,
 ) *gin.Engine {
 	// 配置启动模式
 	gin.SetMode(cfg.Mode)
@@ -51,7 +53,7 @@ func NewRouter(
 	// 配置全局路径
 	ApiGroup := r.Group("/api/v1/admin")
 	// 注册路由
-	adminRouter.Register(ApiGroup, redis, enforcer)
+	adminRouter.Register(ApiGroup, redis, enforcer, db)
 
 	return r
 }

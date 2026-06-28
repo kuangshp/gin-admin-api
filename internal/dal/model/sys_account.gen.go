@@ -15,14 +15,15 @@ const TableNameSysAccountEntity = "sys_account"
 // SysAccountEntity 后台账号表
 type SysAccountEntity struct {
 	ID            int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id"`                // 主键id
+	Nickname      string         `gorm:"column:nickname;type:varchar(60);comment:昵称" json:"nickname"`                            // 昵称
 	Username      string         `gorm:"column:username;type:varchar(60);not null;comment:登录帐号" json:"username"`                 // 登录帐号
 	Email         string         `gorm:"column:email;type:varchar(60);comment:邮箱" json:"email"`                                  // 邮箱
 	Mobile        string         `gorm:"column:mobile;type:varchar(11);comment:手机号" json:"mobile"`                               // 手机号
-	Password      string         `gorm:"column:password;type:varchar(100);not null;comment:登录密码" json:"password"`                // 登录密码
+	Password      string         `gorm:"column:password;type:varchar(255);not null;comment:登录密码" json:"password"`                // 登录密码
 	LastLoginDate time.Time      `gorm:"column:last_login_date;type:datetime;comment:最后一次登录时间" json:"lastLoginDate"`             // 最后一次登录时间
 	LastLoginIP   string         `gorm:"column:last_login_ip;type:varchar(30);comment:最后一次登录ip" json:"lastLoginIp"`              // 最后一次登录ip
 	Status        int64          `gorm:"column:status;type:tinyint;not null;default:1;comment:状态1是正常,2是禁用" json:"status"`        // 状态1是正常,2是禁用
-	Avatar        string         `gorm:"column:avatar;type:varchar(200);comment:头像" json:"avatar"`                               // 头像
+	Avatar        string         `gorm:"column:avatar;type:varchar(500);comment:头像" json:"avatar"`                               // 头像
 	IsAdmin       int64          `gorm:"column:is_admin;type:tinyint;not null;default:2;comment:1是超级管理员，2是普通管理员" json:"isAdmin"` // 1是超级管理员，2是普通管理员
 	DeptID        int64          `gorm:"column:dept_id;type:int;not null;comment:所属部门id，用于数据权限计算" json:"deptId"`                 // 所属部门id，用于数据权限计算
 	CreatedAt     time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                        // 创建时间

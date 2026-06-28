@@ -52,7 +52,21 @@ func NewDB(cfg *config.ServerConfig) (*gorm.DB, error) {
 	// 初始化 dao 包的全局变量
 	dao.SetDefault(db)
 
-	// 注册插件
+	// 注册数据权限插件
+	if err = gormplus.RegisterDataPermission(db, gormplus.DataPermissionConfig{
+		ExcludeTables: []string{
+			"casbin_rule",
+			"sys_account_post",
+			"sys_account_role",
+			"sys_role",
+			"sys_role_resources",
+			"sys_role_custom_dept",
+			"sys_resources",
+		},
+	}); err != nil {
+		fmt.Println("注册数据权限插件失败")
+	}
+	// 注册自动填充插件
 	if err = db.Use(gormplus.NewAutoFillPlugin(gormplus.AutoFillConfig{
 		Fields: []gormplus.FieldConfig{
 			{Name: "CreatedBy", Getter: gormplus.CtxGetter[int64](gormplus.CtxContextKey1), OnCreate: true},

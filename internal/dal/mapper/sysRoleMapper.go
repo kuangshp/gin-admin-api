@@ -1,9 +1,8 @@
 package mapper
 
 import (
-	"time"
-	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/dto"
+	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
 )
 
@@ -26,10 +25,10 @@ func NewSysRoleMapper() ISysRoleMapper {
 // DtoToEntity 将 CreateSysRoleDTO 映射到 SysRoleEntity
 func (m *sysRoleMapper) DtoToEntity(d *dto.CreateSysRoleDTO) *model.SysRoleEntity {
 	e := &model.SysRoleEntity{
-		Name: d.Name, // 角色名称
+		Name:        d.Name,        // 角色名称
 		Description: d.Description, // 描述
-		Status: d.Status, // 状态1是正常,2是禁用
-		Sort: d.Sort, // 排序
+		Status:      d.Status,      // 状态1是正常,2是禁用
+		Sort:        d.Sort,        // 排序
 	}
 	return e
 }
@@ -40,15 +39,15 @@ func (m *sysRoleMapper) EntityToVO(e *model.SysRoleEntity) *vo.SysRoleVO {
 		return nil
 	}
 	return &vo.SysRoleVO{
-		ID: e.ID, // 主键id
-		Name: e.Name, // 角色名称
-		Description: e.Description, // 描述
-		Status: e.Status, // 状态1是正常,2是禁用
-		Sort: e.Sort, // 排序
-        CreatedAt: e.CreatedAt.Unix(), // 创建时间
-        UpdatedAt: e.UpdatedAt.Unix(), // 更新时间
-		CreatedBy: e.CreatedBy, // 创建人
-		UpdatedBy: e.UpdatedBy, // 更新人
+		ID:          e.ID,               // 主键id
+		Name:        e.Name,             // 角色名称
+		Description: e.Description,      // 描述
+		Status:      e.Status,           // 状态1是正常,2是禁用
+		Sort:        e.Sort,             // 排序
+		CreatedAt:   e.CreatedAt.Unix(), // 创建时间
+		UpdatedAt:   e.UpdatedAt.Unix(), // 更新时间
+		CreatedBy:   e.CreatedBy,        // 创建人
+		UpdatedBy:   e.UpdatedBy,        // 更新人
 
 	}
 }

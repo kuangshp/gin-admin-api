@@ -6,13 +6,15 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
-func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, newAccount account.ISysAccount) {
+func InitAccountRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, db *gorm.DB, newAccount account.ISysAccount) {
 	registerRouter := Router.Group(
 		"account",
 		middleware.AuthMiddleWare(redis),
 		middleware.OperatorMiddleware(),
+		middleware.DataPermissionMiddleware(db),
 		middleware.CasbinMiddleWare(enforcer),
 	)
 	registerRouter.POST("", newAccount.CreateSysAccountApi)                                      // 创建账号

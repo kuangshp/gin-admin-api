@@ -32,6 +32,7 @@ func (m *sysAccountMapper) DtoToEntity(d *dto.CreateSysAccountDTO, password stri
 		Password: password,   // 登录密码
 		Status:   status,     // 状态1是正常,2是禁用
 		Avatar:   d.Avatar,   // 头像
+		DeptID:   d.DeptID,   // 所属部门id，用于数据权限计算
 	}
 	return e
 }
@@ -52,6 +53,7 @@ func (m *sysAccountMapper) EntityToVo(e *model.SysAccountEntity) *vo.SysAccountV
 		Status:        e.Status,               // 状态1是正常,2是禁用
 		Avatar:        e.Avatar,               // 头像
 		IsAdmin:       e.IsAdmin,              // 1是超级管理员，2是普通管理员
+		DeptID:        e.DeptID,               // 所属部门id
 		CreatedAt:     e.CreatedAt.Unix(),     // 创建时间
 		UpdatedAt:     e.UpdatedAt.Unix(),     // 更新时间
 		CreatedBy:     e.CreatedBy,            // 创建人

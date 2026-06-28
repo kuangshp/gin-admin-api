@@ -3,9 +3,10 @@ package dto
 // CreateSysAccountPostDTO 创建账号岗位关联表请求
 type CreateSysAccountPostDTO struct {
 	AccountID int64 `json:"accountId" validate:"required,number,gte=1"` // 账号id
-	PostID int64 `json:"postId" validate:"required,number,gte=1"` // 岗位id
-	CreatedBy int64 `json:"createdBy"` // 创建人
-	UpdatedBy int64 `json:"updatedBy"` // 更新人
+	PostID    int64 `json:"postId" validate:"required,number,gte=1"`    // 岗位id
+	IsPrimary int64 `json:"isPrimary" validate:"required,oneof=1 2"`    // 是否主岗,1表示不是,2表示是
+	CreatedBy int64 `json:"createdBy"`                                  // 创建人
+	UpdatedBy int64 `json:"updatedBy"`                                  // 更新人
 }
 
 // ModifySysAccountPostDTO 修改账号岗位关联表请求

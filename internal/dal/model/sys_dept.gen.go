@@ -21,7 +21,7 @@ type SysDeptEntity struct {
 	FullName  string         `gorm:"column:full_name;type:varchar(255);not null;comment:全层级名称" json:"fullName"`      // 全层级名称
 	Sort      int64          `gorm:"column:sort;type:int;default:1;comment:排序" json:"sort"`                          // 排序
 	Status    int64          `gorm:"column:status;type:tinyint;default:1;comment:状态1正常 2禁用" json:"status"`           // 状态1正常 2禁用
-	Leader    string         `gorm:"column:leader;type:varchar(50);comment:负责人" json:"leader"`                       // 负责人
+	LeaderID  int64          `gorm:"column:leader_id;type:int;comment:负责人账号id，关联sys_account.id" json:"leaderId"`     // 负责人账号id，关联sys_account.id
 	Phone     string         `gorm:"column:phone;type:varchar(20);comment:联系电话" json:"phone"`                        // 联系电话
 	Email     string         `gorm:"column:email;type:varchar(60);comment:邮箱" json:"email"`                          // 邮箱
 	CreatedAt time.Time      `gorm:"column:created_at;comment:创建时间" json:"createdAt"`                                // 创建时间

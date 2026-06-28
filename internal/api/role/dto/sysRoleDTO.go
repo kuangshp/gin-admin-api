@@ -7,6 +7,8 @@ type CreateSysRoleDTO struct {
 	Status          int64   `json:"status" validate:"oneof=1 2"`               // 状态1是正常,2是禁用
 	Sort            int64   `json:"sort"`                                      // 排序
 	ResourcesIdList []int64 `json:"resourcesIdList" validate:"required,min=1"` // 资源id
+	DataScope       int64   `json:"dataScope" validate:"required,oneof=1 2 3 4 5"`
+	DeptIdList      []int64 `json:"deptIdList"`
 }
 
 type RolePageDTO struct {

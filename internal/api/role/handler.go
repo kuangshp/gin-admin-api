@@ -33,6 +33,8 @@ type Role struct {
 	*base.BaseApi
 	RoleRepository          repository.SysRoleRepository
 	RoleResourcesRepository repository.SysRoleResourcesRepository
+	RoleCustomDeptRepo      repository.SysRoleCustomDeptRepository
+	DeptRepository          repository.SysDeptRepository
 	ResourcesRepository     repository.SysResourcesRepository
 	RoleMapper              mapper.ISysRoleMapper
 	Enforcer                *casbin.Enforcer
@@ -61,6 +63,9 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 		r.Fail(ctx, errors.New("角色名称已经存在,不能重复"), "角色名称已经存在,不能重复")
 		return
 	}
+	if !r.checkCustomDept(ctx, req.DataScope, req.DeptIdList) {
+		return
+	}
 	var roleEntity *model.SysRoleEntity
 	if err = gormplus.TransactionAsCtx(ctx, r.Db, func(db *gorm.DB) *dao.Query {
 		return dao.Use(db)
@@ -80,6 +85,11 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 				})
 			}
 			if err = r.RoleResourcesRepository.CreateBatchTx(ctx, tx, sysRoleResourcesEntity); err != nil {
+				return err
+			}
+		}
+		if req.DataScope == enum.DataScopeCustomDept {
+			if err = r.RoleCustomDeptRepo.CreateBatchTx(ctx, tx, r.buildRoleCustomDeptEntityList(roleEntity.ID, req.DeptIdList)); err != nil {
 				return err
 			}
 		}
@@ -111,6 +121,11 @@ func (r Role) DeleteRoleByIdApi(ctx *gin.Context) {
 	if err := gormplus.TransactionAsCtx(ctx, r.Db, func(db *gorm.DB) *dao.Query {
 		return dao.Use(db)
 	}, func(tx *dao.Query) error {
+		if err := r.RoleCustomDeptRepo.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]) {
+			g.Where(dao.SysRoleCustomDeptEntity.RoleID.Eq(idInt))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
 		// 删除中间件表
 		if err := r.RoleResourcesRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]) {
 			g.Where(dao.SysRoleResourcesEntity.RoleID.Eq(idInt))
@@ -159,6 +174,9 @@ func (r Role) ModifyRoleByIdApi(ctx *gin.Context) {
 		r.Fail(ctx, errors.New("角色名称已经存在,不能重复"), "角色名称已经存在,不能重复")
 		return
 	}
+	if !r.checkCustomDept(ctx, req.DataScope, req.DeptIdList) {
+		return
+	}
 	// 修改角色，删除之前的角色资源,重新创建角色资源
 	if err = gormplus.TransactionAsCtx(ctx, r.Db, func(db *gorm.DB) *dao.Query {
 		return dao.Use(db)
@@ -169,8 +187,19 @@ func (r Role) ModifyRoleByIdApi(ctx *gin.Context) {
 			dao.SysRoleEntity.Sort.Value(req.Sort),
 			dao.SysRoleEntity.Status.Value(req.Status),
 			dao.SysRoleEntity.Description.Value(req.Description),
+			dao.SysRoleEntity.DataScope.Value(req.DataScope),
 		).Build()); err != nil {
 			return err
+		}
+		if err = r.RoleCustomDeptRepo.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleCustomDeptEntityDo]) {
+			g.Where(dao.SysRoleCustomDeptEntity.RoleID.Eq(idInt))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		if req.DataScope == enum.DataScopeCustomDept {
+			if err = r.RoleCustomDeptRepo.CreateBatchTx(ctx, tx, r.buildRoleCustomDeptEntityList(idInt, req.DeptIdList)); err != nil {
+				return err
+			}
 		}
 		// 删除之前的角色资源
 		if err = r.RoleResourcesRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysRoleResourcesEntityDo]) {
@@ -279,9 +308,21 @@ func (r Role) GetRoleDetailByIdApi(ctx *gin.Context) {
 		})
 	}
 	roleVO := r.RoleMapper.EntityToVo(roleEntity)
+	deptIdList := make([]int64, 0)
+	if roleEntity.DataScope == enum.DataScopeCustomDept {
+		customDeptList, err := r.RoleCustomDeptRepo.FindList(ctx, gormplus.QueryOpt().Where(
+			dao.SysRoleCustomDeptEntity.RoleID.Eq(idInt),
+		).Build())
+		if err == nil && len(customDeptList) > 0 {
+			deptIdList = k.Map(customDeptList, func(item *model.SysRoleCustomDeptEntity, index int) int64 {
+				return item.DeptID
+			})
+		}
+	}
 	r.Success(ctx, vo.SysRoleDetailVO{
 		SysRoleVO:       *roleVO,
 		ResourcesIdList: resourcesIdList,
+		DeptIdList:      deptIdList,
 	})
 }
 
@@ -336,11 +377,65 @@ func (r Role) syncRoleResourcesCasbin(ctx *gin.Context, roleId int64, resourcesI
 	return nil
 }
 
+func (r Role) checkCustomDept(ctx *gin.Context, dataScope int64, deptIdList []int64) bool {
+	if dataScope != enum.DataScopeCustomDept {
+		return true
+	}
+	deptIDs := distinctPositive(deptIdList)
+	if len(deptIDs) == 0 {
+		r.Fail(ctx, errors.New("自定义数据权限部门不能为空"), "自定义数据权限部门不能为空")
+		return false
+	}
+	count, err := r.DeptRepository.Count(gormplus.SkipDataPermission(ctx.Request.Context()), gormplus.QueryOpt().Where(
+		dao.SysDeptEntity.ID.In(deptIDs...),
+		dao.SysDeptEntity.Status.Eq(enum.StatusNormalEnum),
+	).Build())
+	if err != nil {
+		r.Fail(ctx, err, "自定义数据权限部门校验失败")
+		return false
+	}
+	if count != int64(len(deptIDs)) {
+		r.Fail(ctx, errors.New("自定义数据权限部门不存在或已禁用"), "自定义数据权限部门不存在或已禁用")
+		return false
+	}
+	return true
+}
+
+func (r Role) buildRoleCustomDeptEntityList(roleID int64, deptIdList []int64) []*model.SysRoleCustomDeptEntity {
+	deptIDs := distinctPositive(deptIdList)
+	list := make([]*model.SysRoleCustomDeptEntity, 0, len(deptIDs))
+	for _, deptID := range deptIDs {
+		list = append(list, &model.SysRoleCustomDeptEntity{
+			RoleID: roleID,
+			DeptID: deptID,
+		})
+	}
+	return list
+}
+
+func distinctPositive(values []int64) []int64 {
+	seen := make(map[int64]struct{}, len(values))
+	result := make([]int64, 0, len(values))
+	for _, value := range values {
+		if value <= 0 {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
+}
+
 func NewRole(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IRole {
 	return Role{
 		BaseApi:                 baseApi,
 		RoleRepository:          repository.NewSysRoleRepository(),
 		RoleResourcesRepository: repository.NewSysRoleResourcesRepository(),
+		RoleCustomDeptRepo:      repository.NewSysRoleCustomDeptRepository(),
+		DeptRepository:          repository.NewSysDeptRepository(),
 		ResourcesRepository:     repository.NewSysResourcesRepository(),
 		RoleMapper:              mapper.NewSysRoleMapper(),
 		Enforcer:                enforcer,

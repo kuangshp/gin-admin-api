@@ -17,6 +17,7 @@ import (
 
 var (
 	Q                       = new(Query)
+	CasbinRuleEntity        *casbinRuleEntity
 	SysAccountEntity        *sysAccountEntity
 	SysAccountPostEntity    *sysAccountPostEntity
 	SysAccountRoleEntity    *sysAccountRoleEntity
@@ -30,6 +31,7 @@ var (
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	CasbinRuleEntity = &Q.CasbinRuleEntity
 	SysAccountEntity = &Q.SysAccountEntity
 	SysAccountPostEntity = &Q.SysAccountPostEntity
 	SysAccountRoleEntity = &Q.SysAccountRoleEntity
@@ -44,6 +46,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                      db,
+		CasbinRuleEntity:        newCasbinRuleEntity(db, opts...),
 		SysAccountEntity:        newSysAccountEntity(db, opts...),
 		SysAccountPostEntity:    newSysAccountPostEntity(db, opts...),
 		SysAccountRoleEntity:    newSysAccountRoleEntity(db, opts...),
@@ -59,6 +62,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	CasbinRuleEntity        casbinRuleEntity
 	SysAccountEntity        sysAccountEntity
 	SysAccountPostEntity    sysAccountPostEntity
 	SysAccountRoleEntity    sysAccountRoleEntity
@@ -77,6 +81,7 @@ func (q *Query) UnderlyingDB() *gorm.DB { return q.db }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:                      db,
+		CasbinRuleEntity:        q.CasbinRuleEntity.clone(db),
 		SysAccountEntity:        q.SysAccountEntity.clone(db),
 		SysAccountPostEntity:    q.SysAccountPostEntity.clone(db),
 		SysAccountRoleEntity:    q.SysAccountRoleEntity.clone(db),
@@ -100,6 +105,7 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:                      db,
+		CasbinRuleEntity:        q.CasbinRuleEntity.replaceDB(db),
 		SysAccountEntity:        q.SysAccountEntity.replaceDB(db),
 		SysAccountPostEntity:    q.SysAccountPostEntity.replaceDB(db),
 		SysAccountRoleEntity:    q.SysAccountRoleEntity.replaceDB(db),
@@ -113,6 +119,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 }
 
 type queryCtx struct {
+	CasbinRuleEntity        ICasbinRuleEntityDo
 	SysAccountEntity        ISysAccountEntityDo
 	SysAccountPostEntity    ISysAccountPostEntityDo
 	SysAccountRoleEntity    ISysAccountRoleEntityDo
@@ -126,6 +133,7 @@ type queryCtx struct {
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		CasbinRuleEntity:        q.CasbinRuleEntity.WithContext(ctx),
 		SysAccountEntity:        q.SysAccountEntity.WithContext(ctx),
 		SysAccountPostEntity:    q.SysAccountPostEntity.WithContext(ctx),
 		SysAccountRoleEntity:    q.SysAccountRoleEntity.WithContext(ctx),

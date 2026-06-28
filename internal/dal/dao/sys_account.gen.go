@@ -29,6 +29,7 @@ func newSysAccountEntity(db *gorm.DB, opts ...gen.DOOption) sysAccountEntity {
 	tableName := _sysAccountEntity.sysAccountEntityDo.TableName()
 	_sysAccountEntity.ALL = field.NewAsterisk(tableName)
 	_sysAccountEntity.ID = field.NewInt64(tableName, "id")
+	_sysAccountEntity.Nickname = field.NewString(tableName, "nickname")
 	_sysAccountEntity.Username = field.NewString(tableName, "username")
 	_sysAccountEntity.Email = field.NewString(tableName, "email")
 	_sysAccountEntity.Mobile = field.NewString(tableName, "mobile")
@@ -56,6 +57,7 @@ type sysAccountEntity struct {
 
 	ALL           field.Asterisk
 	ID            field.Int64  // 主键id
+	Nickname      field.String // 昵称
 	Username      field.String // 登录帐号
 	Email         field.String // 邮箱
 	Mobile        field.String // 手机号
@@ -88,6 +90,7 @@ func (s sysAccountEntity) As(alias string) *sysAccountEntity {
 func (s *sysAccountEntity) updateTableName(table string) *sysAccountEntity {
 	s.ALL = field.NewAsterisk(table)
 	s.ID = field.NewInt64(table, "id")
+	s.Nickname = field.NewString(table, "nickname")
 	s.Username = field.NewString(table, "username")
 	s.Email = field.NewString(table, "email")
 	s.Mobile = field.NewString(table, "mobile")
@@ -119,8 +122,9 @@ func (s *sysAccountEntity) GetFieldByName(fieldName string) (field.OrderExpr, bo
 }
 
 func (s *sysAccountEntity) fillFieldMap() {
-	s.fieldMap = make(map[string]field.Expr, 16)
+	s.fieldMap = make(map[string]field.Expr, 17)
 	s.fieldMap["id"] = s.ID
+	s.fieldMap["nickname"] = s.Nickname
 	s.fieldMap["username"] = s.Username
 	s.fieldMap["email"] = s.Email
 	s.fieldMap["mobile"] = s.Mobile

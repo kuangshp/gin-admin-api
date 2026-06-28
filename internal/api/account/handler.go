@@ -13,12 +13,10 @@ import (
 	"gin-admin-api/internal/dal/repository"
 	"gin-admin-api/pkg/enum"
 	"github.com/casbin/casbin/v2"
-	"github.com/kuangshp/go-utils/k"
-	"strconv"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"github.com/kuangshp/go-utils/k"
 	"github.com/kuangshp/gorm-plus"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -38,6 +36,9 @@ type SysAccount struct {
 	*base.BaseApi
 	SysAccountRepository     repository.SysAccountRepository
 	SysAccountRoleRepository repository.SysAccountRoleRepository
+	SysAccountPostRepository repository.SysAccountPostRepository
+	SysDeptRepository        repository.SysDeptRepository
+	SysPostRepository        repository.SysPostRepository
 	RoleResourcesRepository  repository.SysRoleResourcesRepository
 	ResourcesRepository      repository.SysResourcesRepository
 	SysAccountMapper         mapper.ISysAccountMapper
@@ -46,13 +47,13 @@ type SysAccount struct {
 
 // CreateSysAccountApi 创建账号
 // @Summary 创建账号
-// @Description 创建后台账号，并分配角色关系
+// @Description 创建后台账号，并分配角色、岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗
 // @Tags 账号中心
 // @Accept json
 // @Produce json
 // @Param data body dto.CreateSysAccountDTO true "创建账号参数"
 // @Success 200 {string} string "创建成功"
-// @Router /api/v1/admin/account/register [post]
+// @Router /api/v1/admin/account [post]
 func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 	var req dto.CreateSysAccountDTO
 	if !s.BindAndValidateJSON(ctx, &req) {
@@ -60,6 +61,15 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 	}
 	// 判断是否已经存在
 	if !s.checkAccountUnique(ctx, req.Username, req.Mobile, req.Email, 0) {
+		return
+	}
+	// 判断部门
+	if !s.checkDeptValid(ctx, req.DeptID) {
+		return
+	}
+	// 判断岗位
+	postIDs, ok := s.buildAccountPostScope(ctx, req.PostIdList)
+	if !ok {
 		return
 	}
 	password, err := k.MakePassword(req.Password)
@@ -79,19 +89,25 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 			s.Logger.Error("创建失败")
 			return err
 		}
-		// 2.分配角色
-		if len(req.RoleIdList) > 0 {
-			accountRoleEntity := s.buildAccountRoleEntityList(accountEntity.ID, req.RoleIdList)
-			if err = s.SysAccountRoleRepository.CreateBatchTx(ctx, tx, accountRoleEntity); err != nil {
-				s.Logger.Error("创建账号角色失败")
-				return err
-			}
+
+		// 分配岗位，第一个岗位为主岗
+		accountPostEntity := s.buildAccountPostEntityList(accountEntity.ID, postIDs)
+		if err = s.SysAccountPostRepository.CreateBatchTx(ctx, tx, accountPostEntity); err != nil {
+			s.Logger.Error("创建账号岗位失败")
+			return err
+		}
+		// 分配角色
+		accountRoleEntity := s.buildAccountRoleEntityList(accountEntity.ID, req.RoleIdList)
+		if err = s.SysAccountRoleRepository.CreateBatchTx(ctx, tx, accountRoleEntity); err != nil {
+			s.Logger.Error("创建账号角色失败")
+			return err
 		}
 		return nil
 	}); err != nil {
 		s.Fail(ctx, err, "创建失败")
 		return
 	}
+	// 数据同步到casbin中
 	if err = s.syncAccountRolesCasbin(accountEntity.ID, req.RoleIdList); err != nil {
 		s.Fail(ctx, err, "同步账号角色权限失败")
 		return
@@ -101,7 +117,7 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 
 // DeleteSysAccountByIdApi 删除账号
 // @Summary 删除账号
-// @Description 根据账号 ID 删除账号，并清理账号角色关系
+// @Description 根据账号 ID 删除账号，并清理账号角色、岗位关系
 // @Tags 账号中心
 // @Accept json
 // @Produce json
@@ -109,10 +125,8 @@ func (s SysAccount) CreateSysAccountApi(ctx *gin.Context) {
 // @Success 200 {string} string "删除成功"
 // @Router /api/v1/admin/account/{id} [delete]
 func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
-	id, ok := s.getIdParam(ctx)
-	if !ok {
-		return
-	}
+	idStr := ctx.Param("id")
+	id := cast.ToInt64(idStr)
 	if _, err := s.SysAccountRepository.FindById(ctx, id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			s.Fail(ctx, err, "账号不存在")
@@ -122,12 +136,19 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 		return
 	}
 	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
-		// 删除中间表
+		// 删除账号和角色中间表
 		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
 			g.Where(dao.SysAccountRoleEntity.AccountID.Eq(id))
 		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
 			return err
 		}
+		// 删除账号和岗位中间表
+		if err := s.SysAccountPostRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountPostEntityDo]) {
+			g.Where(dao.SysAccountPostEntity.AccountID.Eq(id))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		// 删除账号
 		return s.SysAccountRepository.DeleteByIdTx(ctx, tx, id)
 	}); err != nil {
 		s.Fail(ctx, err, "删除失败")
@@ -142,24 +163,21 @@ func (s SysAccount) DeleteSysAccountByIdApi(ctx *gin.Context) {
 
 // ModifySysAccountByIdApi 修改账号
 // @Summary 修改账号
-// @Description 根据账号 ID 修改账号基础信息和角色关系
+// @Description 根据账号 ID 修改账号基础信息、角色关系和岗位关系；deptId 为账号所属部门，postIdList 第一个岗位为主岗
 // @Tags 账号中心
 // @Accept json
 // @Produce json
 // @Param id path int true "账号ID"
 // @Param data body dto.ModifySysAccountDTO true "修改账号参数"
 // @Success 200 {string} string "修改成功"
-// @Router /api/v1/admin/account/modify/{id} [put]
+// @Router /api/v1/admin/account/{id} [put]
 func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
-	id, ok := s.getIdParam(ctx)
-	if !ok {
-		return
-	}
+	idStr := ctx.Param("id")
+	id := cast.ToInt64(idStr)
 	var req dto.ModifySysAccountDTO
 	if !s.BindAndValidateJSON(ctx, &req) {
 		return
 	}
-	req.ID = id
 	if _, err := s.SysAccountRepository.FindById(ctx, id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			s.Fail(ctx, err, "账号不存在")
@@ -168,7 +186,17 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "修改失败")
 		return
 	}
+	// 判断手机号码、用户名、email是否唯一
 	if !s.checkAccountUnique(ctx, req.Username, req.Mobile, req.Email, id) {
+		return
+	}
+	// 判断部门
+	if !s.checkDeptValid(ctx, req.DeptID) {
+		return
+	}
+	// 判断岗位
+	postIDs, ok := s.buildAccountPostScope(ctx, req.PostIdList)
+	if !ok {
 		return
 	}
 	if err := gormplus.TransactionAsCtx(ctx, s.Db, useQuery, func(tx *dao.Query) error {
@@ -182,6 +210,7 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 				dao.SysAccountEntity.Mobile.Value(req.Mobile),
 				dao.SysAccountEntity.Status.Value(req.Status),
 				dao.SysAccountEntity.Avatar.Value(req.Avatar),
+				dao.SysAccountEntity.DeptID.Value(req.DeptID),
 			).Build(),
 		); err != nil {
 			return err
@@ -190,6 +219,16 @@ func (s SysAccount) ModifySysAccountByIdApi(ctx *gin.Context) {
 		if err := s.SysAccountRoleRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountRoleEntityDo]) {
 			g.Where(dao.SysAccountRoleEntity.AccountID.Eq(id))
 		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		// 账号岗位先删除然后创建
+		if err := s.SysAccountPostRepository.DeleteByWrapperTx(ctx, tx, func(g gormplus.IGenWrapper[dao.ISysAccountPostEntityDo]) {
+			g.Where(dao.SysAccountPostEntity.AccountID.Eq(id))
+		}, gormplus.Delete().WithPhysicalDelete().Build()); err != nil {
+			return err
+		}
+		accountPostEntity := s.buildAccountPostEntityList(id, postIDs)
+		if err := s.SysAccountPostRepository.CreateBatchTx(ctx, tx, accountPostEntity); err != nil {
 			return err
 		}
 		// 创建账号角色
@@ -226,13 +265,18 @@ func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 	list, total, err := s.SysAccountRepository.FindPageByWrapper(ctx, req.PageNumber, req.PageSize, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
 		g.
 			WhereOrGroupIf(req.Keyword != "", dao.SysAccountEntity.Username.Like("%"+req.Keyword+"%"), dao.SysAccountEntity.Email.Like("%"+req.Keyword+"%"), dao.SysAccountEntity.Mobile.Like("%"+req.Keyword+"%")).
-			WhereIf(req.Status != 0, dao.SysAccountEntity.Status.Eq(req.Status))
+			WhereIf(req.Status != 0, dao.SysAccountEntity.Status.Eq(req.Status)).
+			WhereIf(req.DeptID > 0, dao.SysAccountEntity.DeptID.Eq(req.DeptID))
 	})
 	if err != nil {
 		s.Fail(ctx, err, "获取账号分页失败")
 		return
 	}
-	s.BuildPageData(ctx, s.SysAccountMapper.EntityListToVo(list), total)
+	result := s.SysAccountMapper.EntityListToVo(list)
+	if !s.fillAccountPostList(ctx, result) {
+		return
+	}
+	s.BuildPageData(ctx, result, total)
 	return
 }
 
@@ -243,18 +287,39 @@ func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param username query string false "登录账号"
+// @Param deptId query int false "所属部门ID"
+// @Param postId query int false "岗位ID"
 // @Success 200 {array} vo.SysAccountVO "账号列表"
 // @Router /api/v1/admin/account/list [get]
 func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
 	username := ctx.DefaultQuery("username", "")
+	deptID := cast.ToInt64(ctx.DefaultQuery("deptId", "0"))
+	postID := cast.ToInt64(ctx.DefaultQuery("postId", "0"))
+	accountIDs, ok := s.getAccountIDListByPost(ctx, postID)
+	if !ok {
+		return
+	}
 	list, err := s.SysAccountRepository.FindListByWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
-		g.WhereIf(username != "", dao.SysAccountEntity.Username.Like("%"+username+"%"))
+		g.WhereIf(username != "", dao.SysAccountEntity.Username.Like("%"+username+"%")).
+			WhereIf(deptID > 0, dao.SysAccountEntity.DeptID.Eq(deptID))
+		if postID > 0 {
+			if len(accountIDs) == 0 {
+				g.Where(dao.SysAccountEntity.ID.Eq(-1))
+			} else {
+				g.Where(dao.SysAccountEntity.ID.In(accountIDs...))
+			}
+		}
 	})
 	if err != nil {
 		s.Fail(ctx, err, "获取账号列表失败")
 		return
 	}
-	s.Success(ctx, s.SysAccountMapper.EntityListToVo(list))
+	result := s.SysAccountMapper.EntityListToVo(list)
+	// 填充账号岗位
+	if !s.fillAccountPostList(ctx, result) {
+		return
+	}
+	s.Success(ctx, result)
 }
 
 // GetSysAccountDetailApi 获取账号详情
@@ -265,12 +330,10 @@ func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
 // @Produce json
 // @Param id path int true "账号ID"
 // @Success 200 {object} vo.SysAccountDetailVO "统一响应，code=0 时 result 为 vo.SysAccountDetailVO，code=1 时 result 为 null"
-// @Router /api/v1/admin/account/{id} [get]
+// @Router /api/v1/admin/account/detail/{id} [get]
 func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
-	id, ok := s.getIdParam(ctx)
-	if !ok {
-		return
-	}
+	idStr := ctx.Param("id")
+	id := cast.ToInt64(idStr)
 	accountEntity, err := s.SysAccountRepository.FindById(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -284,10 +347,20 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 	// 查询账号角色
 	list, err := s.SysAccountRoleRepository.FindList(ctx, gormplus.QueryOpt().Where(dao.SysAccountRoleEntity.AccountID.Eq(id)).Build())
 	var roleIdList = make([]int64, 0)
-	if err == nil && len(list) > 0 {
+	if err != nil {
+		s.Fail(ctx, err, "查询账号角色失败")
+		return
+	}
+	if len(list) > 0 {
 		roleIdList = k.Map(list, func(item *model.SysAccountRoleEntity, index int) int64 {
 			return item.RoleID
 		})
+	}
+	// 获取岗位
+	accountVO.PostIdList, err = s.getPostIDListByAccount(ctx, id)
+	if err != nil {
+		s.Fail(ctx, err, "查询账号岗位失败")
+		return
 	}
 	s.Success(ctx, vo.SysAccountDetailVO{
 		SysAccountVO: *accountVO,
@@ -309,7 +382,7 @@ func (s SysAccount) GetCurrentSysAccountInfoApi(ctx *gin.Context) {
 	if !ok {
 		return
 	}
-	accountEntity, err := s.SysAccountRepository.FindById(ctx, accountID)
+	accountEntity, err := s.SysAccountRepository.FindById(gormplus.SkipDataPermission(ctx.Request.Context()), accountID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			s.Fail(ctx, err, "账号不存在")
@@ -349,6 +422,7 @@ func (s SysAccount) GetCurrentSysAccountInfoApi(ctx *gin.Context) {
 		Status:            accountEntity.Status,
 		Avatar:            accountEntity.Avatar,
 		IsAdmin:           accountEntity.IsAdmin,
+		DeptID:            accountEntity.DeptID,
 		CreatedAt:         accountEntity.CreatedAt.Unix(),
 		UpdatedAt:         accountEntity.UpdatedAt.Unix(),
 		ApiPermissionList: apiPermissionList,
@@ -361,15 +435,10 @@ func (s SysAccount) GetCurrentSysAccountInfoApi(ctx *gin.Context) {
 // @Tags 账号中心
 // @Accept json
 // @Produce json
-// @Param id path int true "账号ID"
 // @Param data body dto.ResetPasswordDTO true "重置密码参数"
 // @Success 200 {string} string "重置密码成功"
-// @Router /api/v1/admin/account/resetPassword/{id} [post]
+// @Router /api/v1/admin/account/resetPassword [post]
 func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
-	id, ok := s.getIdParam(ctx)
-	if !ok {
-		return
-	}
 	var req dto.ResetPasswordDTO
 	if !s.BindAndValidateJSON(ctx, &req) {
 		return
@@ -378,7 +447,7 @@ func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, errors.New("两次密码不一致"), "两次密码不一致")
 		return
 	}
-	if _, err := s.SysAccountRepository.FindById(ctx, id); err != nil {
+	if _, err := s.SysAccountRepository.FindById(ctx, req.Id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			s.Fail(ctx, err, "账号不存在")
 			return
@@ -391,7 +460,7 @@ func (s SysAccount) ResetPasswordByIdApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "重置密码失败")
 		return
 	}
-	if err = s.SysAccountRepository.UpdateById(ctx, id, gormplus.Update().WithColumns(
+	if err = s.SysAccountRepository.UpdateById(ctx, req.Id, gormplus.Update().WithColumns(
 		dao.SysAccountEntity.Password.Value(password),
 	).Build()); err != nil {
 		s.Fail(ctx, err, "重置密码失败")
@@ -449,15 +518,7 @@ func (s SysAccount) ModifyCurrentSysAccountPasswordApi(ctx *gin.Context) {
 	s.Success(ctx, "修改当前账号密码成功")
 }
 
-func (s SysAccount) getIdParam(ctx *gin.Context) (int64, bool) {
-	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
-	if err != nil || id <= 0 {
-		s.Fail(ctx, err, "参数id错误")
-		return 0, false
-	}
-	return id, true
-}
-
+// 获取当前登录用户信息
 func (s SysAccount) getCurrentAccountID(ctx *gin.Context) (int64, bool) {
 	accountIDValue, exists := ctx.Get("accountId")
 	if !exists {
@@ -472,8 +533,10 @@ func (s SysAccount) getCurrentAccountID(ctx *gin.Context) (int64, bool) {
 	return accountID, true
 }
 
+// 校验用户名、手机号码、邮箱唯一
 func (s SysAccount) checkAccountUnique(ctx *gin.Context, username, mobile, email string, excludeID int64) bool {
-	existsAccount, err := s.SysAccountRepository.FindOneWrapper(ctx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
+	queryCtx := gormplus.SkipDataPermission(ctx.Request.Context())
+	existsAccount, err := s.SysAccountRepository.FindOneWrapper(queryCtx, func(g gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
 		g.WhereIf(excludeID > 0, dao.SysAccountEntity.ID.Neq(excludeID)).
 			WhereGroupFn(func(w gormplus.IGenWrapper[dao.ISysAccountEntityDo]) {
 				w.Where(dao.SysAccountEntity.Username.Eq(username)).
@@ -501,10 +564,142 @@ func (s SysAccount) checkAccountUnique(ctx *gin.Context, username, mobile, email
 	return false
 }
 
+// 校验授权的部门
+func (s SysAccount) checkDeptValid(ctx *gin.Context, deptID int64) bool {
+	if deptID <= 0 {
+		s.Fail(ctx, errors.New("所属部门不能为空"), "所属部门不能为空")
+		return false
+	}
+	exists, err := s.SysDeptRepository.Exists(gormplus.SkipDataPermission(ctx.Request.Context()), gormplus.QueryOpt().Where(
+		dao.SysDeptEntity.ID.Eq(deptID),
+		dao.SysDeptEntity.Status.Eq(enum.StatusNormalEnum),
+	).Build())
+	if err != nil {
+		s.Fail(ctx, err, "所属部门校验失败")
+		return false
+	}
+	if !exists {
+		s.Fail(ctx, errors.New("所属部门不存在或已禁用"), "所属部门不存在或已禁用")
+		return false
+	}
+	return true
+}
+
+func (s SysAccount) getAccountIDListByPost(ctx *gin.Context, postID int64) ([]int64, bool) {
+	if postID <= 0 {
+		return nil, true
+	}
+	list, err := s.SysAccountPostRepository.FindList(ctx, gormplus.QueryOpt().Where(
+		dao.SysAccountPostEntity.PostID.Eq(postID),
+	).Build())
+	if err != nil {
+		s.Fail(ctx, err, "查询岗位账号失败")
+		return nil, false
+	}
+	accountIDs := make([]int64, 0, len(list))
+	seen := make(map[int64]struct{}, len(list))
+	for _, item := range list {
+		if item.AccountID <= 0 {
+			continue
+		}
+		if _, ok := seen[item.AccountID]; ok {
+			continue
+		}
+		seen[item.AccountID] = struct{}{}
+		accountIDs = append(accountIDs, item.AccountID)
+	}
+	return accountIDs, true
+}
+
+func (s SysAccount) getPostIDListByAccount(ctx *gin.Context, accountID int64) ([]int64, error) {
+	accountPostList, err := s.SysAccountPostRepository.FindList(ctx, gormplus.QueryOpt().
+		Where(dao.SysAccountPostEntity.AccountID.Eq(accountID)).
+		Order(dao.SysAccountPostEntity.IsPrimary.Desc(), dao.SysAccountPostEntity.ID).
+		Build())
+	if err != nil {
+		return nil, err
+	}
+	return k.Map(accountPostList, func(item *model.SysAccountPostEntity, index int) int64 {
+		return item.PostID
+	}), nil
+}
+
+func (s SysAccount) fillAccountPostList(ctx *gin.Context, list []*vo.SysAccountVO) bool {
+	if len(list) == 0 {
+		return true
+	}
+	accountIDs := make([]int64, 0, len(list))
+	accountMap := make(map[int64]*vo.SysAccountVO, len(list))
+	for _, item := range list {
+		if item == nil || item.ID <= 0 {
+			continue
+		}
+		accountIDs = append(accountIDs, item.ID)
+		accountMap[item.ID] = item
+		item.PostIdList = make([]int64, 0)
+	}
+	if len(accountIDs) == 0 {
+		return true
+	}
+	accountPostList, err := s.SysAccountPostRepository.FindList(ctx, gormplus.QueryOpt().
+		Where(dao.SysAccountPostEntity.AccountID.In(accountIDs...)).
+		Order(dao.SysAccountPostEntity.AccountID, dao.SysAccountPostEntity.IsPrimary.Desc(), dao.SysAccountPostEntity.ID).
+		Build())
+	if err != nil {
+		s.Fail(ctx, err, "查询账号岗位失败")
+		return false
+	}
+	for _, item := range accountPostList {
+		accountVO := accountMap[item.AccountID]
+		if accountVO == nil {
+			continue
+		}
+		accountVO.PostIdList = append(accountVO.PostIdList, item.PostID)
+	}
+	return true
+}
+
+// buildAccountPostScope 校验岗位并返回去重后的岗位列表。列表第一个岗位为主岗。
+func (s SysAccount) buildAccountPostScope(ctx *gin.Context, postIDList []int64) ([]int64, bool) {
+	postIDs := make([]int64, 0, len(postIDList))
+	seen := make(map[int64]struct{}, len(postIDList))
+	for _, postID := range postIDList {
+		if postID <= 0 {
+			continue
+		}
+		if _, ok := seen[postID]; ok {
+			continue
+		}
+		seen[postID] = struct{}{}
+		postIDs = append(postIDs, postID)
+	}
+	if len(postIDs) == 0 {
+		s.Fail(ctx, errors.New("授权岗位不能为空"), "授权岗位不能为空")
+		return nil, false
+	}
+	postList, err := s.SysPostRepository.FindByIdList(ctx, postIDs, gormplus.QueryOpt().Where(
+		dao.SysPostEntity.Status.Eq(enum.StatusNormalEnum),
+	).Build())
+	if err != nil {
+		s.Fail(ctx, err, "授权岗位校验失败")
+		return nil, false
+	}
+	postMap := make(map[int64]*model.SysPostEntity, len(postList))
+	for _, post := range postList {
+		postMap[post.ID] = post
+	}
+	if len(postMap) != len(postIDs) {
+		s.Fail(ctx, errors.New("授权岗位不存在、已禁用或无权限"), "授权岗位不存在、已禁用或无权限")
+		return nil, false
+	}
+	return postIDs, true
+}
+
 func useQuery(db *gorm.DB) *dao.Query {
 	return dao.Use(db)
 }
 
+// 组装账号和角色的数据
 func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int64) []*model.SysAccountRoleEntity {
 	roleIDs := k.Filter(k.Distinct(roleIDList), func(item int64, index int) bool {
 		return item > 0
@@ -519,55 +714,21 @@ func (s SysAccount) buildAccountRoleEntityList(accountID int64, roleIDList []int
 	return accountRoleEntity
 }
 
-func (s SysAccount) getAccountApiPermissionList(ctx *gin.Context, roleIdList []int64, isAdmin int64) ([]vo.SysAccountApiPermissionVO, error) {
-	result := make([]vo.SysAccountApiPermissionVO, 0)
-	queryBuilder := gormplus.QueryOpt().Where(
-		dao.SysResourcesEntity.ResourcesType.Eq(enum.ResourcesTypeApiEnum),
-		dao.SysResourcesEntity.Status.Eq(enum.StatusNormalEnum),
-	)
-	if isAdmin != enum.AdminAccount {
-		if len(roleIdList) == 0 {
-			return result, nil
+// 组装账号和岗位的数据，第一个岗位为主岗。
+func (s SysAccount) buildAccountPostEntityList(accountID int64, postIDList []int64) []*model.SysAccountPostEntity {
+	accountPostEntity := make([]*model.SysAccountPostEntity, 0, len(postIDList))
+	for index, postID := range postIDList {
+		isPrimary := int64(1)
+		if index == 0 {
+			isPrimary = 2
 		}
-		roleResourcesList, err := s.RoleResourcesRepository.FindList(ctx, gormplus.QueryOpt().
-			Where(dao.SysRoleResourcesEntity.RoleID.In(roleIdList...)).
-			Build())
-		if err != nil {
-			return nil, err
-		}
-		resourcesIdList := k.Map(roleResourcesList, func(item *model.SysRoleResourcesEntity, index int) int64 {
-			return item.ResourcesID
-		})
-		resourcesIdList = k.Filter(k.Distinct(resourcesIdList), func(item int64, index int) bool {
-			return item > 0
-		})
-		if len(resourcesIdList) == 0 {
-			return result, nil
-		}
-		queryBuilder.Where(dao.SysResourcesEntity.ID.In(resourcesIdList...))
-	}
-	resourcesList, err := s.ResourcesRepository.FindList(ctx, queryBuilder.
-		Order(dao.SysResourcesEntity.Sort.Asc(), dao.SysResourcesEntity.ID.Asc()).
-		Build())
-	if err != nil {
-		return nil, err
-	}
-	for _, item := range resourcesList {
-		url := strings.TrimSpace(item.URL)
-		method := strings.ToUpper(strings.TrimSpace(item.Method))
-		if url == "" || method == "" {
-			continue
-		}
-		result = append(result, vo.SysAccountApiPermissionVO{
-			ID:       item.ID,
-			Title:    item.Title,
-			URL:      url,
-			Method:   method,
-			ParentID: item.ParentID,
-			Sort:     item.Sort,
+		accountPostEntity = append(accountPostEntity, &model.SysAccountPostEntity{
+			AccountID: accountID,
+			PostID:    postID,
+			IsPrimary: isPrimary,
 		})
 	}
-	return result, nil
+	return accountPostEntity
 }
 
 // syncAccountRolesCasbin 同步账号角色到 Casbin 的 g 分组策略。
@@ -603,6 +764,9 @@ func NewSysAccount(baseApi *base.BaseApi, enforcer *casbin.Enforcer) ISysAccount
 		BaseApi:                  baseApi,
 		SysAccountRepository:     repository.NewSysAccountRepository(),
 		SysAccountRoleRepository: repository.NewSysAccountRoleRepository(),
+		SysAccountPostRepository: repository.NewSysAccountPostRepository(),
+		SysDeptRepository:        repository.NewSysDeptRepository(),
+		SysPostRepository:        repository.NewSysPostRepository(),
 		RoleResourcesRepository:  repository.NewSysRoleResourcesRepository(),
 		ResourcesRepository:      repository.NewSysResourcesRepository(),
 		SysAccountMapper:         mapper.NewSysAccountMapper(),

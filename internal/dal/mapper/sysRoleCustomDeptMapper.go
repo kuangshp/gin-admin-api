@@ -1,9 +1,8 @@
 package mapper
 
 import (
-	"time"
-	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/dto"
+	"gin-admin-api/internal/dal/model"
 	"gin-admin-api/internal/dal/vo"
 )
 
@@ -38,11 +37,11 @@ func (m *sysRoleCustomDeptMapper) EntityToVO(e *model.SysRoleCustomDeptEntity) *
 		return nil
 	}
 	return &vo.SysRoleCustomDeptVO{
-		ID: e.ID, // 主键id
-		RoleID: e.RoleID, // 角色id
-		DeptID: e.DeptID, // 可查看部门id
-        CreatedAt: e.CreatedAt.Unix(), // 创建时间
-        UpdatedAt: e.UpdatedAt.Unix(), // 更新时间
+		ID:        e.ID,               // 主键id
+		RoleID:    e.RoleID,           // 角色id
+		DeptID:    e.DeptID,           // 可查看部门id
+		CreatedAt: e.CreatedAt.Unix(), // 创建时间
+		UpdatedAt: e.UpdatedAt.Unix(), // 更新时间
 
 	}
 }

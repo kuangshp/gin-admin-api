@@ -7,6 +7,7 @@ type SysRoleVO struct {
 	Description string `json:"description"` // 描述
 	Status      int64  `json:"status"`      // 状态1是正常,2是禁用
 	Sort        int64  `json:"sort"`        // 排序
+	DataScope   int64  `json:"dataScope"`   // 数据范围
 	CreatedAt   int64  `json:"createdAt"`   // 创建时间
 	UpdatedAt   int64  `json:"updatedAt"`   // 更新时间
 }
@@ -14,4 +15,5 @@ type SysRoleVO struct {
 type SysRoleDetailVO struct {
 	SysRoleVO
 	ResourcesIdList []int64 `json:"resourcesIdList"` // 授权的资源id
+	DeptIdList      []int64 `json:"deptIdList"`      // 自定义数据权限部门id
 }

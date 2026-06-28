@@ -7,9 +7,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
-func InitMenuRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, menuHandler menu.IMenu) {
-	authRouter := Router.Group("menu", middleware.AuthMiddleWare(redis))
+func InitMenuRouter(Router *gin.RouterGroup, redis *redis.Client, enforcer *casbin.Enforcer, db *gorm.DB, menuHandler menu.IMenu) {
+	authRouter := Router.Group(
+		"menu",
+		middleware.AuthMiddleWare(redis),
+		middleware.OperatorMiddleware(),
+		middleware.DataPermissionMiddleware(db),
+	)
 	authRouter.GET("", menuHandler.GetMenusApi) // 获取菜单列表
 }

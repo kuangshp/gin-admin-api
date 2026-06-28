@@ -17,7 +17,6 @@ type SysPostEntity struct {
 	ID        int64          `gorm:"column:id;type:int;primaryKey;autoIncrement:true;comment:主键id" json:"id"` // 主键id
 	Name      string         `gorm:"column:name;type:varchar(50);not null;comment:岗位名称" json:"name"`          // 岗位名称
 	Code      string         `gorm:"column:code;type:varchar(60);not null;comment:岗位编码" json:"code"`          // 岗位编码
-	DeptID    int64          `gorm:"column:dept_id;type:int;not null;comment:所属部门id" json:"deptId"`           // 所属部门id
 	Sort      int64          `gorm:"column:sort;type:int;default:1;comment:排序" json:"sort"`                   // 排序
 	Status    int64          `gorm:"column:status;type:tinyint;default:1;comment:状态1正常 2禁用" json:"status"`    // 状态1正常 2禁用
 	Remark    string         `gorm:"column:remark;type:varchar(255);comment:备注" json:"remark"`                // 备注

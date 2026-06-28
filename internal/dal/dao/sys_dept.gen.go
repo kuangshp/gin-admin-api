@@ -35,7 +35,7 @@ func newSysDeptEntity(db *gorm.DB, opts ...gen.DOOption) sysDeptEntity {
 	_sysDeptEntity.FullName = field.NewString(tableName, "full_name")
 	_sysDeptEntity.Sort = field.NewInt64(tableName, "sort")
 	_sysDeptEntity.Status = field.NewInt64(tableName, "status")
-	_sysDeptEntity.Leader = field.NewString(tableName, "leader")
+	_sysDeptEntity.LeaderID = field.NewInt64(tableName, "leader_id")
 	_sysDeptEntity.Phone = field.NewString(tableName, "phone")
 	_sysDeptEntity.Email = field.NewString(tableName, "email")
 	_sysDeptEntity.CreatedAt = field.NewTime(tableName, "created_at")
@@ -61,7 +61,7 @@ type sysDeptEntity struct {
 	FullName  field.String // 全层级名称
 	Sort      field.Int64  // 排序
 	Status    field.Int64  // 状态1正常 2禁用
-	Leader    field.String // 负责人
+	LeaderID  field.Int64  // 负责人账号id，关联sys_account.id
 	Phone     field.String // 联系电话
 	Email     field.String // 邮箱
 	CreatedAt field.Time   // 创建时间
@@ -92,7 +92,7 @@ func (s *sysDeptEntity) updateTableName(table string) *sysDeptEntity {
 	s.FullName = field.NewString(table, "full_name")
 	s.Sort = field.NewInt64(table, "sort")
 	s.Status = field.NewInt64(table, "status")
-	s.Leader = field.NewString(table, "leader")
+	s.LeaderID = field.NewInt64(table, "leader_id")
 	s.Phone = field.NewString(table, "phone")
 	s.Email = field.NewString(table, "email")
 	s.CreatedAt = field.NewTime(table, "created_at")
@@ -124,7 +124,7 @@ func (s *sysDeptEntity) fillFieldMap() {
 	s.fieldMap["full_name"] = s.FullName
 	s.fieldMap["sort"] = s.Sort
 	s.fieldMap["status"] = s.Status
-	s.fieldMap["leader"] = s.Leader
+	s.fieldMap["leader_id"] = s.LeaderID
 	s.fieldMap["phone"] = s.Phone
 	s.fieldMap["email"] = s.Email
 	s.fieldMap["created_at"] = s.CreatedAt
