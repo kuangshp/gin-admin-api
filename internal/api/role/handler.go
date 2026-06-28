@@ -63,6 +63,7 @@ func (r Role) CreateRoleApi(ctx *gin.Context) {
 		r.Fail(ctx, errors.New("角色名称已经存在,不能重复"), "角色名称已经存在,不能重复")
 		return
 	}
+	// 判断数据权限
 	if !r.checkCustomDept(ctx, req.DataScope, req.DeptIdList) {
 		return
 	}
@@ -381,7 +382,7 @@ func (r Role) checkCustomDept(ctx *gin.Context, dataScope int64, deptIdList []in
 	if dataScope != enum.DataScopeCustomDept {
 		return true
 	}
-	deptIDs := distinctPositive(deptIdList)
+	deptIDs := k.Distinct(deptIdList)
 	if len(deptIDs) == 0 {
 		r.Fail(ctx, errors.New("自定义数据权限部门不能为空"), "自定义数据权限部门不能为空")
 		return false
@@ -402,7 +403,7 @@ func (r Role) checkCustomDept(ctx *gin.Context, dataScope int64, deptIdList []in
 }
 
 func (r Role) buildRoleCustomDeptEntityList(roleID int64, deptIdList []int64) []*model.SysRoleCustomDeptEntity {
-	deptIDs := distinctPositive(deptIdList)
+	deptIDs := k.Distinct(deptIdList)
 	list := make([]*model.SysRoleCustomDeptEntity, 0, len(deptIDs))
 	for _, deptID := range deptIDs {
 		list = append(list, &model.SysRoleCustomDeptEntity{
@@ -411,22 +412,6 @@ func (r Role) buildRoleCustomDeptEntityList(roleID int64, deptIdList []int64) []
 		})
 	}
 	return list
-}
-
-func distinctPositive(values []int64) []int64 {
-	seen := make(map[int64]struct{}, len(values))
-	result := make([]int64, 0, len(values))
-	for _, value := range values {
-		if value <= 0 {
-			continue
-		}
-		if _, ok := seen[value]; ok {
-			continue
-		}
-		seen[value] = struct{}{}
-		result = append(result, value)
-	}
-	return result
 }
 
 func NewRole(baseApi *base.BaseApi, enforcer *casbin.Enforcer) IRole {

@@ -51,6 +51,7 @@ func (p Post) CreatePostApi(ctx *gin.Context) {
 	if req.Status == 0 {
 		req.Status = enum.StatusNormalEnum
 	}
+	// 判断唯一性
 	if !p.checkCodeUnique(ctx, req.Code, 0) {
 		return
 	}

@@ -362,6 +362,12 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "查询账号岗位失败")
 		return
 	}
+	// 获取岗位名称
+	accountVO.PostList, err = s.getPostListByAccount(ctx, id)
+	if err != nil {
+		s.Fail(ctx, err, "查询账号岗位名称失败")
+		return
+	}
 	s.Success(ctx, vo.SysAccountDetailVO{
 		SysAccountVO: *accountVO,
 		RoleIdList:   roleIdList,
@@ -624,6 +630,32 @@ func (s SysAccount) getPostIDListByAccount(ctx *gin.Context, accountID int64) ([
 	}), nil
 }
 
+func (s SysAccount) getPostListByAccount(ctx *gin.Context, accountID int64) ([]vo.PostVO, error) {
+	postIDList, err := s.getPostIDListByAccount(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if len(postIDList) == 0 {
+		return []vo.PostVO{}, nil
+	}
+	postEntityList, err := s.SysPostRepository.FindByIdList(ctx, postIDList)
+	if err != nil {
+		return nil, err
+	}
+	postMap := make(map[int64]string, len(postEntityList))
+	for _, post := range postEntityList {
+		postMap[post.ID] = post.Name
+	}
+	result := make([]vo.PostVO, 0, len(postIDList))
+	for _, postID := range postIDList {
+		result = append(result, vo.PostVO{
+			ID:   postID,
+			Name: postMap[postID],
+		})
+	}
+	return result, nil
+}
+
 func (s SysAccount) fillAccountPostList(ctx *gin.Context, list []*vo.SysAccountVO) bool {
 	if len(list) == 0 {
 		return true
@@ -637,6 +669,7 @@ func (s SysAccount) fillAccountPostList(ctx *gin.Context, list []*vo.SysAccountV
 		accountIDs = append(accountIDs, item.ID)
 		accountMap[item.ID] = item
 		item.PostIdList = make([]int64, 0)
+		item.PostList = make([]vo.PostVO, 0)
 	}
 	if len(accountIDs) == 0 {
 		return true
@@ -649,12 +682,36 @@ func (s SysAccount) fillAccountPostList(ctx *gin.Context, list []*vo.SysAccountV
 		s.Fail(ctx, err, "查询账号岗位失败")
 		return false
 	}
+	// 收集所有岗位ID，批量查询岗位名称
+	postIDSet := make(map[int64]struct{})
+	for _, item := range accountPostList {
+		postIDSet[item.PostID] = struct{}{}
+	}
+	postIDs := make([]int64, 0, len(postIDSet))
+	for id := range postIDSet {
+		postIDs = append(postIDs, id)
+	}
+	postMap := make(map[int64]string, len(postIDs))
+	if len(postIDs) > 0 {
+		postEntityList, err := s.SysPostRepository.FindByIdList(ctx, postIDs)
+		if err != nil {
+			s.Fail(ctx, err, "查询岗位信息失败")
+			return false
+		}
+		for _, post := range postEntityList {
+			postMap[post.ID] = post.Name
+		}
+	}
 	for _, item := range accountPostList {
 		accountVO := accountMap[item.AccountID]
 		if accountVO == nil {
 			continue
 		}
 		accountVO.PostIdList = append(accountVO.PostIdList, item.PostID)
+		accountVO.PostList = append(accountVO.PostList, vo.PostVO{
+			ID:   item.PostID,
+			Name: postMap[item.PostID],
+		})
 	}
 	return true
 }
