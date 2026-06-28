@@ -132,7 +132,7 @@ func (d Dept) DeleteDeptByIdApi(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "部门ID"
-// @Param data body dto.ModifySysDeptDTO true "修改部门参数"
+// @Param data body dto.CreateSysDeptDTO true "修改部门参数"
 // @Success 200 {string} string "修改成功"
 // @Router /api/v1/admin/dept/{id} [put]
 func (d Dept) ModifyDeptByIdApi(ctx *gin.Context) {
