@@ -272,10 +272,22 @@ func (s SysAccount) GetSysAccountPageApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "获取账号分页失败")
 		return
 	}
-	result := s.SysAccountMapper.EntityListToVo(list)
+	// 处理部门
+	deptIdList := k.Map(list, func(item *model.SysAccountEntity, index int) int64 {
+		return item.DeptID
+	})
+	deptEntities, err := s.SysDeptRepository.FindByIdList(ctx, k.Distinct(deptIdList))
+	deptNameMap := make(map[int64]string)
+	if err == nil && len(deptEntities) > 0 {
+		deptNameMap = k.ToMap(deptEntities, func(item *model.SysDeptEntity) (int64, string) {
+			return item.ID, item.Name
+		})
+	}
+	result := s.SysAccountMapper.EntityListToVo(list, deptNameMap)
 	if !s.fillAccountPostList(ctx, result) {
 		return
 	}
+
 	s.BuildPageData(ctx, result, total)
 	return
 }
@@ -314,7 +326,7 @@ func (s SysAccount) GetSysAccountListApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "获取账号列表失败")
 		return
 	}
-	result := s.SysAccountMapper.EntityListToVo(list)
+	result := s.SysAccountMapper.EntityListToVo(list, make(map[int64]string))
 	// 填充账号岗位
 	if !s.fillAccountPostList(ctx, result) {
 		return
@@ -343,7 +355,13 @@ func (s SysAccount) GetSysAccountDetailApi(ctx *gin.Context) {
 		s.Fail(ctx, err, "获取账号详情失败")
 		return
 	}
-	accountVO := s.SysAccountMapper.EntityToVo(accountEntity)
+	// 获取部门名称
+	deptEntity, err := s.SysDeptRepository.FindById(ctx, accountEntity.DeptID)
+	var deptName = ""
+	if err == nil {
+		deptName = deptEntity.Name
+	}
+	accountVO := s.SysAccountMapper.EntityToVo(accountEntity, deptName)
 	// 查询账号角色
 	list, err := s.SysAccountRoleRepository.FindList(ctx, gormplus.QueryOpt().Where(dao.SysAccountRoleEntity.AccountID.Eq(id)).Build())
 	var roleIdList = make([]int64, 0)

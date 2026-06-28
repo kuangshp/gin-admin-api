@@ -2126,6 +2126,10 @@ const docTemplate = `{
                     "description": "所属部门id",
                     "type": "integer"
                 },
+                "deptName": {
+                    "description": "所属部门名称",
+                    "type": "string"
+                },
                 "email": {
                     "description": "邮箱",
                     "type": "string"
@@ -2211,6 +2215,10 @@ const docTemplate = `{
                 "deptId": {
                     "description": "所属部门id",
                     "type": "integer"
+                },
+                "deptName": {
+                    "description": "所属部门名称",
+                    "type": "string"
                 },
                 "email": {
                     "description": "邮箱",

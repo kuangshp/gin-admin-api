@@ -12,21 +12,22 @@ func AuthMiddleWare(redisClients ...*redis.Client) gin.HandlerFunc {
 		// 从请求头中获取token
 		tokenString := ctx.GetHeader("token")
 		if tokenString == "" {
-			utils.Fail(ctx, "必须传递token")
+			utils.Response(ctx, 10024, "必须传递token", nil)
 			ctx.Abort()
 			return
 		}
 		// 从token中解析出数据
 		token, claims, err := utils.ParseToken(tokenString)
 		if err != nil || !token.Valid {
-			utils.Fail(ctx, "token解析错误")
+			utils.Response(ctx, 10024, "token解析错误", nil)
 			ctx.Abort()
 			return
 		}
 		if len(redisClients) > 0 && redisClients[0] != nil {
 			redisDb := utils.NewRedisUtils(redisClients[0])
 			if _, err = redisDb.ExistsKey(ctx, utils.AuthTokenRedisKey(claims.AccountId, tokenString)); err != nil {
-				utils.Fail(ctx, "token已失效,请重新登录")
+				//utils.Fail(ctx, "token已失效,请重新登录")
+				utils.Response(ctx, 10024, "token已失效,请重新登录", nil)
 				ctx.Abort()
 				return
 			}
